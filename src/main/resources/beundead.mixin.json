@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "package": "io.github.ziederziet.beundead.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "CreeperMixin",
+    "OptionsMixin",
+    "PlayerMixin",
+    "EntityAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "refmap": "beundead.mixin-refmap.json"
+}
