@@ -2,6 +2,7 @@ package io.github.ziederziet.beundead.mixin;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.serialization.DataResult;
+import io.github.ziederziet.beundead.BeUndead;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.core.BlockPos;
@@ -10,64 +11,87 @@ import net.minecraft.nbt.*;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageSources;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Objects;
 
 
 @Mixin(Player.class)
 public class PlayerMixin {
-    private static final EntityDataAccessor<Integer> DATA_ZOMBIE;
 
 
-    private int zombietype = 0;
 
     @Inject(at = @At("TAIL"), method = "defineSynchedData(Lnet/minecraft/network/syncher/SynchedEntityData$Builder;)V")
-    private void defineSynchedData(SynchedEntityData.Builder pBuilder, CallbackInfo info) {
-        pBuilder.define(DATA_ZOMBIE, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder pBuilder, CallbackInfo info) {
+        pBuilder.define(BeUndead.DATA_ZOMBIE, 0);
+        pBuilder.define(BeUndead.DATA_ZOMBIE_RESPAWN_TIME, 0);
     }
     @Inject(at = @At("TAIL"), method = "readAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V")
     public void readAdditionalSaveData(CompoundTag pCompound, CallbackInfo info) {
-        this.zombietype = pCompound.getInt("ZombieType");
+        int zombietype = pCompound.getInt("ZombieType");
         SynchedEntityData entityData = ((EntityAccessor)this).getEntityData();
-        entityData.set(DATA_ZOMBIE, this.zombietype);
+        if (pCompound.contains("ZombieRespawnTimer")){
+            entityData.set(BeUndead.DATA_ZOMBIE_RESPAWN_TIME, pCompound.getInt("ZombieRespawnTimer"));
+        }
+        else {
+            entityData.set(BeUndead.DATA_ZOMBIE_RESPAWN_TIME, 0);
+        }
+        entityData.set(BeUndead.DATA_ZOMBIE, zombietype);
     }
     @Inject(at = @At("TAIL"), method = "addAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V")
     public void addAdditionalSaveData(CompoundTag pCompound, CallbackInfo info) {
-        pCompound.putInt("ZombieType", this.zombietype);
-    }
-
-    public void setZombieType(int type){
-        this.zombietype = type;
         SynchedEntityData entityData = ((EntityAccessor)this).getEntityData();
-        entityData.set(DATA_ZOMBIE, zombietype);
+        pCompound.putInt("ZombieType", entityData.get(BeUndead.DATA_ZOMBIE));
+        int dataRespawnTimer = entityData.get(BeUndead.DATA_ZOMBIE_RESPAWN_TIME);
+        if (dataRespawnTimer > 0){
+            pCompound.putInt("ZombieRespawnTimer", dataRespawnTimer);
+        }
+
     }
 
-    public int getZombieType(){
-        return ((EntityAccessor)this).getEntityData().get(DATA_ZOMBIE);
+    private boolean isSunBurnTick() {
+        Player thisPlayer = (Player) (Object)this;
+        if (thisPlayer.level().isDay() && !thisPlayer.level().isClientSide) {
+            float f = thisPlayer.getLightLevelDependentMagicValue();
+            BlockPos blockpos = BlockPos.containing(thisPlayer.getX(), thisPlayer.getEyeY(), thisPlayer.getZ());
+            boolean flag = thisPlayer.isInWaterRainOrBubble() || thisPlayer.isInPowderSnow || thisPlayer.wasInPowderSnow;
+            if (f > 0.5F && thisPlayer.getRandom().nextFloat() * 30.0F < (f - 0.4F) * 2.0F && !flag && thisPlayer.level().canSeeSky(blockpos)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    public static int getZombieTypeOfPlayer(Player player){
-        return ((PlayerMixin)(Object)player).getZombieType();
-    }
+//    @Overwrite
+//    public boolean canSprint() {
+//        return BeUndead.getZombieType((Player) (Object)this) == 0;
+//    }
 
-    public static int getZombieTypeOfClient(){
-        return getZombieTypeOfPlayer(Minecraft.getInstance().player);
-    }
-
-    static {
-        DATA_ZOMBIE = SynchedEntityData.defineId(Player.class, EntityDataSerializers.INT);
-    }
+//    @Inject(at = @At("HEAD"), method = "drop(Lnet/minecraft/world/item/ItemEntity;Z)Lnet/minecraft/world/item/ItemEntity;")
+//    public ItemEntity drop(ItemStack pItemStack, boolean pIncludeThrowerName, CallbackInfoReturnable<ItemStack> infoReturnable) {
+//        if (BeUndead.getZombieType((Player) (Object) this) > 0){
+//            ((Player)(Object)this).getInventory().selected = 0;
+//        }
+//        return null;
+//    }
 }

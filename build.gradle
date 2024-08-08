@@ -82,7 +82,7 @@ minecraft {
             // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
             property 'forge.logging.console.level', 'debug'
 
-            arg "-mixin.config=beundead.mixin.json"
+            arg "-mixin.config=" + mod_id +  ".mixin.json"
         }
 
         client {
@@ -184,7 +184,7 @@ tasks.named('jar', Jar).configure {
                 'Implementation-Vendor'   : mod_authors,
                 'TweakClass': "org.spongepowered.asm.launch.MixinTweaker",
                 'TweakOrder': 0,
-                'MixinConfigs': "beundead.mixin.json"
+                'MixinConfigs': mod_id + ".mixin.json"
         ])
     }
 }

@@ -5,8 +5,29 @@
   "client": [
     "CreeperMixin",
     "OptionsMixin",
+    "LivingEntityMixin",
     "PlayerMixin",
-    "EntityAccessor"
+    "EntityAccessor",
+    "HumanoidModelAccessor",
+    "EntityModelAccessor",
+    "PlayerModelAccessor",
+    "ModelAccessor",
+    "PlayerModelMixin",
+    "PlayerRendererMixin",
+    "LivingEntityRendererMixin",
+    "EntityRendererAccessor",
+    "TargetGoalAccessor",
+    "NearestAttackableTargetGoalAccessor",
+    "TargetingConditionsAccessor",
+    "InventoryMixin",
+    "SlotMixin",
+    "ExperienceOrbMixin",
+    "EntityMixin",
+    "LocalPlayerMixin",
+    "DeathScreenMixin",
+    "AbstractContainerScreenMixin",
+    "PlayerListMixin",
+    "GuiMixin"
   ],
   "injectors": {
     "defaultRequire": 1

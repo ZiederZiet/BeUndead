@@ -1,5 +1,13 @@
 package io.github.ziederziet.beundead;
 
+import io.github.ziederziet.beundead.mixin.EntityAccessor;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
@@ -12,6 +20,9 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 @Mod(BeUndead.MODID)
 public class BeUndead
 {
+    public static final EntityDataAccessor<Integer> DATA_ZOMBIE = SynchedEntityData.defineId(Player.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Integer> DATA_ZOMBIE_RESPAWN_TIME = SynchedEntityData.defineId(Player.class, EntityDataSerializers.INT);
+
     public static BeUndead Mod;
 
     public boolean getFoggyDay(){
@@ -41,6 +52,40 @@ public class BeUndead
     private void addCreative(BuildCreativeModeTabContentsEvent event)
     {
 
+    }
+
+    public static void setZombieType(Player player, int type){
+        SynchedEntityData entityData = ((EntityAccessor)player).getEntityData();
+        entityData.set(DATA_ZOMBIE, type);
+    }
+
+    public static int getZombieType(Player player){
+        return ((EntityAccessor)player).getEntityData().get(DATA_ZOMBIE);
+    }
+
+    public static int getZombieRespawnTimer(Player player){
+        return ((EntityAccessor)player).getEntityData().get(DATA_ZOMBIE_RESPAWN_TIME);
+    }
+
+    public static void setZombieRespawnTimer(Player player, int zombieRespawnTimer){
+        ((EntityAccessor)player).getEntityData().set(DATA_ZOMBIE_RESPAWN_TIME, zombieRespawnTimer);
+    }
+
+    public static int getZombieTypeOfPlayer(Player player){
+        return getZombieType(player);
+    }
+
+    public static int getZombieTypeOfClient(){
+        return getZombieTypeOfPlayer(Minecraft.getInstance().player);
+    }
+
+    public static void revive(Player player){
+        setZombieType(player, 0);
+        player.removeAllEffects();
+        player.setHealth(4F);
+        player.addEffect(new MobEffectInstance(MobEffects.CONFUSION, 60, 0));
+        player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 100, 1));
+        player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 200, 1));
     }
 
     @SubscribeEvent

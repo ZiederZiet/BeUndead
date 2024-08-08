@@ -1,0 +1,28 @@
+package io.github.ziederziet.beundead.mixin;
+
+import io.github.ziederziet.beundead.BeUndead;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.Slot;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+@Mixin(AbstractContainerScreen.class)
+public class AbstractContainerScreenMixin {
+    private static final ResourceLocation STONE_TEXTURE = ResourceLocation.withDefaultNamespace("container/slot_disabled");
+    @Inject(at = @At("TAIL"), method = "renderSlot(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/world/inventory/Slot;)V")
+    protected void renderSlot(GuiGraphics pGuiGraphics, Slot pSlot, CallbackInfo info){
+        //System.out.print(pSlot.getSlotIndex() + "/");
+//        if (pSlot.getSlotIndex() != pSlot.getContainerSlot()){
+//            System.out.print("HIER " + pSlot.getSlotIndex() + "/" + pSlot.getContainerSlot());
+//        }
+        if (pSlot.container instanceof Inventory inventory && pSlot.getSlotIndex() != 40 && !(pSlot.getSlotIndex() > 35 && pSlot.getSlotIndex() < 40 && pSlot.getContainerSlot() > 4 && pSlot.getContainerSlot() < 9) && BeUndead.getZombieType(inventory.player) > 0 && pSlot.getSlotIndex() != 4){
+            pGuiGraphics.blitSprite(STONE_TEXTURE, pSlot.x - 1, pSlot.y - 1, 18, 18);
+        }
+    }
+}
