@@ -27,6 +27,8 @@
     "DeathScreenMixin",
     "AbstractContainerScreenMixin",
     "PlayerListMixin",
+    "VillagerMixin",
+    "DoorBlockMixin",
     "GuiMixin"
   ],
   "injectors": {

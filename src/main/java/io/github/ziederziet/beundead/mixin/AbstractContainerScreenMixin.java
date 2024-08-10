@@ -21,7 +21,7 @@ public class AbstractContainerScreenMixin {
 //        if (pSlot.getSlotIndex() != pSlot.getContainerSlot()){
 //            System.out.print("HIER " + pSlot.getSlotIndex() + "/" + pSlot.getContainerSlot());
 //        }
-        if (pSlot.container instanceof Inventory inventory && pSlot.getSlotIndex() != 40 && !(pSlot.getSlotIndex() > 35 && pSlot.getSlotIndex() < 40 && pSlot.getContainerSlot() > 4 && pSlot.getContainerSlot() < 9) && BeUndead.getZombieType(inventory.player) > 0 && pSlot.getSlotIndex() != 4){
+        if (pSlot.container instanceof Inventory inventory && pSlot.getSlotIndex() < 36 && BeUndead.getZombieType(inventory.player) > 0 && pSlot.getSlotIndex() != 4){
             pGuiGraphics.blitSprite(STONE_TEXTURE, pSlot.x - 1, pSlot.y - 1, 18, 18);
         }
     }

@@ -14,12 +14,15 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Slot.class)
-public class SlotMixin {
+public abstract class SlotMixin {
 
     @Shadow
     public Container container;
+//    @Shadow
+//    public int slot;
+
     @Shadow
-    public int slot;
+    public abstract int getSlotIndex();
 
     @Shadow
     private Pair<ResourceLocation, ResourceLocation> backgroundPair;
@@ -27,7 +30,8 @@ public class SlotMixin {
     @Inject(at = @At("HEAD"), method = "mayPlace(Lnet/minecraft/world/item/ItemStack;)Z", cancellable = true)
     public boolean mayPlace(ItemStack pStack, CallbackInfoReturnable<Boolean> info) {
         if (container instanceof Inventory inventory){
-            if (BeUndead.getZombieType(inventory.player) > 0 && !(slot == 4 || slot == 40)){
+            int slot = getSlotIndex();
+            if (BeUndead.getZombieType(inventory.player) > 0 && slot != 4 && slot < 36){
                 info.setReturnValue(false);
                 info.cancel();
                 return false;
@@ -39,7 +43,8 @@ public class SlotMixin {
     @Inject(at = @At("HEAD"), method = "isHighlightable()Z", cancellable = true)
     public boolean isHighlightable(CallbackInfoReturnable<Boolean> info) {
         if (container instanceof Inventory inventory){
-            if (BeUndead.getZombieType(inventory.player) > 0 && !(slot == 4 || slot == 40)){
+            int slot = getSlotIndex();
+            if (BeUndead.getZombieType(inventory.player) > 0 && slot != 4 && slot < 36){
                 info.setReturnValue(false);
                 info.cancel();
                 return false;

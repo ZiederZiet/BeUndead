@@ -14,8 +14,11 @@ import net.minecraft.core.GlobalPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.Mob;
@@ -25,6 +28,8 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.monster.ZombieVillager;
+import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
@@ -279,6 +284,18 @@ public class ModEvents {
             else {
                 BeUndead.setZombieRespawnTimer(player, 6000);
                 player.removeAllEffects();
+            }
+        }
+
+        if (event.getEntity() instanceof Villager villager){
+            if (event.getSource().is(DamageTypes.PLAYER_ATTACK) && event.getSource().getEntity() instanceof Player player && BeUndead.getZombieType(player) > 0){
+                ZombieVillager newZombieVillager = new ZombieVillager(EntityType.ZOMBIE_VILLAGER, player.level());
+                newZombieVillager.moveTo(villager.getX(), villager.getY(), villager.getZ(), villager.getYRot(), villager.getXRot());
+                newZombieVillager.setVillagerData(villager.getVillagerData());
+                if (villager.hasCustomName()){
+                    newZombieVillager.setCustomName(villager.getCustomName());
+                }
+                player.level().addFreshEntity(newZombieVillager);
             }
         }
     }
