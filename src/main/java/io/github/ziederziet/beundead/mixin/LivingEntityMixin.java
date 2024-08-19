@@ -14,6 +14,10 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameRules;
@@ -97,25 +101,44 @@ public abstract class LivingEntityMixin {
 //        }
 //    }
 
-    @Overwrite
-    public boolean canBeAffected(MobEffectInstance pEffectInstance) {
+    @Inject(at = @At("HEAD"), method = "canBeAffected(Lnet/minecraft/world/effect/MobEffectInstance;)Z", cancellable = true)
+    public boolean canBeAffected(MobEffectInstance pEffectInstance, CallbackInfoReturnable<Boolean> info) {
         LivingEntity livingEntity = (LivingEntity) (Object)this;
+        if ((livingEntity instanceof Player player && BeUndead.getZombieType(player) > 0) && (pEffectInstance.is(MobEffects.REGENERATION) || pEffectInstance.is(MobEffects.POISON))){
+            info.setReturnValue(false);
+            info.cancel();
+            return false;
+        }
 
-        Event.Result eventResult = ForgeEventFactory.onLivingEffectCanApply(livingEntity, pEffectInstance).getResult();
-        if (!eventResult.isDefault()) {
-            return eventResult.isAllowed();
-        } else if (livingEntity.getType().is(EntityTypeTags.IMMUNE_TO_INFESTED)) {
-            return !pEffectInstance.is(MobEffects.INFESTED);
-        } else if (livingEntity.getType().is(EntityTypeTags.IMMUNE_TO_OOZING)) {
-            return !pEffectInstance.is(MobEffects.OOZING);
-        } else {
-            return !(livingEntity.getType().is(EntityTypeTags.IGNORES_POISON_AND_REGEN) || (livingEntity instanceof Player player && BeUndead.getZombieType(player) > 0)) || !pEffectInstance.is(MobEffects.REGENERATION) && !pEffectInstance.is(MobEffects.POISON);
+        return false;
+    }
+
+//    @Inject(at = @At("HEAD"), method = "dropExperience(Lnet/minecraft/world/entity/Entity;)V", cancellable = true)
+//    protected void dropExperience(@Nullable Entity pEntity, CallbackInfo info){
+//        if (pEntity instanceof Player player && BeUndead.getZombieType(player) > 0){
+//            info.cancel();
+//        }
+//    }
+
+    @Inject(at = @At("HEAD"), method = "dropAllDeathLoot(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/damagesource/DamageSource;)V", cancellable = true)
+    protected void dropAllDeathLoot(ServerLevel pLevel, DamageSource pDamageSource, CallbackInfo info){
+        if (((Object)this instanceof Animal || (Object)this instanceof IronGolem) &&
+                pDamageSource.getEntity() instanceof Player player && BeUndead.getZombieType(player) > 0){
+            if ((Object)this instanceof Animal){
+                player.getFoodData().setFoodLevel(Math.max(20, player.getFoodData().getFoodLevel() + 5));
+                player.getFoodData().setSaturation(Math.max(20F, player.getFoodData().getSaturationLevel() + 3F));
+                player.giveExperiencePoints((int)  Math.round(((LivingEntity)(Object)this).getAttribute(Attributes.MAX_HEALTH).getValue() * 0.6D + 3D));
+            }
+            if ((Object)this instanceof IronGolem){
+                player.giveExperiencePoints(28);
+            }
+            info.cancel();
         }
     }
 
     @Inject(at = @At("HEAD"), method = "canBreatheUnderwater()Z", cancellable = true)
     public boolean canBreatheUnderwater(CallbackInfoReturnable<Boolean> info) {
-        if (((EntityAccessor)this).getType() == EntityType.PLAYER && BeUndead.getZombieType((Player) (Object) this) > 0){
+        if (((EntityAccessor)this).getType() == EntityType.PLAYER && BeUndead.getZombieType((Player) (Object) this) == 3){
             info.setReturnValue(true);
             info.cancel();
             return true;

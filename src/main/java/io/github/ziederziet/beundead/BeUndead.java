@@ -1,6 +1,8 @@
 package io.github.ziederziet.beundead;
 
+import io.github.ziederziet.beundead.commands.ModCommands;
 import io.github.ziederziet.beundead.mixin.EntityAccessor;
+import io.github.ziederziet.beundead.networking.ModNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -8,6 +10,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.GameRules;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
@@ -21,7 +24,11 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 public class BeUndead
 {
     public static final EntityDataAccessor<Integer> DATA_ZOMBIE = SynchedEntityData.defineId(Player.class, EntityDataSerializers.INT);
-    public static final EntityDataAccessor<Integer> DATA_ZOMBIE_RESPAWN_TIME = SynchedEntityData.defineId(Player.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Long> DATA_ZOMBIE_RESPAWN_TIME = SynchedEntityData.defineId(Player.class, EntityDataSerializers.LONG);
+    public static final GameRules.Key<GameRules.IntegerValue> RULE_RESPAWN_TIMER = GameRules.register("respawnTimer", GameRules.Category.PLAYER, GameRules.IntegerValue.create(0));
+    public static final GameRules.Key<GameRules.BooleanValue> RULE_ALWAYS_TO_ZOMBIE = GameRules.register("alwaysToZombie", GameRules.Category.PLAYER, GameRules.BooleanValue.create(true));
+    public static final GameRules.Key<GameRules.IntegerValue> RULE_RESPAWN_TIMER_ON_ZOMBIE = GameRules.register("respawnTimerOnZombie", GameRules.Category.PLAYER, GameRules.IntegerValue.create(5));
+    public static final GameRules.Key<GameRules.BooleanValue> RULE_INFECTION = GameRules.register("infection", GameRules.Category.PLAYER, GameRules.BooleanValue.create(true));
 
     public static BeUndead Mod;
 
@@ -46,7 +53,9 @@ public class BeUndead
 
     private void commonSetup(final FMLCommonSetupEvent event)
     {
-
+        event.enqueueWork(() -> {
+            ModNetworking.register();
+        });
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent event)
@@ -63,20 +72,16 @@ public class BeUndead
         return ((EntityAccessor)player).getEntityData().get(DATA_ZOMBIE);
     }
 
-    public static int getZombieRespawnTimer(Player player){
+    public static long getZombieRespawnTimer(Player player){
         return ((EntityAccessor)player).getEntityData().get(DATA_ZOMBIE_RESPAWN_TIME);
     }
 
-    public static void setZombieRespawnTimer(Player player, int zombieRespawnTimer){
+    public static void setZombieRespawnTimer(Player player, long zombieRespawnTimer){
         ((EntityAccessor)player).getEntityData().set(DATA_ZOMBIE_RESPAWN_TIME, zombieRespawnTimer);
     }
 
-    public static int getZombieTypeOfPlayer(Player player){
-        return getZombieType(player);
-    }
-
     public static int getZombieTypeOfClient(){
-        return getZombieTypeOfPlayer(Minecraft.getInstance().player);
+        return getZombieType(Minecraft.getInstance().player);
     }
 
     public static void revive(Player player){

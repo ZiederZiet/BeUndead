@@ -3,8 +3,12 @@ package io.github.ziederziet.beundead.mixin;
 import com.google.common.collect.Lists;
 import io.github.ziederziet.beundead.BeUndead;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.DeathScreen;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.contents.TranslatableContents;
@@ -25,23 +29,45 @@ public abstract class DeathScreenMixin {
     @Shadow
     private Button exitToTitleButton;
     @Shadow
-    private final List<Button> exitButtons = Lists.newArrayList();
+    public final List<Button> exitButtons = Lists.newArrayList();
     @Shadow
     public abstract void setButtonsActive(boolean pActive);
     @Inject(at = @At("HEAD"), method = "setButtonsActive(Z)V", cancellable = true)
     private void setButtonsActiveOverwrite(boolean pActive, CallbackInfo info) {
-        if (BeUndead.getZombieType(Minecraft.getInstance().player) > 0 && BeUndead.getZombieRespawnTimer(Minecraft.getInstance().player) > 1){
-            Button $$1;
-            for(Iterator var2 = this.exitButtons.iterator(); var2.hasNext();) {
-                $$1 = (Button)var2.next();
-                $$1.active = pActive;
-                if ($$1.getMessage() instanceof MutableComponent mutableComponent && mutableComponent.getContents() instanceof TranslatableContents translatableContents && translatableContents.getKey().equals("deathScreen.respawn")){
-                    $$1.active = false;
+        if (BeUndead.getZombieRespawnTimer(Minecraft.getInstance().player) > 0){
+            long timeDif = BeUndead.getZombieRespawnTimer(Minecraft.getInstance().player) - Minecraft.getInstance().player.level().getGameTime();
+            if (timeDif > 0){
+                Button $$1;
+                for(Iterator var2 = this.exitButtons.iterator(); var2.hasNext();) {
+                    $$1 = (Button)var2.next();
+                    $$1.active = pActive;
+                    if ($$1.getMessage() instanceof MutableComponent mutableComponent && mutableComponent.getContents() instanceof TranslatableContents translatableContents && translatableContents.getKey().equals("deathScreen.respawn")){
+                        $$1.active = false;
+                    }
                 }
+                info.cancel();
             }
+        }
+    }
+
+//    @Inject(at = @At("HEAD"), method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V")
+//    public void render(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick, CallbackInfo info){
+//        int respawnTimer = BeUndead.getZombieRespawnTimer(Minecraft.getInstance().player);
+//        int seconds = (int) (Math.floor(respawnTimer / 20) % 60);
+//        int minutes = (int) Math.floor(respawnTimer / 20) / 60;
+//        System.out.println(respawnTimer);
+//        String timerString = " " + minutes + ":" + seconds;
+//        this.exitButtons.get(0).setMessage(Component.translatable("deathScreen.respawn").append(timerString));
+//    }
+
+    @Shadow
+    protected abstract void exitToTitleScreen();
+
+    @Inject(at = @At("HEAD"), method = "handleExitToTitleScreen()V", cancellable = true)
+    private void handleExitToTitleScreen(CallbackInfo info) {
+        if (BeUndead.getZombieType(Minecraft.getInstance().player) > 0){
+            this.exitToTitleScreen();
             info.cancel();
         }
-
-
     }
 }

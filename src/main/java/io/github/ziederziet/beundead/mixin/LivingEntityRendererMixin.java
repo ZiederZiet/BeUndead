@@ -239,7 +239,8 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
             }
             if (rendertype != null) {
                 VertexConsumer vertexconsumer = pBuffer.getBuffer(rendertype);
-                vertexconsumer.setColor(4424760);
+                //vertexconsumer.setColor(4424760);
+                vertexconsumer.setColor(0);
                 int i = LivingEntityRenderer.getOverlayCoords(pEntity, this.getWhiteOverlayProgress(pEntity, pPartialTicks));
                 this.model.renderToBuffer(pPoseStack, vertexconsumer, pPackedLight, i, flag1 ? 654311423 : -1);
             }

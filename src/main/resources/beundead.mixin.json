@@ -1,7 +1,6 @@
 {
   "required": true,
   "package": "io.github.ziederziet.beundead.mixin",
-  "compatibilityLevel": "JAVA_21",
   "client": [
     "CreeperMixin",
     "OptionsMixin",
@@ -29,6 +28,7 @@
     "PlayerListMixin",
     "VillagerMixin",
     "DoorBlockMixin",
+    "DeathScreenAccessor",
     "GuiMixin"
   ],
   "injectors": {

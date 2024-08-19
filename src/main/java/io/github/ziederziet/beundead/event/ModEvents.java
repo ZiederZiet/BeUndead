@@ -1,43 +1,61 @@
 package io.github.ziederziet.beundead.event;
 
 import io.github.ziederziet.beundead.BeUndead;
+import io.github.ziederziet.beundead.commands.ModCommands;
 import io.github.ziederziet.beundead.goal.CreeperMeleeAttackGoal;
 import io.github.ziederziet.beundead.goal.CustomNearestAttackablePlayerGoal;
 import io.github.ziederziet.beundead.goal.GetAwayFromCreeperGoal;
 import io.github.ziederziet.beundead.goal.GetAwayFromExplodingTnt;
+import io.github.ziederziet.beundead.mixin.DeathScreenAccessor;
 import io.github.ziederziet.beundead.mixin.DeathScreenMixin;
+import io.github.ziederziet.beundead.mixin.EntityAccessor;
 import io.github.ziederziet.beundead.mixin.NearestAttackableTargetGoalAccessor;
+import io.github.ziederziet.beundead.networking.ModNetworking;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.DeathScreen;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.ExperienceOrb;
-import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.monster.ZombieVillager;
+import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.npc.WanderingTrader;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.AABB;
+import net.minecraftforge.event.CommandEvent;
 import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
@@ -50,6 +68,12 @@ import java.util.*;
 
 @Mod.EventBusSubscriber(modid = BeUndead.MODID)
 public class ModEvents {
+    @SubscribeEvent
+    public static void onLivingDamageEvent(LivingDamageEvent event){
+        if (event.getSource().getEntity() instanceof Player player && BeUndead.getZombieType(player) == 3){
+            event.getEntity().addEffect(new MobEffectInstance(MobEffects.HUNGER, 600, 0));
+        }
+    }
     @SubscribeEvent
     public static void onAttackEntityEvent(AttackEntityEvent event){
         if (BeUndead.getZombieType(event.getEntity()) > 0){
@@ -96,27 +120,35 @@ public class ModEvents {
     }
 
     @SubscribeEvent
-    public static void onLivingTickEvent(LivingEvent.LivingTickEvent event){
-        if (event.getEntity() instanceof Player player && BeUndead.getZombieType(player) > 0){
-            if (BeUndead.getZombieType(player) > 0){
-                checkSideItems(player);
-
-                int respawnTimer = BeUndead.getZombieRespawnTimer(player);
-                if (!player.level().isClientSide() && respawnTimer > 0){
-                    BeUndead.setZombieRespawnTimer(player, respawnTimer - 1);
-                }
-
-                if (player.level().isClientSide() && respawnTimer == 1){
-                    if (Minecraft.getInstance().screen instanceof DeathScreen deathScreen) {
-                        ((DeathScreenMixin)(Object)deathScreen).setButtonsActive(true);
+    public static void onLevelTickEvent(TickEvent.LevelTickEvent event){
+        if (Minecraft.getInstance().player != null){
+            LocalPlayer player = Minecraft.getInstance().player;
+            if (player.level().isClientSide()){
+                if (Minecraft.getInstance().screen instanceof DeathScreen deathScreen){
+                    long respawnTimer = BeUndead.getZombieRespawnTimer(player);
+                    long timeTo = respawnTimer - player.level().getGameTime();
+                    if (timeTo == 1){
+                        ((DeathScreenAccessor)(Object)deathScreen).getExitButtons().getFirst().active = true;
+                        ((DeathScreenAccessor)(Object)deathScreen).getExitButtons().getFirst().setMessage(Component.translatable("deathScreen.respawn"));
+                    } else if (timeTo > 0 && timeTo % 20 == 0){
+                        int minutes = (int)Math.floor(timeTo / 20D / 60D);
+                        int seconds = (int)Math.floor(timeTo / 20D % 60D);
+                        ((DeathScreenAccessor)(Object)deathScreen).getExitButtons().getFirst().setMessage(Component.translatable("deathScreen.respawn").append(" " + minutes + ":" + (String.valueOf(seconds).length() == 1 ? "0" : "") + seconds));
                     }
                 }
+            }
+        }
+    }
 
-//                if (respawnTimer == 5999){
-//                    Minecraft.getInstance().setScreen(new ZombieDeathScreen(Component.literal("You can respawn"), false));
-//                }
+    @SubscribeEvent
+    public static void onLivingTickEvent(LivingEvent.LivingTickEvent event){
+        if (event.getEntity() instanceof Player player){
 
-                if (isSunBurnTick(player)){
+            int type = BeUndead.getZombieType(player);
+            if (type > 0){
+                checkSideItems(player);
+
+                if (type != 2 && isSunBurnTick(player)){
                     ItemStack itemstack = player.getItemBySlot(EquipmentSlot.HEAD);
                     if (!itemstack.isEmpty()) {
                         if (itemstack.isDamageableItem()) {
@@ -178,6 +210,10 @@ public class ModEvents {
             creeper.goalSelector.addGoal(4, new CreeperMeleeAttackGoal(creeper, 1.0, false));
         }
 
+        if (event.getEntity() instanceof WanderingTrader wanderingTrader){
+            wanderingTrader.goalSelector.addGoal(1, new AvoidEntityGoal<Player>(wanderingTrader, Player.class, player -> BeUndead.getZombieType((Player) player) > 0,  8.0F, 0.5, 0.5, livingEntity -> EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(livingEntity)));
+        }
+
         if (event.getEntity() instanceof Mob mob){
 
             //Set<WrappedGoal> copiedGoals = new HashSet<>(mob.targetSelector.getAvailableGoals());
@@ -224,78 +260,140 @@ public class ModEvents {
     @SubscribeEvent
     public static void onLivingDeathEvent(LivingDeathEvent event) {
         if (event.getEntity() instanceof Player player) {
-            if (BeUndead.getZombieType(player) == 0){
-                event.setCanceled(true);
+            int type = BeUndead.getZombieType(player);
+            if (type == 0){
 
-                player.setHealth(20F);
-                player.getFoodData().setFoodLevel(20);
-                player.getFoodData().setSaturation(20F);
+                boolean turnZombie = true;
 
-                player.sendSystemMessage(player.getCombatTracker().getDeathMessage());
+                if (turnZombie){
+                    type = 1;
 
-                if (!player.isSpectator() && !player.level().isClientSide()){
-                    player.captureDrops(new ArrayList());
-                    DamageSource pDamageSource = event.getSource();
-
-                    if (!player.level().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)) {
-                        for(int i = 0; i < player.getInventory().getContainerSize(); ++i) {
-                            ItemStack itemstack = player.getInventory().getItem(i);
-                            if (!itemstack.isEmpty() && EnchantmentHelper.has(itemstack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP)) {
-                                player.getInventory().removeItemNoUpdate(i);
+                    if (event.getSource().is(DamageTypes.DROWN)){
+                        type = 3;
+                    } else if (event.getSource().is(DamageTypes.WITHER)) {
+                        type = 2;
+                    } else {
+                        if (event.getEntity().isUnderWater()){
+                            type = 3;
+                        } else {
+                            boolean hasDesert = true;
+                            for (int x = -1; x < 2; x++) {
+                                for (int z = -1; z < 2; z++) {
+                                    hasDesert = event.getEntity().level().getBlockState(new BlockPos(event.getEntity().getBlockX() + x, (int)Math.floor(event.getEntity().getY() - 0.8D), event.getEntity().getBlockZ() + z)).is(BlockTags.SAND);
+                                    if (!hasDesert){
+                                        break;
+                                    }
+                                }
+                            }
+                            if (hasDesert){
+                                type = 2;
                             }
                         }
-                        player.getInventory().dropAll();
                     }
-                    if (player.level() instanceof ServerLevel serverlevel) {
-                        if (!player.wasExperienceConsumed()) {
-                            int reward = ForgeEventFactory.getExperienceDrop(player, null, player.getExperienceReward(serverlevel, pDamageSource.getEntity()));
-                            ExperienceOrb.award(serverlevel, player.position(), reward);
-                            player.totalExperience = 0;
-                            player.experienceLevel = 0;
-                            player.experienceProgress = 0;
+
+                    event.setCanceled(true);
+
+                    player.setHealth(20F);
+                    player.getFoodData().setFoodLevel(20);
+                    player.getFoodData().setSaturation(20F);
+
+                    player.sendSystemMessage(player.getCombatTracker().getDeathMessage());
+
+                    if (!player.isSpectator() && !player.level().isClientSide()){
+                        player.captureDrops(new ArrayList());
+                        DamageSource pDamageSource = event.getSource();
+
+                        if (!player.level().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)) {
+                            for(int i = 0; i < player.getInventory().getContainerSize(); ++i) {
+                                ItemStack itemstack = player.getInventory().getItem(i);
+                                if (!itemstack.isEmpty() && EnchantmentHelper.has(itemstack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP)) {
+                                    player.getInventory().removeItemNoUpdate(i);
+                                }
+                            }
+                            player.getInventory().dropAll();
+                        }
+                        if (player.level() instanceof ServerLevel serverlevel) {
+                            if (!player.wasExperienceConsumed()) {
+                                int reward = ForgeEventFactory.getExperienceDrop(player, null, player.getExperienceReward(serverlevel, pDamageSource.getEntity()));
+                                ExperienceOrb.award(serverlevel, player.position(), reward);
+                                player.totalExperience = 0;
+                                player.experienceLevel = 0;
+                                player.experienceProgress = 0;
+                            }
+                        }
+                        Collection<ItemEntity> drops = player.captureDrops((Collection)null);
+                        if (!ForgeEventFactory.onLivingDrops(player, pDamageSource, drops, true)) {
+                            drops.forEach((e) -> {
+                                player.level().addFreshEntity(e);
+                            });
                         }
                     }
-                    Collection<ItemEntity> drops = player.captureDrops((Collection)null);
-                    if (!ForgeEventFactory.onLivingDrops(player, pDamageSource, drops, true)) {
-                        drops.forEach((e) -> {
-                            player.level().addFreshEntity(e);
-                        });
+
+                    List<Mob> allEntities = player.level().getEntitiesOfClass(Mob.class, new AABB(player.blockPosition()).inflate(64D, 32D, 64D));
+
+                    for (int i = 0; i < allEntities.size(); i++) {
+                        allEntities.get(i).setTarget(null);
+                    }
+
+                    BeUndead.setZombieType(player, type);
+                    player.removeAllEffects();
+                    player.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 80, 0));
+                    player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 1200, 0));
+                    player.awardStat(Stats.DEATHS);
+                    player.resetStat(Stats.CUSTOM.get(Stats.TIME_SINCE_DEATH));
+                    player.resetStat(Stats.CUSTOM.get(Stats.TIME_SINCE_REST));
+                    player.clearFire();
+                    player.setSharedFlagOnFire(false);
+                    player.getCombatTracker().recheckStatus();
+                    player.setLastDeathLocation(Optional.of(GlobalPos.of(player.level().dimension(), player.blockPosition())));
+                }
+                else {
+                    BeUndead.setZombieRespawnTimer(player, player.level().getGameTime() + ((long) player.level().getGameRules().getInt(BeUndead.RULE_RESPAWN_TIMER) * 20 * 60));
+                }
+
+
+            }
+            else {
+                if (event.getSource().is(DamageTypes.DROWN)){
+                    if (type == 1){
+                        BeUndead.setZombieType(player, 3);
+                    }
+                    else if (type == 2){
+                        BeUndead.setZombieType(player, 1);
                     }
                 }
 
-                List<Mob> allEntities = player.level().getEntitiesOfClass(Mob.class, new AABB(player.blockPosition()).inflate(64D, 32D, 64D));
-
-                for (int i = 0; i < allEntities.size(); i++) {
-                    allEntities.get(i).setTarget(null);
+                else if (event.getSource().is(DamageTypes.WITHER)){
+                    if (type == 3){
+                        BeUndead.setZombieType(player, 1);
+                    }
+                    else if (type == 1){
+                        BeUndead.setZombieType(player, 2);
+                    }
                 }
 
-                BeUndead.setZombieType(player, 1);
-                player.removeAllEffects();
-                player.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 80, 0));
-                player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 1200, 0));
-                player.awardStat(Stats.DEATHS);
-                player.resetStat(Stats.CUSTOM.get(Stats.TIME_SINCE_DEATH));
-                player.resetStat(Stats.CUSTOM.get(Stats.TIME_SINCE_REST));
-                player.clearFire();
-                player.setSharedFlagOnFire(false);
-                player.getCombatTracker().recheckStatus();
-                player.setLastDeathLocation(Optional.of(GlobalPos.of(player.level().dimension(), player.blockPosition())));
-            }
-            else {
-                BeUndead.setZombieRespawnTimer(player, 6000);
+                BeUndead.setZombieRespawnTimer(player, player.level().getGameTime() + ((long) player.level().getGameRules().getInt(BeUndead.RULE_RESPAWN_TIMER_ON_ZOMBIE) * 20 * 60));
                 player.removeAllEffects();
             }
         }
 
-        if (event.getEntity() instanceof Villager villager){
-            if (event.getSource().is(DamageTypes.PLAYER_ATTACK) && event.getSource().getEntity() instanceof Player player && BeUndead.getZombieType(player) > 0){
-                ZombieVillager newZombieVillager = new ZombieVillager(EntityType.ZOMBIE_VILLAGER, player.level());
-                newZombieVillager.moveTo(villager.getX(), villager.getY(), villager.getZ(), villager.getYRot(), villager.getXRot());
-                newZombieVillager.setVillagerData(villager.getVillagerData());
-                if (villager.hasCustomName()){
-                    newZombieVillager.setCustomName(villager.getCustomName());
+        if ((event.getEntity().level().getDifficulty() == Difficulty.NORMAL || event.getEntity().level().getDifficulty() == Difficulty.HARD) && event.getEntity() instanceof Villager villager){
+            if (!(villager.level().getDifficulty() != Difficulty.HARD && villager.getRandom().nextBoolean())) {
+                if (ForgeEventFactory.canLivingConvert(villager, EntityType.ZOMBIE_VILLAGER, (timer) -> {
+                })) {
+                    ZombieVillager zombievillager = (ZombieVillager)villager.convertTo(EntityType.ZOMBIE_VILLAGER, false);
+                    if (zombievillager != null) {
+                        zombievillager.finalizeSpawn((ServerLevelAccessor) villager.level(), villager.level().getCurrentDifficultyAt(zombievillager.blockPosition()), MobSpawnType.CONVERSION, new Zombie.ZombieGroupData(false, true));
+                        zombievillager.setVillagerData(villager.getVillagerData());
+                        zombievillager.setGossips((Tag)villager.getGossips().store(NbtOps.INSTANCE));
+                        zombievillager.setTradeOffers(villager.getOffers().copy());
+                        zombievillager.setVillagerXp(villager.getVillagerXp());
+                        ForgeEventFactory.onLivingConvert(villager, zombievillager);
+                        if (!villager.isSilent()) {
+                            villager.level().levelEvent((Player)null, 1026, villager.blockPosition(), 0);
+                        }
+                    }
                 }
-                player.level().addFreshEntity(newZombieVillager);
             }
         }
     }
@@ -305,5 +403,10 @@ public class ModEvents {
         if (BeUndead.getZombieType(event.getEntity()) > 0){
             event.setNewSpeed(event.getNewSpeed() / 3);
         }
+    }
+
+    @SubscribeEvent
+    public static void onCommandRegister(RegisterCommandsEvent event){
+        ModCommands.registerCommand(event);
     }
 }

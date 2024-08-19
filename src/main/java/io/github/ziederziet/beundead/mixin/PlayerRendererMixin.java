@@ -16,6 +16,9 @@ import net.minecraftforge.client.event.ForgeEventFactoryClient;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(PlayerRenderer.class)
 public class PlayerRendererMixin {
@@ -95,13 +98,13 @@ public class PlayerRendererMixin {
         }
     }
 
-    @Overwrite
-    public void render(AbstractClientPlayer pEntity, float pEntityYaw, float pPartialTicks, PoseStack pPoseStack, MultiBufferSource pBuffer, int pPackedLight) {
-        this.setModelProperties(pEntity);
-        if (!ForgeEventFactoryClient.onRenderPlayerPre(pEntity, (PlayerRenderer) (Object) this, pPartialTicks, pPoseStack, pBuffer, pPackedLight)) {
-            ((LivingEntityRendererMixin)(Object)this).renderS(pEntity, pEntityYaw, pPartialTicks, pPoseStack, pBuffer, pPackedLight);
-            ForgeEventFactoryClient.onRenderPlayerPost(pEntity, (PlayerRenderer) (Object) this, pPartialTicks, pPoseStack, pBuffer, pPackedLight);
-        }
-    }
+//    @Overwrite
+//    public void render(AbstractClientPlayer pEntity, float pEntityYaw, float pPartialTicks, PoseStack pPoseStack, MultiBufferSource pBuffer, int pPackedLight) {
+//        this.setModelProperties(pEntity);
+//        if (!ForgeEventFactoryClient.onRenderPlayerPre(pEntity, (PlayerRenderer) (Object) this, pPartialTicks, pPoseStack, pBuffer, pPackedLight)) {
+//            ((LivingEntityRendererMixin)(Object)this).renderS(pEntity, pEntityYaw, pPartialTicks, pPoseStack, pBuffer, pPackedLight);
+//            ForgeEventFactoryClient.onRenderPlayerPost(pEntity, (PlayerRenderer) (Object) this, pPartialTicks, pPoseStack, pBuffer, pPackedLight);
+//        }
+//    }
 
 }

@@ -1,0 +1,19 @@
+{
+  "commands.zombiefy.self": "Your a zombie now",
+  "commands.zombiefy": "%s is now a zombie",
+  "commands.zombie.get.non_zombie": "%s is a not a zombie",
+  "commands.zombie.get.zombie": "%s is a zombie",
+  "commands.zombie.get.husk": "%s is a husk",
+  "commands.zombie.get.drowned": "%s is a drowned",
+  "commands.zombie.get.non_zombie.self": "You are not a zombie",
+  "commands.zombie.get.zombie.self": "You are a zombie",
+  "commands.zombie.get.husk.self": "You are a husk",
+  "commands.zombie.get.drowned.self": "You are a drowned",
+  "commands.zombie.revive.not_zombie": "%s is not a zombie",
+  "commands.zombie.revive.not_zombie.self": "You are not a zombie",
+  "commands.zombie.revive.self": "You are no longer a zombie",
+  "commands.zombie.revive": "%s is no longer a zombie",
+  "commands.zombie.revive.players": "%s player(s) are revived",
+  "commands.zombie.set.players": "%s player(s) are now %s"
+
+}

@@ -236,10 +236,9 @@ public abstract class InventoryMixin {
     @Inject(at = @At("HEAD"), method = "pickSlot(I)V", cancellable = true)
     public void pickSlot(int pIndex, CallbackInfo info) {
         if (BeUndead.getZombieType(player) > 0) {
-            this.selected = 4;
-            ItemStack itemstack = (ItemStack)this.items.get(this.selected);
-            this.items.set(this.selected, (ItemStack)this.items.get(pIndex));
-            this.items.set(pIndex, itemstack);
+//            if (this.items.get(selected).isEmpty()){
+//                this.items.set(this.selected, (ItemStack)this.items.get(pIndex));
+//            }
             info.cancel();
         }
     }
@@ -255,7 +254,9 @@ public abstract class InventoryMixin {
     @Inject(at = @At("HEAD"), method = "setPickedItem(Lnet/minecraft/world/item/ItemStack;)V", cancellable = true)
     public void setPickedItem(ItemStack pStack, CallbackInfo info) {
         if (BeUndead.getZombieType(player) > 0 && player.getInventory().getItem(0).isEmpty()){
-            this.selected = 4;
+            if (this.items.get(selected).isEmpty()){
+                this.items.set(this.selected, pStack);
+            }
             info.cancel();
         }
     }

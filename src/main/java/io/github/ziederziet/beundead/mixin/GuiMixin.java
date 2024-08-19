@@ -31,6 +31,9 @@ public abstract class GuiMixin {
     private static final ResourceLocation HOTBAR_ATTACK_INDICATOR_BACKGROUND_SPRITE = ResourceLocation.withDefaultNamespace("hud/hotbar_attack_indicator_background");
     private static final ResourceLocation HOTBAR_ATTACK_INDICATOR_PROGRESS_SPRITE = ResourceLocation.withDefaultNamespace("hud/hotbar_attack_indicator_progress");
 
+    private static final ResourceLocation ZOMBIE_EXPERIENCE_BAR_PROGRESS_SPRITE = ResourceLocation.withDefaultNamespace("hud/zombie_experience_bar_progress");
+    private static final ResourceLocation EXPERIENCE_BAR_BACKGROUND_SPRITE = ResourceLocation.withDefaultNamespace("hud/experience_bar_background");
+
 
     @Shadow
     protected abstract void renderSlot(GuiGraphics pGuiGraphics, int pX, int pY, DeltaTracker pDeltaTracker, Player pPlayer, ItemStack pStack, int pSeed);
@@ -129,4 +132,49 @@ public abstract class GuiMixin {
         }
 
     }
+
+    @Inject(at = @At("HEAD"), method = "renderExperienceBar(Lnet/minecraft/client/gui/GuiGraphics;I)V", cancellable = true)
+    private void renderExperienceBar(GuiGraphics pGuiGraphics, int pX, CallbackInfo info){
+        if (BeUndead.getZombieType(Minecraft.getInstance().player) > 0){
+            Minecraft.getInstance().getProfiler().push("expBar");
+            int i = Minecraft.getInstance().player.getXpNeededForNextLevel();
+            if (i > 0) {
+                int k = (int)(Minecraft.getInstance().player.experienceProgress * 183.0F);
+                int l = pGuiGraphics.guiHeight() - 32 + 3;
+                RenderSystem.enableBlend();
+                pGuiGraphics.blitSprite(EXPERIENCE_BAR_BACKGROUND_SPRITE, pX, l, 182, 5);
+                if (k > 0) {
+                    pGuiGraphics.blitSprite(ZOMBIE_EXPERIENCE_BAR_PROGRESS_SPRITE, 182, 5, 0, 0, pX, l, k, 5);
+                }
+
+                RenderSystem.disableBlend();
+            }
+
+            Minecraft.getInstance().getProfiler().pop();
+            info.cancel();
+        }
+    }
+
+    @Inject(at = @At("HEAD"), method = "renderExperienceLevel(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/DeltaTracker;)V", cancellable = true)
+    private void renderExperienceLevel(GuiGraphics p_335340_, DeltaTracker p_344840_, CallbackInfo info){
+        if (BeUndead.getZombieType(Minecraft.getInstance().player) > 0){
+            int i = Minecraft.getInstance().player.experienceLevel;
+            if (this.isExperienceBarVisible() && i > 0) {
+                Minecraft.getInstance().getProfiler().push("expLevel");
+                String s = "" + i;
+                int j = (p_335340_.guiWidth() - Minecraft.getInstance().font.width(s)) / 2;
+                int k = p_335340_.guiHeight() - 31 - 4;
+                p_335340_.drawString(Minecraft.getInstance().font, s, j + 1, k, 0, false);
+                p_335340_.drawString(Minecraft.getInstance().font, s, j - 1, k, 0, false);
+                p_335340_.drawString(Minecraft.getInstance().font, s, j, k + 1, 0, false);
+                p_335340_.drawString(Minecraft.getInstance().font, s, j, k - 1, 0, false);
+                p_335340_.drawString(Minecraft.getInstance().font, s, j, k, 16735264, false);
+                Minecraft.getInstance().getProfiler().pop();
+            }
+            info.cancel();
+        }
+    }
+
+    @Shadow
+    protected abstract boolean isExperienceBarVisible();
 }
