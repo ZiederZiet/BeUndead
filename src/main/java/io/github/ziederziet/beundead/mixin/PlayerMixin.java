@@ -69,6 +69,9 @@ public class PlayerMixin {
     }
 
     private boolean isSunBurnTick() {
+        if (BeUndead.Mod.getFoggyDay()){
+            return false;
+        }
         Player thisPlayer = (Player) (Object)this;
         if (thisPlayer.level().isDay() && !thisPlayer.level().isClientSide) {
             float f = thisPlayer.getLightLevelDependentMagicValue();

@@ -32,8 +32,15 @@ public class BeUndead
 
     public static BeUndead Mod;
 
+    public boolean Fog;
+    public boolean RedMoon;
+
     public boolean getFoggyDay(){
-        return true;
+        return Fog;
+    }
+
+    public boolean getRedMoon(){
+        return RedMoon;
     }
 
     public static final String MODID = "beundead";

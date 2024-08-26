@@ -25,6 +25,8 @@
     "LocalPlayerMixin",
     "DeathScreenMixin",
     "AbstractContainerScreenMixin",
+    "LevelRendererMixin",
+    "MobMixin",
     "PlayerListMixin",
     "VillagerMixin",
     "DoorBlockMixin",

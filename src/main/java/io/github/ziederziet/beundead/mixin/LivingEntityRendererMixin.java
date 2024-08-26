@@ -214,7 +214,6 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
                 if (pEntity.isBaby()) {
                     f5 *= 3.0F;
                 }
-
                 if (f4 > 1.0F) {
                     f4 = 1.0F;
                 }

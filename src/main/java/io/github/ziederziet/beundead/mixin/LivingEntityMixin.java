@@ -14,11 +14,13 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
@@ -122,16 +124,7 @@ public abstract class LivingEntityMixin {
 
     @Inject(at = @At("HEAD"), method = "dropAllDeathLoot(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/damagesource/DamageSource;)V", cancellable = true)
     protected void dropAllDeathLoot(ServerLevel pLevel, DamageSource pDamageSource, CallbackInfo info){
-        if (((Object)this instanceof Animal || (Object)this instanceof IronGolem) &&
-                pDamageSource.getEntity() instanceof Player player && BeUndead.getZombieType(player) > 0){
-            if ((Object)this instanceof Animal){
-                player.getFoodData().setFoodLevel(Math.max(20, player.getFoodData().getFoodLevel() + 5));
-                player.getFoodData().setSaturation(Math.max(20F, player.getFoodData().getSaturationLevel() + 3F));
-                player.giveExperiencePoints((int)  Math.round(((LivingEntity)(Object)this).getAttribute(Attributes.MAX_HEALTH).getValue() * 0.6D + 3D));
-            }
-            if ((Object)this instanceof IronGolem){
-                player.giveExperiencePoints(28);
-            }
+        if (pDamageSource.getEntity() instanceof Player player && BeUndead.getZombieType(player) > 0){
             info.cancel();
         }
     }

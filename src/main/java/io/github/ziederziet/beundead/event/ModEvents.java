@@ -2,6 +2,7 @@ package io.github.ziederziet.beundead.event;
 
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.commands.ModCommands;
+import io.github.ziederziet.beundead.fogandredmoon.FogAndRedMoonSavedData;
 import io.github.ziederziet.beundead.goal.CreeperMeleeAttackGoal;
 import io.github.ziederziet.beundead.goal.CustomNearestAttackablePlayerGoal;
 import io.github.ziederziet.beundead.goal.GetAwayFromCreeperGoal;
@@ -10,6 +11,7 @@ import io.github.ziederziet.beundead.mixin.DeathScreenAccessor;
 import io.github.ziederziet.beundead.mixin.DeathScreenMixin;
 import io.github.ziederziet.beundead.mixin.EntityAccessor;
 import io.github.ziederziet.beundead.mixin.NearestAttackableTargetGoalAccessor;
+import io.github.ziederziet.beundead.networking.ClientGetFogAndRedMoonPacket;
 import io.github.ziederziet.beundead.networking.ModNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
@@ -31,15 +33,13 @@ import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.monster.Creeper;
-import net.minecraft.world.entity.monster.Monster;
-import net.minecraft.world.entity.monster.Zombie;
-import net.minecraft.world.entity.monster.ZombieVillager;
+import net.minecraft.world.entity.monster.*;
 import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.WanderingTrader;
@@ -70,7 +70,7 @@ import java.util.*;
 public class ModEvents {
     @SubscribeEvent
     public static void onLivingDamageEvent(LivingDamageEvent event){
-        if (event.getSource().getEntity() instanceof Player player && BeUndead.getZombieType(player) == 3){
+        if (event.getSource().getEntity() instanceof Player player && BeUndead.getZombieType(player) == 2){
             event.getEntity().addEffect(new MobEffectInstance(MobEffects.HUNGER, 600, 0));
         }
     }
@@ -78,7 +78,9 @@ public class ModEvents {
     public static void onAttackEntityEvent(AttackEntityEvent event){
         if (BeUndead.getZombieType(event.getEntity()) > 0){
             if (event.getTarget() instanceof Monster){
-                event.setCanceled(true);
+                if (!(event.getTarget() instanceof Mob mob && mob.getTarget() == event.getEntity())){
+                    event.setCanceled(true);
+                }
             }
         }
     }
@@ -119,8 +121,54 @@ public class ModEvents {
         }
     }
 
+    private static FogAndRedMoonSavedData fogAndRedMoonSavedData;
+
     @SubscribeEvent
     public static void onLevelTickEvent(TickEvent.LevelTickEvent event){
+        if (!event.level.isClientSide() && event.level.dimension() == ServerLevel.OVERWORLD){
+            if (fogAndRedMoonSavedData == null){
+                fogAndRedMoonSavedData = FogAndRedMoonSavedData.getFogAndRedMoonSavedData(((ServerLevel)event.level).getServer());
+            }
+            if (fogAndRedMoonSavedData != null){
+                long gameTime = event.level.getGameTime();
+
+                boolean sendPacket = false;
+                boolean fog = false;
+                boolean redMoon = false;
+
+                if (fogAndRedMoonSavedData.getFogTimer() == gameTime){
+                    sendPacket = true;
+                }
+                if (fogAndRedMoonSavedData.getRedMoonTimer() == gameTime){
+                    sendPacket = true;
+                }
+                if (fogAndRedMoonSavedData.getFogTimer() >= gameTime){
+                    fog = true;
+                }
+                if (fogAndRedMoonSavedData.getRedMoonTimer() >= gameTime) {
+                    redMoon = true;
+                }
+                if (fogAndRedMoonSavedData.getFogTimer() + 72000 >= gameTime){
+                    fogAndRedMoonSavedData.setFogTimer(gameTime + 192000 + event.level.getRandom().nextInt(192000));
+                    fog = false;
+                    if (redMoon){
+                        sendPacket = true;
+                    }
+                }
+                if (fog){
+                    redMoon = false;
+                }
+                if (sendPacket){
+                    BeUndead.Mod.Fog = fog;
+                    BeUndead.Mod.RedMoon = redMoon;
+                    ModNetworking.sendToAllClients(new ClientGetFogAndRedMoonPacket(fog, redMoon));
+                }
+//                if (fogAndRedMoonSavedData.getRedMoonTimer() == gameTime){
+//
+//                }
+            }
+        }
+
         if (Minecraft.getInstance().player != null){
             LocalPlayer player = Minecraft.getInstance().player;
             if (player.level().isClientSide()){
@@ -137,6 +185,13 @@ public class ModEvents {
                     }
                 }
             }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLoggedInEvent(PlayerEvent.PlayerLoggedInEvent event){
+        if (!event.getEntity().level().isClientSide()){
+            ModNetworking.sendToClient(new ClientGetFogAndRedMoonPacket(BeUndead.Mod.Fog, BeUndead.Mod.RedMoon), (ServerPlayer) event.getEntity());
         }
     }
 
@@ -172,6 +227,9 @@ public class ModEvents {
     }
 
     private static boolean isSunBurnTick(Player player) {
+        if (BeUndead.Mod.getFoggyDay()){
+            return false;
+        }
         if (player.level().isDay() && !player.level().isClientSide) {
             float f = player.getLightLevelDependentMagicValue();
             BlockPos blockpos = BlockPos.containing(player.getX(), player.getEyeY(), player.getZ());
@@ -259,6 +317,22 @@ public class ModEvents {
 
     @SubscribeEvent
     public static void onLivingDeathEvent(LivingDeathEvent event) {
+        if (event.getEntity().level().isClientSide()) return;
+
+        if (event.getSource().getEntity() instanceof Player player && BeUndead.getZombieType(player) > 0){
+            double maxHealth = event.getEntity().getAttribute(Attributes.MAX_HEALTH).getValue();
+            player.getFoodData().setFoodLevel(Math.min(20, player.getFoodData().getFoodLevel() + (int)Math.round(maxHealth / 3D)));
+            player.getFoodData().setSaturation(Math.min(20F, player.getFoodData().getSaturationLevel() + (int)Math.round(maxHealth / 4D)));
+            if (event.getEntity() instanceof AbstractVillager){
+                player.getFoodData().setFoodLevel(Math.min(20, player.getFoodData().getFoodLevel() + 3));
+                player.getFoodData().setSaturation(Math.min(20F, player.getFoodData().getSaturationLevel() + 1F));
+                player.giveExperiencePoints((int)  Math.round((23D) * (player.getRandom().nextDouble() * 0.3D + 0.8D)));
+            }
+            else if (event.getEntity() instanceof Mob){
+                player.giveExperiencePoints((int)  Math.round((maxHealth * 0.6D + 3D) * (player.getRandom().nextDouble() * 0.5D + 0.5D)));
+            }
+        }
+
         if (event.getEntity() instanceof Player player) {
             int type = BeUndead.getZombieType(player);
             if (type == 0){
