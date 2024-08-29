@@ -167,7 +167,7 @@ public class ModEvents {
 //            }
         }
 
-        if (Minecraft.getInstance().player != null){
+        if (event.level.isClientSide() && Minecraft.getInstance().player != null){
             LocalPlayer player = Minecraft.getInstance().player;
             if (player.level().isClientSide()){
                 if (Minecraft.getInstance().screen instanceof DeathScreen deathScreen){
