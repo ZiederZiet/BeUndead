@@ -6,8 +6,6 @@
     "LivingEntityMixin",
     "PlayerMixin",
     "EntityAccessor",
-    "LivingEntityRendererMixin",
-    "EntityRendererAccessor",
     "TargetGoalAccessor",
     "NearestAttackableTargetGoalAccessor",
     "TargetingConditionsAccessor",
@@ -22,6 +20,7 @@
   ],
   "client": [
     "OptionsMixin",
+    "PlayerMixin",
     "HumanoidModelAccessor",
     "EntityModelAccessor",
     "PlayerModelAccessor",
