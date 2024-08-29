@@ -14,6 +14,10 @@
   "commands.zombie.revive.self": "You are no longer a zombie",
   "commands.zombie.revive": "%s is no longer a zombie",
   "commands.zombie.revive.players": "%s player(s) are revived",
-  "commands.zombie.set.players": "%s player(s) are now %s"
-
+  "commands.zombie.set.players": "%s player(s) are now %s",
+  "commands.fog.add": "Added fog",
+  "commands.fog.get.no": "There is no fog",
+  "commands.fog.get.yes": "There is fog for %s ticks",
+  "commands.redmoon.get.no": "There wont be a redmoon next night",
+  "commands.redmoon.get.yes": "There will be a redmoon next night"
 }

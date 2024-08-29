@@ -74,16 +74,16 @@ public class ModEvents {
             event.getEntity().addEffect(new MobEffectInstance(MobEffects.HUNGER, 600, 0));
         }
     }
-    @SubscribeEvent
-    public static void onAttackEntityEvent(AttackEntityEvent event){
-        if (BeUndead.getZombieType(event.getEntity()) > 0){
-            if (event.getTarget() instanceof Monster){
-                if (!(event.getTarget() instanceof Mob mob && mob.getTarget() == event.getEntity())){
-                    event.setCanceled(true);
-                }
-            }
-        }
-    }
+//    @SubscribeEvent
+//    public static void onAttackEntityEvent(AttackEntityEvent event){
+//        if (BeUndead.getZombieType(event.getEntity()) > 0){
+//            if (event.getTarget() instanceof Monster){
+//                if (!(event.getTarget() instanceof Mob mob && mob.getTarget() == event.getEntity())){
+//                    event.setCanceled(true);
+//                }
+//            }
+//        }
+//    }
 
 //    @SubscribeEvent
 //    public static void onItemTossEvent(net.minecraftforge.event.entity.item.ItemTossEvent event){
@@ -114,6 +114,7 @@ public class ModEvents {
                         player.getInventory().items.set(i, ItemStack.EMPTY);
                         emptyFirstSlot = false;
                     } else {
+                        player.drop(player.getInventory().items.get(i), true);
                         player.getInventory().items.set(i, ItemStack.EMPTY);
                     }
                 }
@@ -126,47 +127,44 @@ public class ModEvents {
     @SubscribeEvent
     public static void onLevelTickEvent(TickEvent.LevelTickEvent event){
         if (!event.level.isClientSide() && event.level.dimension() == ServerLevel.OVERWORLD){
-            if (fogAndRedMoonSavedData == null){
-                fogAndRedMoonSavedData = FogAndRedMoonSavedData.getFogAndRedMoonSavedData(((ServerLevel)event.level).getServer());
-            }
-            if (fogAndRedMoonSavedData != null){
-                long gameTime = event.level.getGameTime();
-
-                boolean sendPacket = false;
-                boolean fog = false;
-                boolean redMoon = false;
-
-                if (fogAndRedMoonSavedData.getFogTimer() == gameTime){
-                    sendPacket = true;
-                }
-                if (fogAndRedMoonSavedData.getRedMoonTimer() == gameTime){
-                    sendPacket = true;
-                }
-                if (fogAndRedMoonSavedData.getFogTimer() >= gameTime){
-                    fog = true;
-                }
-                if (fogAndRedMoonSavedData.getRedMoonTimer() >= gameTime) {
-                    redMoon = true;
-                }
-                if (fogAndRedMoonSavedData.getFogTimer() + 72000 >= gameTime){
-                    fogAndRedMoonSavedData.setFogTimer(gameTime + 192000 + event.level.getRandom().nextInt(192000));
-                    fog = false;
-                    if (redMoon){
-                        sendPacket = true;
-                    }
-                }
-                if (fog){
-                    redMoon = false;
-                }
-                if (sendPacket){
-                    BeUndead.Mod.Fog = fog;
-                    BeUndead.Mod.RedMoon = redMoon;
-                    ModNetworking.sendToAllClients(new ClientGetFogAndRedMoonPacket(fog, redMoon));
-                }
-//                if (fogAndRedMoonSavedData.getRedMoonTimer() == gameTime){
+//            if (fogAndRedMoonSavedData == null){
+//                fogAndRedMoonSavedData = FogAndRedMoonSavedData.getFogAndRedMoonSavedData(((ServerLevel)event.level).getServer());
+//            }
+//            if (fogAndRedMoonSavedData != null){
+//                long gameTime = event.level.getGameTime();
+//                long dayTime = event.level.getDayTime();
 //
+//                boolean fog = false;
+//                boolean redMoon = fogAndRedMoonSavedData.getRedMoonTimer() < gameTime;
+//
+//                if (fogAndRedMoonSavedData.getFogTimer() >= gameTime){
+//                    fog = true;
 //                }
-            }
+//                if (fogAndRedMoonSavedData.getRedMoonTimer() >= gameTime){
+//                    redMoon = true;
+//                }
+//                if (dayTime == 6000){
+//                    if (event.level.getRandom().nextInt(10) == 0){
+//                        fogAndRedMoonSavedData.setRedMoonTimer(gameTime - dayTime + 18000);
+//                        redMoon = true;
+//                    }
+//                }
+//                if (fogAndRedMoonSavedData.getFogTimer() + 72000 >= gameTime){
+//                    fogAndRedMoonSavedData.setFogTimer(gameTime + 192000 + event.level.getRandom().nextInt(192000));
+//                    fog = false;
+//                }
+//                if (fog){
+//                    redMoon = false;
+//                }
+//                if (redMoon != BeUndead.Mod.getRedMoon() || fog != BeUndead.Mod.getFoggyDay()){
+//                    BeUndead.Mod.setFoggyDay(fog);
+//                    BeUndead.Mod.setRedmoon(redMoon);
+//                    ModNetworking.sendToAllClients(new ClientGetFogAndRedMoonPacket(fog, redMoon));
+//                }
+////                if (fogAndRedMoonSavedData.getRedMoonTimer() == gameTime){
+////
+////                }
+//            }
         }
 
         if (Minecraft.getInstance().player != null){
@@ -191,7 +189,10 @@ public class ModEvents {
     @SubscribeEvent
     public static void onPlayerLoggedInEvent(PlayerEvent.PlayerLoggedInEvent event){
         if (!event.getEntity().level().isClientSide()){
-            ModNetworking.sendToClient(new ClientGetFogAndRedMoonPacket(BeUndead.Mod.Fog, BeUndead.Mod.RedMoon), (ServerPlayer) event.getEntity());
+            FogAndRedMoonSavedData savedData = FogAndRedMoonSavedData.getFogAndRedMoonSavedData(event.getEntity().getServer());
+            boolean fog = savedData.getFogTimer() >= event.getEntity().level().getGameTime();
+            boolean redmoon = savedData.getRedMoonTimer() < event.getEntity().level().getGameTime();
+            ModNetworking.sendToClient(new ClientGetFogAndRedMoonPacket(fog, redmoon), (ServerPlayer) event.getEntity());
         }
     }
 
@@ -370,6 +371,8 @@ public class ModEvents {
                     player.setHealth(20F);
                     player.getFoodData().setFoodLevel(20);
                     player.getFoodData().setSaturation(20F);
+
+                    player.level().broadcastEntityEvent(player, (byte)35);
 
                     player.sendSystemMessage(player.getCombatTracker().getDeathMessage());
 

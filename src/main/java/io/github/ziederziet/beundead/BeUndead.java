@@ -32,15 +32,37 @@ public class BeUndead
 
     public static BeUndead Mod;
 
-    public boolean Fog;
-    public boolean RedMoon;
+//    public boolean Fog;
+//    public boolean RedMoon;
+
+//    public boolean getFoggyDay(){
+//        return Fog;
+//    }
+//
+//    public boolean getRedMoon(){
+//        return RedMoon;
+//    }
+
+//    public void setFoggyDay(boolean set){
+//        this.Fog = set;
+//    }
+//
+//    public void setRedmoon(boolean set){
+//        this.RedMoon = set;
+//    }
 
     public boolean getFoggyDay(){
-        return Fog;
+        return false;
     }
 
     public boolean getRedMoon(){
-        return RedMoon;
+        return false;
+    }
+
+    public void setFoggyDay(boolean set){
+    }
+
+    public void setRedmoon(boolean set){
     }
 
     public static final String MODID = "beundead";
@@ -96,8 +118,9 @@ public class BeUndead
         player.removeAllEffects();
         player.setHealth(4F);
         player.addEffect(new MobEffectInstance(MobEffects.CONFUSION, 60, 0));
-        player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 100, 1));
+        player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 2000, 1));
         player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 200, 1));
+        player.experienceLevel = (int)Math.floor(player.experienceLevel * 0.3D);
     }
 
     @SubscribeEvent

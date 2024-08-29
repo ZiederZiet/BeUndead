@@ -25,8 +25,8 @@ public class ClientGetFogAndRedMoonPacket {
 
     public void handle(CustomPayloadEvent.Context context){
         if (context.isClientSide()){
-            BeUndead.Mod.Fog = fog;
-            BeUndead.Mod.RedMoon = redMoon;
+            BeUndead.Mod.setFoggyDay(fog);
+            BeUndead.Mod.setRedmoon(redMoon);
         }
     }
 }
