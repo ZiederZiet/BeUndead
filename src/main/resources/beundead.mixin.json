@@ -1,6 +1,7 @@
 {
   "required": true,
   "package": "io.github.ziederziet.beundead.mixin",
+  "minVersion": 0.7,
   "mixins": [
     "CreeperMixin",
     "LivingEntityMixin",
@@ -16,7 +17,9 @@
     "MobMixin",
     "PlayerListMixin",
     "VillagerMixin",
-    "DoorBlockMixin"
+    "DoorBlockMixin",
+    "SleepStatusMixin",
+    "BedBlockMixin"
   ],
   "client": [
     "OptionsMixin",

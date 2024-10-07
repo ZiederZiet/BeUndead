@@ -11,10 +11,7 @@ import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Animal;
@@ -122,11 +119,23 @@ public abstract class LivingEntityMixin {
 //        }
 //    }
 
-    @Inject(at = @At("HEAD"), method = "dropAllDeathLoot(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/damagesource/DamageSource;)V", cancellable = true)
-    protected void dropAllDeathLoot(ServerLevel pLevel, DamageSource pDamageSource, CallbackInfo info){
-        if (pDamageSource.getEntity() instanceof Player player && BeUndead.getZombieType(player) > 0){
+//    @Inject(at = @At("HEAD"), method = "dropAllDeathLoot(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/damagesource/DamageSource;)V", cancellable = true)
+//    protected void dropAllDeathLoot(ServerLevel pLevel, DamageSource pDamageSource, CallbackInfo info){
+//        if (pDamageSource.getEntity() instanceof Player player && BeUndead.getZombieType(player) > 0){
+//            info.cancel();
+//        }
+//    }
+@Inject(at = @At("HEAD"), method = "dropExperience(Lnet/minecraft/world/entity/Entity;)V", cancellable = true)
+    protected void dropExperience(@Nullable Entity pEntity, CallbackInfo info) {
+        if (pEntity instanceof Player player && !player.level().isClientSide() && BeUndead.getZombieType(player) > 0){
             info.cancel();
+            LivingEntity thisEntity = (LivingEntity) (Object) this;
+            if (thisEntity.shouldDropExperience() && thisEntity.level().getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)){
+                int reward = ForgeEventFactory.getExperienceDrop(thisEntity, player, thisEntity.getExperienceReward((ServerLevel) player.level(), pEntity));
+                player.giveExperiencePoints(reward);
+            }
         }
+
     }
 
     @Inject(at = @At("HEAD"), method = "canBreatheUnderwater()Z", cancellable = true)

@@ -1,5 +1,6 @@
 package io.github.ziederziet.beundead.event;
 
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.commands.ModCommands;
 import io.github.ziederziet.beundead.fogandredmoon.FogAndRedMoonSavedData;
@@ -45,6 +46,7 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.WanderingTrader;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
@@ -64,6 +66,7 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import java.io.IOException;
 import java.util.*;
 
 @Mod.EventBusSubscriber(modid = BeUndead.MODID)
@@ -97,7 +100,7 @@ public class ModEvents {
 
     @SubscribeEvent
     public static void onLivingEntityUseItemEvent(LivingEntityUseItemEvent event){
-        if (event.getDuration() == 0 && event.getEntity() instanceof Player player && BeUndead.getZombieType(player) > 0){
+        if (event.getDuration() == 0 && event.getEntity() instanceof Player player && BeUndead.getZombieType(player) > 0 && event.getItem().is(Items.GOLDEN_APPLE)){
             if (player.hasEffect(MobEffects.WEAKNESS)){
                 BeUndead.revive(player);
             }
@@ -320,19 +323,19 @@ public class ModEvents {
     public static void onLivingDeathEvent(LivingDeathEvent event) {
         if (event.getEntity().level().isClientSide()) return;
 
-        if (event.getSource().getEntity() instanceof Player player && BeUndead.getZombieType(player) > 0){
-            double maxHealth = event.getEntity().getAttribute(Attributes.MAX_HEALTH).getValue();
-            player.getFoodData().setFoodLevel(Math.min(20, player.getFoodData().getFoodLevel() + (int)Math.round(maxHealth / 3D)));
-            player.getFoodData().setSaturation(Math.min(20F, player.getFoodData().getSaturationLevel() + (int)Math.round(maxHealth / 4D)));
-            if (event.getEntity() instanceof AbstractVillager){
-                player.getFoodData().setFoodLevel(Math.min(20, player.getFoodData().getFoodLevel() + 3));
-                player.getFoodData().setSaturation(Math.min(20F, player.getFoodData().getSaturationLevel() + 1F));
-                player.giveExperiencePoints((int)  Math.round((23D) * (player.getRandom().nextDouble() * 0.3D + 0.8D)));
-            }
-            else if (event.getEntity() instanceof Mob){
-                player.giveExperiencePoints((int)  Math.round((maxHealth * 0.6D + 3D) * (player.getRandom().nextDouble() * 0.5D + 0.5D)));
-            }
-        }
+//        if (event.getSource().getEntity() instanceof Player player && BeUndead.getZombieType(player) > 0){
+//            double maxHealth = event.getEntity().getAttribute(Attributes.MAX_HEALTH).getValue();
+//            player.getFoodData().setFoodLevel(Math.min(20, player.getFoodData().getFoodLevel() + (int)Math.round(maxHealth / 3D)));
+//            player.getFoodData().setSaturation(Math.min(20F, player.getFoodData().getSaturationLevel() + (int)Math.round(maxHealth / 4D)));
+//            if (event.getEntity() instanceof AbstractVillager){
+//                player.getFoodData().setFoodLevel(Math.min(20, player.getFoodData().getFoodLevel() + 3));
+//                player.getFoodData().setSaturation(Math.min(20F, player.getFoodData().getSaturationLevel() + 1F));
+//                player.giveExperiencePoints((int)  Math.round((23D) * (player.getRandom().nextDouble() * 0.3D + 0.8D)));
+//            }
+//            else if (event.getEntity() instanceof Mob){
+//                player.giveExperiencePoints((int)  Math.round((maxHealth * 0.6D + 3D) * (player.getRandom().nextDouble() * 0.5D + 0.5D)));
+//            }
+//        }
 
         if (event.getEntity() instanceof Player player) {
             int type = BeUndead.getZombieType(player);
@@ -371,8 +374,6 @@ public class ModEvents {
                     player.setHealth(20F);
                     player.getFoodData().setFoodLevel(20);
                     player.getFoodData().setSaturation(20F);
-
-                    player.level().broadcastEntityEvent(player, (byte)35);
 
                     player.sendSystemMessage(player.getCombatTracker().getDeathMessage());
 
