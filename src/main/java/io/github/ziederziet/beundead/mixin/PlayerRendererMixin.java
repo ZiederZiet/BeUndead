@@ -50,6 +50,7 @@ public abstract class PlayerRendererMixin {
             playermodel.setupAnim(pPlayer, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
             pRendererArm.xRot = 0.0F;
             ResourceLocation resourcelocation = pPlayer.getSkin().texture();
+            BeUndead.setZombieColors(BeUndead.getZombieType(pPlayer));
             pRendererArm.render(pPoseStack, pBuffer.getBuffer(CustomRenderTypes.zombieEntitySolid(resourcelocation)), pCombinedLight, OverlayTexture.NO_OVERLAY);
             pRendererArmwear.xRot = 0.0F;
             pRendererArmwear.render(pPoseStack, pBuffer.getBuffer(CustomRenderTypes.zombieEntityTranslucent(resourcelocation)), pCombinedLight, OverlayTexture.NO_OVERLAY);

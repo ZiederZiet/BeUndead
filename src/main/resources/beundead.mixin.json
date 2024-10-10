@@ -19,7 +19,10 @@
     "VillagerMixin",
     "DoorBlockMixin",
     "SleepStatusMixin",
-    "BedBlockMixin"
+    "BedBlockMixin",
+    "PlayerSensorMixin",
+    "VillagerHostilesSensorMixin",
+    "SlimeMixin"
   ],
   "client": [
     "OptionsMixin",

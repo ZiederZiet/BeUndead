@@ -172,6 +172,7 @@ public abstract class LivingEntityRendererMixin {
         if (pLivingEntity instanceof Player player && BeUndead.getZombieType(player) > 0){
             info.cancel();
             ResourceLocation resourcelocation = ((EntityRenderer<LivingEntity>)(Object)this).getTextureLocation(pLivingEntity);
+            BeUndead.setZombieColors(BeUndead.getZombieType(player));
             info.setReturnValue(CustomRenderTypes.zombieEntityTranslucent(resourcelocation));
             return CustomRenderTypes.zombieEntityTranslucent(resourcelocation);
         }

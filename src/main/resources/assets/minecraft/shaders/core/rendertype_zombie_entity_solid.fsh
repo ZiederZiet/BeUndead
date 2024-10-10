@@ -8,6 +8,8 @@ uniform vec4 ColorModulator;
 uniform float FogStart;
 uniform float FogEnd;
 uniform vec4 FogColor;
+uniform vec3 ZombieColor;
+uniform vec3 ZombieColorOffset;
 
 in float vertexDistance;
 in vec4 vertexColor;
@@ -20,7 +22,7 @@ out vec4 fragColor;
 void main() {
     vec4 color = texture(Sampler0, texCoord0) * vertexColor * ColorModulator;
     float light = (color.r * 0.85 + color.g + color.b * 0.7) / 2.55;
-    color = vec4(light * 0.8, max(min(light + 0.1, 1), 0), light * 0.85, color.w);
+    color = vec4(max(min(light * ZombieColor.r + ZombieColorOffset.r, 1), 0), max(min(light * ZombieColor.g + ZombieColorOffset.g, 1), 0), max(min(light * ZombieColor.b + ZombieColorOffset.b, 1), 0), color.w);
     color.rgb = mix(overlayColor.rgb, color.rgb, overlayColor.a);
     color *= lightMapColor;
 
