@@ -59,11 +59,11 @@ public abstract class GuiMixin {
 
             int additionXSlot = 80;
 
-            if (BeUndead.getZombieType(player) == 0){
+            if (BeUndead.getZombieType(player) == 0 || BeUndead.zombieHasChest(player)){
                 additionXSlot = 0;
             }
 
-            if (BeUndead.getZombieType(player) > 0){
+            if (BeUndead.getZombieType(player) > 0 && !BeUndead.zombieHasChest(player)) {
                 pGuiGraphics.blitSprite(HOTBAR_OFFHAND_RIGHT_SPRITE, i - 98 + additionXSlot, pGuiGraphics.guiHeight() - 22, 29, 22);
                 pGuiGraphics.blitSprite(HOTBAR_SELECTION_SPRITE, i - 91 + additionXSlot - 1, pGuiGraphics.guiHeight() - 22 - 1, 24, 23);
             } else {
@@ -88,7 +88,7 @@ public abstract class GuiMixin {
             int i2;
             int j2;
             int k2;
-            if (BeUndead.getZombieType(player) > 0){
+            if (BeUndead.getZombieType(player) > 0 && !BeUndead.zombieHasChest(player)){
                 i2 = 4;
                 j2 = i - 90 + 2 + additionXSlot;
                 k2 = pGuiGraphics.guiHeight() - 16 - 3;

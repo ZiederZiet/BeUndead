@@ -41,11 +41,13 @@ public class PlayerMixin {
     @Inject(at = @At("TAIL"), method = "defineSynchedData(Lnet/minecraft/network/syncher/SynchedEntityData$Builder;)V")
     protected void defineSynchedData(SynchedEntityData.Builder pBuilder, CallbackInfo info) {
         pBuilder.define(BeUndead.DATA_ZOMBIE, 0);
+        pBuilder.define(BeUndead.DATA_ZOMBIE_CHEST, false);
         pBuilder.define(BeUndead.DATA_ZOMBIE_RESPAWN_TIME, 0L);
     }
     @Inject(at = @At("TAIL"), method = "readAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V")
     public void readAdditionalSaveData(CompoundTag pCompound, CallbackInfo info) {
         int zombietype = pCompound.getInt("ZombieType");
+        boolean zombiechest = pCompound.getBoolean("ZombieChest");
         SynchedEntityData entityData = ((EntityAccessor)this).getEntityData();
         if (pCompound.contains("RespawnTimer")){
             entityData.set(BeUndead.DATA_ZOMBIE_RESPAWN_TIME, pCompound.getLong("RespawnTimer"));
@@ -54,11 +56,13 @@ public class PlayerMixin {
             entityData.set(BeUndead.DATA_ZOMBIE_RESPAWN_TIME, 0L);
         }
         entityData.set(BeUndead.DATA_ZOMBIE, zombietype);
+        entityData.set(BeUndead.DATA_ZOMBIE_CHEST, zombiechest);
     }
     @Inject(at = @At("TAIL"), method = "addAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V")
     public void addAdditionalSaveData(CompoundTag pCompound, CallbackInfo info) {
         SynchedEntityData entityData = ((EntityAccessor)this).getEntityData();
         pCompound.putInt("ZombieType", entityData.get(BeUndead.DATA_ZOMBIE));
+        pCompound.putBoolean("ZombieChest", entityData.get(BeUndead.DATA_ZOMBIE_CHEST));
         long dataRespawnTimer = entityData.get(BeUndead.DATA_ZOMBIE_RESPAWN_TIME);
         if (dataRespawnTimer > 0){
             pCompound.putLong("RespawnTimer", dataRespawnTimer);

@@ -205,7 +205,10 @@ public class ModEvents {
 
             int type = BeUndead.getZombieType(player);
             if (type > 0){
-                checkSideItems(player);
+                if (!BeUndead.zombieHasChest(player)){
+                    checkSideItems(player);
+                    player.getInventory().selected = 4;
+                }
 
                 if (type != 2 && isSunBurnTick(player)){
                     ItemStack itemstack = player.getItemBySlot(EquipmentSlot.HEAD);
@@ -224,8 +227,6 @@ public class ModEvents {
                         player.igniteForSeconds(8.0F);
                     }
                 }
-
-                player.getInventory().selected = 4;
             }
         }
     }
@@ -316,6 +317,13 @@ public class ModEvents {
             }
 
             listOfToRemove.forEach(mob.targetSelector::removeGoal);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerClone(PlayerEvent.Clone event){
+        if (event.getOriginal().level().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)){
+            BeUndead.setZombieChest(event.getEntity(), BeUndead.zombieHasChest(event.getOriginal()));
         }
     }
 

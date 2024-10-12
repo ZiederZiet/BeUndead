@@ -14,15 +14,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(AbstractContainerScreen.class)
 public class AbstractContainerScreenMixin {
-    private static final ResourceLocation STONE_TEXTURE = ResourceLocation.withDefaultNamespace("container/slot_disabled");
+    private static final ResourceLocation SLOT_DISABLED_TEXTURE = ResourceLocation.withDefaultNamespace("container/slot_disabled");
     @Inject(at = @At("TAIL"), method = "renderSlot(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/world/inventory/Slot;)V")
     protected void renderSlot(GuiGraphics pGuiGraphics, Slot pSlot, CallbackInfo info){
         //System.out.print(pSlot.getSlotIndex() + "/");
 //        if (pSlot.getSlotIndex() != pSlot.getContainerSlot()){
 //            System.out.print("HIER " + pSlot.getSlotIndex() + "/" + pSlot.getContainerSlot());
 //        }
-        if (pSlot.container instanceof Inventory inventory && pSlot.getSlotIndex() < 36 && BeUndead.getZombieType(inventory.player) > 0 && pSlot.getSlotIndex() != 4){
-            pGuiGraphics.blitSprite(STONE_TEXTURE, pSlot.x - 1, pSlot.y - 1, 18, 18);
+        if (pSlot.container instanceof Inventory inventory && pSlot.getSlotIndex() < 36 && BeUndead.getZombieType(inventory.player) > 0 && (!(BeUndead.zombieHasChest(inventory.player) && pSlot.getSlotIndex() < 9) && pSlot.getSlotIndex() != 4)){
+            pGuiGraphics.blitSprite(SLOT_DISABLED_TEXTURE, pSlot.x - 1, pSlot.y - 1, 18, 18);
         }
     }
 }

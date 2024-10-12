@@ -14,6 +14,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Equipable;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.openjdk.nashorn.internal.objects.annotations.Constructor;
@@ -44,7 +45,7 @@ public abstract class InventoryMixin {
 
     @Inject(at = @At("HEAD"), method = "getSelected()Lnet/minecraft/world/item/ItemStack;", cancellable = true)
     public ItemStack getSelected(CallbackInfoReturnable<ItemStack> info) {
-        if (BeUndead.getZombieType(player) > 0){
+        if (BeUndead.getZombieType(player) > 0 && !BeUndead.zombieHasChest(player)){
             info.setReturnValue(items.get(4));
             info.cancel();
             return items.get(4);
@@ -59,13 +60,17 @@ public abstract class InventoryMixin {
     protected abstract int addResource(int pSlot, ItemStack pStack);
 
     @Shadow
+    public abstract int getSlotWithRemainingSpace(ItemStack pStack);
+
+    @Shadow
     public abstract int getFreeSlot();
 
     @Inject(at = @At("HEAD"), method = "add(ILnet/minecraft/world/item/ItemStack;)Z", cancellable = true)
     public boolean add(int pSlot, ItemStack pStack, CallbackInfoReturnable<Boolean> info){
-
         if (BeUndead.getZombieType(player) == 0){
             return false;
+        } else if (BeUndead.zombieHasChest(player) && pSlot == -1){
+            info.cancel();
         }
         else {
             info.cancel();
@@ -78,7 +83,7 @@ public abstract class InventoryMixin {
             return false;
         } else {
 
-            if (!getItem(pSlot).isEmpty()){
+            if (!BeUndead.zombieHasChest(player) && !getItem(pSlot).isEmpty()){
                 ItemStack alreadyInHand = getItem(pSlot);
                 if (alreadyInHand.isStackable()){
                     //System.out.print(!ItemStack.isSameItemSameComponents(alreadyInHand, pStack));
@@ -103,7 +108,15 @@ public abstract class InventoryMixin {
                     }
 
                     if (pSlot == -1) {
-                        pSlot = this.getFreeSlot();
+                        pSlot = this.getSlotWithRemainingSpace(pStack);
+                        if (pSlot == -1) {
+                            pSlot = this.getFreeSlot();
+                        }
+                    }
+
+                    if (BeUndead.zombieHasChest(player) && pSlot >= 9){
+                        info.setReturnValue(false);
+                        return false;
                     }
 
                     if (pSlot >= 0) {
@@ -181,6 +194,21 @@ public abstract class InventoryMixin {
                 do {
                     i = pStack.getCount();
                     if (pSlot == -1) {
+                        if (BeUndead.zombieHasChest(player)){
+                            pSlot = this.getSlotWithRemainingSpace(pStack);
+                            if (pSlot == -1) {
+                                pSlot = this.getFreeSlot();
+                            }
+                            if (pSlot == -1) {
+                                info.setReturnValue(false);
+                                return false;
+                            }
+                            if (BeUndead.zombieHasChest(player) && pSlot >= 9){
+                                info.setReturnValue(false);
+                                return false;
+                            }
+                            pStack.setCount(this.addResource(pSlot, pStack));
+                        }
                         pStack.setCount(this.addResource(pStack));
                     } else {
                         pStack.setCount(this.addResource(pSlot, pStack));
@@ -235,7 +263,7 @@ public abstract class InventoryMixin {
 
     @Inject(at = @At("HEAD"), method = "pickSlot(I)V", cancellable = true)
     public void pickSlot(int pIndex, CallbackInfo info) {
-        if (BeUndead.getZombieType(player) > 0) {
+        if (BeUndead.getZombieType(player) > 0 && !BeUndead.zombieHasChest(player)) {
 //            if (this.items.get(selected).isEmpty()){
 //                this.items.set(this.selected, (ItemStack)this.items.get(pIndex));
 //            }
@@ -245,15 +273,23 @@ public abstract class InventoryMixin {
 
     @Inject(at = @At("HEAD"), method = "swapPaint(D)V", cancellable = true)
     public void swapPaint(double pDirection, CallbackInfo info) {
-        if (BeUndead.getZombieType(player) > 0){
+        if (BeUndead.getZombieType(player) > 0 && !BeUndead.zombieHasChest(player)){
             this.selected = 4;
             info.cancel();
         }
     }
 
+    @Inject(at = @At("TAIL"), method = "dropAll()V")
+    public void dropAll(CallbackInfo info){
+        if (BeUndead.zombieHasChest(this.player)){
+            this.player.drop(new ItemStack(Items.CHEST), true, false);
+            BeUndead.setZombieChest(this.player, false);
+        }
+    }
+
     @Inject(at = @At("HEAD"), method = "setPickedItem(Lnet/minecraft/world/item/ItemStack;)V", cancellable = true)
     public void setPickedItem(ItemStack pStack, CallbackInfo info) {
-        if (BeUndead.getZombieType(player) > 0 && player.getInventory().getItem(0).isEmpty()){
+        if (BeUndead.getZombieType(player) > 0 && !BeUndead.zombieHasChest(player) && player.getInventory().getItem(0).isEmpty()){
             if (this.items.get(selected).isEmpty()){
                 this.items.set(this.selected, pStack);
             }

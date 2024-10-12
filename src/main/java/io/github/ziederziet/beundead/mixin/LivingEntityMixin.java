@@ -51,54 +51,15 @@ public abstract class LivingEntityMixin {
     @Shadow
     protected abstract void onEffectAdded(MobEffectInstance pEffectInstance, @Nullable Entity pEntity);
 
-    @Overwrite
-    public boolean isInvertedHealAndHarm() {
-        return ((EntityAccessor)this).getType().is(EntityTypeTags.INVERTED_HEALING_AND_HARM) || ((Object)this instanceof Player player && BeUndead.getZombieType(player) > 0);
+    @Inject(at = @At("HEAD"), method = "isInvertedHealAndHarm()Z", cancellable = true)
+    public boolean isInvertedHealAndHarm(CallbackInfoReturnable<Boolean> info) {
+        if ((Object)this instanceof Player player && BeUndead.getZombieType(player) > 0){
+            info.cancel();
+            info.setReturnValue(true);
+            return true;
+        }
+        return false;
     }
-
-//    @Inject(at = @At("TAIL"), method = "die(Lnet/minecraft/world/damagesource/DamageSource;)V")
-//    public void die(DamageSource pCause, CallbackInfo info){
-//        if (((EntityAccessor)this).getType() == EntityType.PLAYER){
-//            Level level =  ((Player)(Object)this).level();
-//            if (!level.isClientSide() && !pCause.is(DamageTypes.GENERIC_KILL)){
-//                dropAllDeathLoot((ServerLevel) level, pCause);
-//            }
-//        }
-//    }
-
-    //@Inject(at = @At("HEAD"), method = "addEffect(Lnet/minecraft/world/effect/MobEffectInstance;Lnet/minecraft/world/entity/Entity;)Z")
-//    @Overwrite
-//    public boolean addEffect(MobEffectInstance pEffectInstance, @Nullable Entity pEntity)//, CallbackInfoReturnable<Boolean> info)
-//    {
-//        if (!this.canBeAffected(pEffectInstance)) {
-//            //info.setReturnValue(false);
-//            return false;
-//        } else {
-//            if (pEffectInstance.getEffect().get() == MobEffects.HARM){
-//                pEffectInstance = new MobEffectInstance(MobEffects.HEAL, pEffectInstance.getDuration(), pEffectInstance.getAmplifier(), pEffectInstance.isVisible(), pEffectInstance.showIcon());
-//            } if (pEffectInstance.getEffect().get() == MobEffects.HEAL){
-//                pEffectInstance = new MobEffectInstance(MobEffects.HARM, pEffectInstance.getDuration(), pEffectInstance.getAmplifier(), pEffectInstance.isVisible(), pEffectInstance.showIcon());
-//            }
-//
-//
-//            MobEffectInstance mobeffectinstance = (MobEffectInstance)this.activeEffects.get(pEffectInstance.getEffect());
-//            boolean flag = false;
-//            ForgeEventFactory.onLivingEffectAdd((LivingEntity) (Object)this, mobeffectinstance, pEffectInstance, pEntity);
-//            if (mobeffectinstance == null) {
-//                this.activeEffects.put(pEffectInstance.getEffect(), pEffectInstance);
-//                this.onEffectAdded(pEffectInstance, pEntity);
-//                flag = true;
-//                pEffectInstance.onEffectAdded((LivingEntity) (Object)this);
-//            } else if (mobeffectinstance.update(pEffectInstance)) {
-//                this.onEffectUpdated(mobeffectinstance, true, pEntity);
-//                flag = true;
-//            }
-//
-//            pEffectInstance.onEffectStarted((LivingEntity) (Object)this);
-//            //info.setReturnValue(flag);
-//            return flag;
-//        }
-//    }
 
     @Inject(at = @At("HEAD"), method = "canBeAffected(Lnet/minecraft/world/effect/MobEffectInstance;)Z", cancellable = true)
     public boolean canBeAffected(MobEffectInstance pEffectInstance, CallbackInfoReturnable<Boolean> info) {
@@ -112,25 +73,16 @@ public abstract class LivingEntityMixin {
         return false;
     }
 
-//    @Inject(at = @At("HEAD"), method = "dropExperience(Lnet/minecraft/world/entity/Entity;)V", cancellable = true)
-//    protected void dropExperience(@Nullable Entity pEntity, CallbackInfo info){
-//        if (pEntity instanceof Player player && BeUndead.getZombieType(player) > 0){
-//            info.cancel();
-//        }
-//    }
-
-//    @Inject(at = @At("HEAD"), method = "dropAllDeathLoot(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/damagesource/DamageSource;)V", cancellable = true)
-//    protected void dropAllDeathLoot(ServerLevel pLevel, DamageSource pDamageSource, CallbackInfo info){
-//        if (pDamageSource.getEntity() instanceof Player player && BeUndead.getZombieType(player) > 0){
-//            info.cancel();
-//        }
-//    }
-@Inject(at = @At("HEAD"), method = "dropExperience(Lnet/minecraft/world/entity/Entity;)V", cancellable = true)
+    @Inject(at = @At("HEAD"), method = "dropExperience(Lnet/minecraft/world/entity/Entity;)V", cancellable = true)
     protected void dropExperience(@Nullable Entity pEntity, CallbackInfo info) {
         if (pEntity instanceof Player player && !player.level().isClientSide() && BeUndead.getZombieType(player) > 0){
             info.cancel();
             LivingEntity thisEntity = (LivingEntity) (Object) this;
-            if (thisEntity.shouldDropExperience() && thisEntity.level().getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)){
+            if (thisEntity instanceof AbstractVillager){
+                int reward = 20;
+                player.giveExperiencePoints(reward);
+            }
+            else if (thisEntity.shouldDropExperience() && thisEntity.level().getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)){
                 int reward = ForgeEventFactory.getExperienceDrop(thisEntity, player, thisEntity.getExperienceReward((ServerLevel) player.level(), pEntity));
                 player.giveExperiencePoints(reward);
             }

@@ -31,6 +31,7 @@ import javax.annotation.Nullable;
 public class BeUndead
 {
     public static final EntityDataAccessor<Integer> DATA_ZOMBIE = SynchedEntityData.defineId(Player.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Boolean> DATA_ZOMBIE_CHEST = SynchedEntityData.defineId(Player.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<Long> DATA_ZOMBIE_RESPAWN_TIME = SynchedEntityData.defineId(Player.class, EntityDataSerializers.LONG);
     public static final GameRules.Key<GameRules.IntegerValue> RULE_RESPAWN_TIMER = GameRules.register("respawnTimer", GameRules.Category.PLAYER, GameRules.IntegerValue.create(0));
     public static final GameRules.Key<GameRules.BooleanValue> RULE_ALWAYS_TO_ZOMBIE = GameRules.register("alwaysToZombie", GameRules.Category.PLAYER, GameRules.BooleanValue.create(true));
@@ -135,6 +136,14 @@ public class BeUndead
         return ((EntityAccessor)player).getEntityData().get(DATA_ZOMBIE);
     }
 
+    public static boolean zombieHasChest(Player player){
+        return ((EntityAccessor)player).getEntityData().get(DATA_ZOMBIE_CHEST);
+    }
+
+    public static void setZombieChest(Player player, boolean chest){
+        ((EntityAccessor)player).getEntityData().set(DATA_ZOMBIE_CHEST, chest);
+    }
+
     public static long getZombieRespawnTimer(Player player){
         return ((EntityAccessor)player).getEntityData().get(DATA_ZOMBIE_RESPAWN_TIME);
     }
@@ -147,6 +156,7 @@ public class BeUndead
         setZombieType(player, 0);
         player.removeAllEffects();
         player.setHealth(4F);
+        setZombieChest(player, false);
         player.addEffect(new MobEffectInstance(MobEffects.CONFUSION, 60, 0));
         player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 2000, 1));
         player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 200, 1));

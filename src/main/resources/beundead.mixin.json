@@ -22,7 +22,8 @@
     "BedBlockMixin",
     "PlayerSensorMixin",
     "VillagerHostilesSensorMixin",
-    "SlimeMixin"
+    "SlimeMixin",
+    "ItemMixin"
   ],
   "client": [
     "OptionsMixin",

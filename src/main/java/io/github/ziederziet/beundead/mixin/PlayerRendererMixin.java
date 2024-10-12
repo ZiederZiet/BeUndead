@@ -3,6 +3,7 @@ package io.github.ziederziet.beundead.mixin;
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.client.CustomRenderTypes;
+import io.github.ziederziet.beundead.client.ZombieChestLayer;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.PlayerModel;
@@ -10,6 +11,7 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
@@ -33,6 +35,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(PlayerRenderer.class)
 @OnlyIn(Dist.CLIENT)
 public abstract class PlayerRendererMixin {
+
+    @Inject(at = @At("TAIL"), method = "<init>")
+    public void initS(EntityRendererProvider.Context pContext, boolean pUseSlimModel, CallbackInfo info){
+        ((PlayerRenderer)(Object)this).addLayer(new ZombieChestLayer((PlayerRenderer)(Object)this, pContext.getModelSet()));
+    }
 
     @Shadow
     protected abstract void setModelProperties(AbstractClientPlayer pClientPlayer);

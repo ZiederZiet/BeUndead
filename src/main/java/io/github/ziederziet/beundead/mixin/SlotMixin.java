@@ -31,7 +31,7 @@ public abstract class SlotMixin {
     public boolean mayPlace(ItemStack pStack, CallbackInfoReturnable<Boolean> info) {
         if (container instanceof Inventory inventory){
             int slot = getSlotIndex();
-            if (BeUndead.getZombieType(inventory.player) > 0 && slot != 4 && slot < 36){
+            if (BeUndead.getZombieType(inventory.player) > 0 && (!(BeUndead.zombieHasChest(inventory.player) && slot < 9) && slot != 4) && slot < 36){
                 info.setReturnValue(false);
                 info.cancel();
                 return false;
@@ -44,7 +44,7 @@ public abstract class SlotMixin {
     public boolean isHighlightable(CallbackInfoReturnable<Boolean> info) {
         if (container instanceof Inventory inventory){
             int slot = getSlotIndex();
-            if (BeUndead.getZombieType(inventory.player) > 0 && slot != 4 && slot < 36){
+            if (BeUndead.getZombieType(inventory.player) > 0 && (!(BeUndead.zombieHasChest(inventory.player) && slot < 9) && slot != 4) && slot < 36){
                 info.setReturnValue(false);
                 info.cancel();
                 return false;

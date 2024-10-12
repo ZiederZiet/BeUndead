@@ -93,6 +93,9 @@ public abstract class PlayerListMixin {
             this.players.add(serverplayer);
             this.playersByUUID.put(serverplayer.getUUID(), serverplayer);
             BeUndead.setZombieType(serverplayer, BeUndead.getZombieType(pPlayer));
+//            if (pKeepInventory){
+//                BeUndead.setZombieChest(serverplayer, BeUndead.zombieHasChest(pPlayer));
+//            }
             serverplayer.initInventoryMenu();
             serverplayer.setHealth(serverplayer.getHealth());
             ForgeEventFactory.firePlayerRespawnEvent(serverplayer, pKeepInventory);
