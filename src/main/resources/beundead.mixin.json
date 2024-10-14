@@ -23,7 +23,8 @@
     "PlayerSensorMixin",
     "VillagerHostilesSensorMixin",
     "SlimeMixin",
-    "ItemMixin"
+    "ItemMixin",
+    "SensorMixin"
   ],
   "client": [
     "OptionsMixin",
