@@ -38,11 +38,6 @@ public abstract class GuiMixin {
     @Shadow
     protected abstract void renderSlot(GuiGraphics pGuiGraphics, int pX, int pY, DeltaTracker pDeltaTracker, Player pPlayer, ItemStack pStack, int pSeed);
 
-//    @Inject(at = @At("TAIL"), method = "renderSlot(Lnet/minecraft/client/gui/GuiGraphics;IILnet/minecraft/client/DeltaTracker;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/ItemStack;I)V")
-//    protected void renderSlotTail(GuiGraphics pGuiGraphics, int pX, int pY, DeltaTracker pDeltaTracker, Player pPlayer, ItemStack pStack, int pSeed, CallbackInfo info){
-//        pGuiGraphics.blitSprite(STONE_TEXTURE, pX, pY, 16, 16);
-//    }
-
     @Overwrite
     private void renderItemHotbar(GuiGraphics pGuiGraphics, DeltaTracker pDeltaTracker) {
         Player player = null;

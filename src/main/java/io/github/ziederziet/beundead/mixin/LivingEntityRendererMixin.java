@@ -179,6 +179,15 @@ public abstract class LivingEntityRendererMixin {
         return null;
     }
 
+    @Inject(at = @At("HEAD"), method = "isShaking(Lnet/minecraft/world/entity/LivingEntity;)Z", cancellable = true)
+    protected boolean isShaking(LivingEntity pEntity, CallbackInfoReturnable<Boolean> info) {
+        if (pEntity instanceof Player player && BeUndead.getZombieType(player) > 0 && BeUndead.getZombieConversionTime(player) >= 0){
+            info.setReturnValue(true);
+            return true;
+        }
+        return false;
+    }
+
 
 
 //    @Shadow

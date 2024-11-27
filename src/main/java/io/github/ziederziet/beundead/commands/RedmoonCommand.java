@@ -7,7 +7,6 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.fogandredmoon.FogAndRedMoonSavedData;
-import io.github.ziederziet.beundead.networking.ClientGetFogAndRedMoonPacket;
 import io.github.ziederziet.beundead.networking.ModNetworking;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -54,10 +53,10 @@ public class RedmoonCommand extends BaseCommand {
         if (!set){
             redMoon = false;
         }
-        if (redMoon != BeUndead.Mod.getRedMoon()){
-            BeUndead.Mod.setRedmoon(redMoon);
-            ModNetworking.sendToAllClients(new ClientGetFogAndRedMoonPacket(fog, redMoon));
-        }
+//        if (redMoon != BeUndead.Mod.getRedMoon()){
+//            BeUndead.Mod.setRedmoon(redMoon);
+//            ModNetworking.sendToAllClients(new ClientGetFogAndRedMoonPacket(fog, redMoon));
+//        }
         return Command.SINGLE_SUCCESS;
     }
 }

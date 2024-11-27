@@ -17,6 +17,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameRules;
@@ -78,13 +79,15 @@ public abstract class LivingEntityMixin {
         if (pEntity instanceof Player player && !player.level().isClientSide() && BeUndead.getZombieType(player) > 0){
             info.cancel();
             LivingEntity thisEntity = (LivingEntity) (Object) this;
-            if (thisEntity instanceof AbstractVillager){
-                int reward = 20;
-                player.giveExperiencePoints(reward);
-            }
-            else if (thisEntity.shouldDropExperience() && thisEntity.level().getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)){
-                int reward = ForgeEventFactory.getExperienceDrop(thisEntity, player, thisEntity.getExperienceReward((ServerLevel) player.level(), pEntity));
-                player.giveExperiencePoints(reward);
+            if (!(thisEntity instanceof Monster)){
+                if (thisEntity instanceof AbstractVillager){
+                    int reward = 20;
+                    player.giveExperiencePoints(reward);
+                }
+                else if (thisEntity.shouldDropExperience() && thisEntity.level().getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)){
+                    int reward = ForgeEventFactory.getExperienceDrop(thisEntity, player, thisEntity.getExperienceReward((ServerLevel) player.level(), pEntity));
+                    player.giveExperiencePoints(reward);
+                }
             }
         }
 

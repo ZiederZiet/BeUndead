@@ -2,6 +2,7 @@ package io.github.ziederziet.beundead.commands;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.sun.jdi.connect.Connector;
@@ -12,6 +13,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -53,33 +55,72 @@ public class ZombieCommand extends BaseCommand {
                 return 0;
             }
             return reviveZombies(sourceStack.getSource(), EntityArgument.getPlayers(sourceStack, "targets"));
-        }))).then(Commands.literal("set").then(Commands.argument("targets", EntityArgument.players()).then(Commands.literal("human").executes(sourceStack -> {
-            int type = IntegerArgumentType.getInteger(sourceStack, "type");
+        }))).then(Commands.literal("set").then(Commands.argument("targets", EntityArgument.players())
+                .then(Commands.literal("human").then(Commands.argument("convert", BoolArgumentType.bool()).executes(sourceStack -> {
+                    Collection<ServerPlayer> players = EntityArgument.getPlayers(sourceStack, "targets");
+                    return setTypeForPlayers(sourceStack.getSource(), players, 0, Component.translatable("entity.minecraft.player"), BoolArgumentType.getBool(sourceStack, "convert"));
+                })).executes(sourceStack -> {
             Collection<ServerPlayer> players = EntityArgument.getPlayers(sourceStack, "targets");
-            return reviveZombies(sourceStack.getSource(), players);
+            return setTypeForPlayers(sourceStack.getSource(), players, 0, Component.translatable("entity.minecraft.player"), false);
         })).then(Commands.literal("zombie").executes(sourceStack -> {
             Collection<ServerPlayer> players = EntityArgument.getPlayers(sourceStack, "targets");
-            return setTypeForPlayers(sourceStack.getSource(), players, 1, Component.translatable("entity.minecraft.zombie"));
+            return setTypeForPlayers(sourceStack.getSource(), players, 1, Component.translatable("entity.minecraft.zombie"), false);
         })).then(Commands.literal("husk").executes(sourceStack -> {
             Collection<ServerPlayer> players = EntityArgument.getPlayers(sourceStack, "targets");
-            return setTypeForPlayers(sourceStack.getSource(), players, 2, Component.translatable("entity.minecraft.husk"));
+            return setTypeForPlayers(sourceStack.getSource(), players, 2, Component.translatable("entity.minecraft.husk"), false);
         })).then(Commands.literal("drowned").executes(sourceStack -> {
             Collection<ServerPlayer> players = EntityArgument.getPlayers(sourceStack, "targets");
-            return setTypeForPlayers(sourceStack.getSource(), players, 3, Component.translatable("entity.minecraft.drowned"));
-        })))));
+            return setTypeForPlayers(sourceStack.getSource(), players, 3, Component.translatable("entity.minecraft.drowned"), false);
+        })))).then(Commands.literal("conversion").then(Commands.literal("start").then(Commands.argument("target", EntityArgument.player()).executes(sourceStack -> {
+            Player player = EntityArgument.getPlayer(sourceStack, "target");
+            if (BeUndead.getZombieConversionTime(player) > 0){
+                sourceStack.getSource().sendFailure(Component.translatable("commands.zombie.conversion_start.fail", new Object[] {player.getName()}));
+                return 0;
+            }
+            BeUndead.startConverting(player, 0, null);
+            int conversion = BeUndead.getZombieConversionTime(player);
+            sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.conversion_start", new Object[] {player.getName(), conversion}), true);
+            return Command.SINGLE_SUCCESS;
+        }))).then(
+                Commands.literal("get").then(Commands.argument("target", EntityArgument.player()).executes(sourceStack -> {
+                    Player player = EntityArgument.getPlayer(sourceStack, "target");
+                    Component playerName = player.getName();
+                    int conversionTime = BeUndead.getZombieConversionTime(player);
+                    sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.get.conversion_time", new Object[]{playerName, conversionTime}), false);
+                    return conversionTime;
+        }))).then(
+                Commands.literal("set").then(Commands.argument("target", EntityArgument.player()).then(Commands.argument("conversion_time", IntegerArgumentType.integer()).executes(sourceStack -> {
+                    Player player = EntityArgument.getPlayer(sourceStack, "target");
+                    Component playerName = player.getName();
+                    int conversionTime = IntegerArgumentType.getInteger(sourceStack, "conversion_time");
+                    if (conversionTime <= 0){
+                        conversionTime = 1;
+                    }
+                    if (BeUndead.getZombieConversionTime(player) <= 0){
+                        BeUndead.startConverting(player, 0, null);
+                    }
+                    BeUndead.setZombieConversionTime(player, conversionTime);
+                    int finalConversionTime = conversionTime;
+                    sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.set.conversion_time", new Object[]{playerName, finalConversionTime}), true);
+                    return Command.SINGLE_SUCCESS;
+                }))))));
     }
 
-    private static int setTypeForPlayers(CommandSourceStack sourceStack, Collection<ServerPlayer> players, int type, Component typeName){
+    private static int setTypeForPlayers(CommandSourceStack sourceStack, Collection<ServerPlayer> players, int type, Component typeName, boolean convert){
         int playersSet = 0;
         Iterator<ServerPlayer> playerIterator = players.iterator();
         while (playerIterator.hasNext()){
             ServerPlayer player = playerIterator.next();
-            if (BeUndead.getZombieType(player) == 0){
-                player.getInventory().dropAll();
-            }
             if (BeUndead.getZombieType(player) != type){
+                if (type > 0){
+                    player.getInventory().dropAll();
+                }
                 playersSet++;
-                BeUndead.setZombieType(player, type);
+                if (convert){
+                    BeUndead.startConverting(player, type, null);
+                } else {
+                    BeUndead.setZombieType(player, type);
+                }
             }
         }
         int finalRevived = playersSet;
@@ -98,7 +139,7 @@ public class ZombieCommand extends BaseCommand {
             }
             return 0;
         }
-        BeUndead.revive(player);
+        BeUndead.revive(player, false);
         if (player == sourceStack.getPlayer()){
             sourceStack.sendSuccess(() -> {
                 return Component.translatable("commands.zombie.revive.self", new Object[]{});
@@ -119,7 +160,7 @@ public class ZombieCommand extends BaseCommand {
             ServerPlayer player = playerIterator.next();
             if (BeUndead.getZombieType(player) > 0){
                 revived++;
-                BeUndead.revive(player);
+                BeUndead.revive(player, false);
             }
         }
         int finalRevived = revived;

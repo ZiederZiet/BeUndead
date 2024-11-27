@@ -43,8 +43,6 @@ public abstract class ExperienceOrbMixin {
                 if (player.isSpectator() || player.isDeadOrDying()){
                     return false;
                 }
-//                System.out.print("HUCHUIU");
-//                System.out.print(BeUndead.getZombieType(player));
                 return BeUndead.getZombieType(player) == 0;
             }), null, pos.x(), pos.y(), pos.z(), new AABB(pos.x() - 16D, pos.y() - 16D, pos.z() - 16D, pos.x() + 16D, pos.y() + 16D, pos.z() + 16D));
         }

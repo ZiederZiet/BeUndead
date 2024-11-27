@@ -69,7 +69,7 @@ public abstract class InventoryMixin {
     public boolean add(int pSlot, ItemStack pStack, CallbackInfoReturnable<Boolean> info){
         if (BeUndead.getZombieType(player) == 0){
             return false;
-        } else if (BeUndead.zombieHasChest(player) && pSlot == -1){
+        } else if (BeUndead.zombieHasChest(player)){
             info.cancel();
         }
         else {
@@ -208,8 +208,10 @@ public abstract class InventoryMixin {
                                 return false;
                             }
                             pStack.setCount(this.addResource(pSlot, pStack));
+                            info.setReturnValue(true);
+                            return true;
                         }
-                        pStack.setCount(this.addResource(pStack));
+                        //pStack.setCount(this.addResource(pStack));
                     } else {
                         pStack.setCount(this.addResource(pSlot, pStack));
                     }
@@ -264,9 +266,6 @@ public abstract class InventoryMixin {
     @Inject(at = @At("HEAD"), method = "pickSlot(I)V", cancellable = true)
     public void pickSlot(int pIndex, CallbackInfo info) {
         if (BeUndead.getZombieType(player) > 0 && !BeUndead.zombieHasChest(player)) {
-//            if (this.items.get(selected).isEmpty()){
-//                this.items.set(this.selected, (ItemStack)this.items.get(pIndex));
-//            }
             info.cancel();
         }
     }

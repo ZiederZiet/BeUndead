@@ -1,0 +1,22 @@
+{
+  "commands.zombiefy.self": "Du bist jetzt ein Zombie",
+  "commands.zombiefy": "%s ist jetzt ein Zombie",
+  "commands.zombie.get.non_zombie": "%s ist kein Zombie",
+  "commands.zombie.get.zombie": "%s ist ein Zombie",
+  "commands.zombie.get.husk": "%s ist ein Wüstenzombie",
+  "commands.zombie.get.drowned": "%s ist ein Ertrunkener",
+  "commands.zombie.get.non_zombie.self": "Du bist kein Zombie",
+  "commands.zombie.get.zombie.self": "Du bist ein Zombie",
+  "commands.zombie.get.husk.self": "Du bist ein Wüstenzombie",
+  "commands.zombie.get.drowned.self": "Du bist ein Ertrunkener",
+  "commands.zombie.revive.not_zombie": "%s ist kein Zombie",
+  "commands.zombie.revive.not_zombie.self": "Du bist kein Zombie",
+  "commands.zombie.revive.self": "Du bist kein Zombie mehr",
+  "commands.zombie.revive": "%s ist kein Zombie mehr",
+  "commands.zombie.revive.players": "%s Spieler wurden revived",
+  "commands.zombie.set.players": "%s Spieler sind jetzt %s",
+  "commands.zombie.get.conversion_time": "%s wird convertieren in %s Ticks",
+  "commands.zombie.set.conversion_time": "%s wird jetzt convertieren in %s Ticks",
+  "commands.zombie.conversion_start": "%s wird jetzt in %s ticks convertieren",
+  "commands.zombie.conversion_start.fail": "%s ist schon ein Spieler"
+}

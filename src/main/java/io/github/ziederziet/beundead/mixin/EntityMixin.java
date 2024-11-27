@@ -31,7 +31,7 @@ public class EntityMixin {
         if ((Object)this instanceof Player revived){
             if (revived.hasEffect(MobEffects.WEAKNESS) && pPlayer.getItemInHand(pHand).is(Items.GOLDEN_APPLE)){
                 pPlayer.getItemInHand(pHand).consume(1, revived);
-                BeUndead.revive(revived);
+                BeUndead.startConverting(revived, 0, pPlayer);
                 info.setReturnValue(InteractionResult.SUCCESS);
                 info.cancel();
                 return InteractionResult.SUCCESS;

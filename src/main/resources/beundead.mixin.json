@@ -45,7 +45,8 @@
     "AbstractContainerScreenMixin",
     "LevelRendererMixin",
     "DeathScreenAccessor",
-    "GuiMixin"
+    "GuiMixin",
+    "LightTextureMixin"
   ],
   "injectors": {
     "defaultRequire": 1

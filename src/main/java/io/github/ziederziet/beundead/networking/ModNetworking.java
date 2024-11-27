@@ -16,11 +16,6 @@ public class ModNetworking {
             .simpleChannel();
 
     public static void register(){
-        INSTANCE.messageBuilder(ClientGetFogAndRedMoonPacket.class, NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(ClientGetFogAndRedMoonPacket::encode)
-                .decoder(ClientGetFogAndRedMoonPacket::new)
-                .consumerMainThread(ClientGetFogAndRedMoonPacket::handle)
-                .add();
     }
 
     public static void sendToServer(Object msg){

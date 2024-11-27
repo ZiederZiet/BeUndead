@@ -43,6 +43,8 @@ public class PlayerMixin {
         pBuilder.define(BeUndead.DATA_ZOMBIE, 0);
         pBuilder.define(BeUndead.DATA_ZOMBIE_CHEST, false);
         pBuilder.define(BeUndead.DATA_ZOMBIE_RESPAWN_TIME, 0L);
+        pBuilder.define(BeUndead.DATA_ZOMBIE_CONVERSION_TIME, -1);
+        pBuilder.define(BeUndead.DATA_ZOMBIE_CONVERSION, 0);
     }
     @Inject(at = @At("TAIL"), method = "readAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V")
     public void readAdditionalSaveData(CompoundTag pCompound, CallbackInfo info) {
@@ -54,6 +56,14 @@ public class PlayerMixin {
         }
         else {
             entityData.set(BeUndead.DATA_ZOMBIE_RESPAWN_TIME, 0L);
+        }
+        if (pCompound.contains("ConversionTime")){
+            entityData.set(BeUndead.DATA_ZOMBIE_CONVERSION_TIME, pCompound.getInt("ConversionTime"));
+            entityData.set(BeUndead.DATA_ZOMBIE_CONVERSION, pCompound.getInt("ZombieConversion"));
+        }
+        else {
+            entityData.set(BeUndead.DATA_ZOMBIE_CONVERSION_TIME, -1);
+            entityData.set(BeUndead.DATA_ZOMBIE_CONVERSION, 0);
         }
         entityData.set(BeUndead.DATA_ZOMBIE, zombietype);
         entityData.set(BeUndead.DATA_ZOMBIE_CHEST, zombiechest);
@@ -67,6 +77,11 @@ public class PlayerMixin {
         if (dataRespawnTimer > 0){
             pCompound.putLong("RespawnTimer", dataRespawnTimer);
         }
+        int dataConversionTime = entityData.get(BeUndead.DATA_ZOMBIE_CONVERSION_TIME);
+        if (dataConversionTime >= 0){
+            pCompound.putInt("ConversionTime", dataConversionTime);
+        }
+        pCompound.putInt("ZombieConversion", entityData.get(BeUndead.DATA_ZOMBIE_CONVERSION));
 
     }
 
@@ -86,17 +101,4 @@ public class PlayerMixin {
 
         return false;
     }
-
-//    @Overwrite
-//    public boolean canSprint() {
-//        return BeUndead.getZombieType((Player) (Object)this) == 0;
-//    }
-
-//    @Inject(at = @At("HEAD"), method = "drop(Lnet/minecraft/world/item/ItemEntity;Z)Lnet/minecraft/world/item/ItemEntity;")
-//    public ItemEntity drop(ItemStack pItemStack, boolean pIncludeThrowerName, CallbackInfoReturnable<ItemStack> infoReturnable) {
-//        if (BeUndead.getZombieType((Player) (Object) this) > 0){
-//            ((Player)(Object)this).getInventory().selected = 0;
-//        }
-//        return null;
-//    }
 }
