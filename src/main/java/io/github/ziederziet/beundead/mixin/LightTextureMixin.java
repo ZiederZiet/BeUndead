@@ -20,7 +20,7 @@ public class LightTextureMixin {
     @Inject(at = @At("HEAD"), method = "getBrightness(Lnet/minecraft/world/level/dimension/DimensionType;I)F", cancellable = true)
     private static float getBrightness(DimensionType pDimensionType, int pLightLevel, CallbackInfoReturnable<Float> info) {
         if (Minecraft.getInstance().player != null){
-            if (BeUndead.getZombieType(Minecraft.getInstance().player) > 0){
+            if (BeUndead.getZombieType(Minecraft.getInstance().player) > 0 && BeUndead.Mod.clientZombieNightVision) {
                 info.setReturnValue(1F);
                 return 1F;
             }

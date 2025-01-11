@@ -8,6 +8,10 @@ import net.minecraft.world.entity.monster.Creeper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Options.class)
 public class OptionsMixin {
@@ -15,14 +19,14 @@ public class OptionsMixin {
     private int serverRenderDistance;
     @Shadow
     private OptionInstance<Integer> renderDistance;
-    @Overwrite
-    public int getEffectiveRenderDistance() {
-        int effectiveRenderDistance = this.serverRenderDistance > 0 ? Math.min((Integer)this.renderDistance.get(), this.serverRenderDistance) : (Integer)this.renderDistance.get();
-        if (Minecraft.getInstance().player != null && BeUndead.getZombieType(Minecraft.getInstance().player) > 0){
-            effectiveRenderDistance = Math.min(effectiveRenderDistance, 4);
-        }
-        if (BeUndead.Mod.getFoggyDay()){
-            effectiveRenderDistance = Math.min(effectiveRenderDistance, 3);
+    @Inject(at = @At("TAIL"), method = "getEffectiveRenderDistance()I", cancellable = true)
+    public int getEffectiveRenderDistance(CallbackInfoReturnable<Integer> info) {
+        int effectiveRenderDistance = info.getReturnValue();
+        if (BeUndead.Mod.clientZombieMaxViewDistance > 0){
+            if (Minecraft.getInstance().player != null && BeUndead.getZombieType(Minecraft.getInstance().player) > 0){
+                effectiveRenderDistance = Math.min(effectiveRenderDistance, BeUndead.Mod.clientZombieMaxViewDistance);
+            }
+            info.setReturnValue(effectiveRenderDistance);
         }
         return effectiveRenderDistance;
     }

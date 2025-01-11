@@ -16,6 +16,11 @@ public class ModNetworking {
             .simpleChannel();
 
     public static void register(){
+        INSTANCE.messageBuilder(ZombieSettingsPacket.class, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(ZombieSettingsPacket::encode)
+                .decoder(ZombieSettingsPacket::new)
+                .consumerMainThread(ZombieSettingsPacket::handle)
+                .add();
     }
 
     public static void sendToServer(Object msg){

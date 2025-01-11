@@ -1,6 +1,9 @@
 package io.github.ziederziet.beundead.zombie_capability;
 
+import io.github.ziederziet.beundead.BeUndead;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.capabilities.AutoRegisterCapability;
 
 import javax.annotation.Nullable;

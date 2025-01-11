@@ -3,6 +3,7 @@ package io.github.ziederziet.beundead.mixin;
 import com.mojang.authlib.GameProfile;
 import com.mojang.serialization.DataResult;
 import io.github.ziederziet.beundead.BeUndead;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.nbt.*;
@@ -35,8 +36,23 @@ import java.util.Objects;
 
 @Mixin(Player.class)
 public class PlayerMixin {
+    public int ambientSoundTime;
 
+    @Inject(at = @At("HEAD"), method = "tick()V")
+    public void tick(CallbackInfo info){
+        Player player = (Player)(Object)this;
+        if (BeUndead.getZombieType(player) > 0){
+            if (player.isAlive() && player.getRandom().nextInt(1500) < this.ambientSoundTime++) {
+                this.ambientSoundTime = -160;
+                BeUndead.playAmbientSound(player);
+            }
+        }
+    }
 
+    @Inject(at = @At("TAIL"), method = "getSpeed()F", cancellable = true)
+    public float getSpeed(CallbackInfoReturnable<Float> info){
+        return (float) (info.getReturnValueF() * BeUndead.getWalkingSpeed((Player)(Object)this));
+    }
 
     @Inject(at = @At("TAIL"), method = "defineSynchedData(Lnet/minecraft/network/syncher/SynchedEntityData$Builder;)V")
     protected void defineSynchedData(SynchedEntityData.Builder pBuilder, CallbackInfo info) {
@@ -46,6 +62,7 @@ public class PlayerMixin {
         pBuilder.define(BeUndead.DATA_ZOMBIE_CONVERSION_TIME, -1);
         pBuilder.define(BeUndead.DATA_ZOMBIE_CONVERSION, 0);
     }
+
     @Inject(at = @At("TAIL"), method = "readAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V")
     public void readAdditionalSaveData(CompoundTag pCompound, CallbackInfo info) {
         int zombietype = pCompound.getInt("ZombieType");
@@ -68,6 +85,7 @@ public class PlayerMixin {
         entityData.set(BeUndead.DATA_ZOMBIE, zombietype);
         entityData.set(BeUndead.DATA_ZOMBIE_CHEST, zombiechest);
     }
+
     @Inject(at = @At("TAIL"), method = "addAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V")
     public void addAdditionalSaveData(CompoundTag pCompound, CallbackInfo info) {
         SynchedEntityData entityData = ((EntityAccessor)this).getEntityData();
@@ -82,23 +100,5 @@ public class PlayerMixin {
             pCompound.putInt("ConversionTime", dataConversionTime);
         }
         pCompound.putInt("ZombieConversion", entityData.get(BeUndead.DATA_ZOMBIE_CONVERSION));
-
-    }
-
-    private boolean isSunBurnTick() {
-        if (BeUndead.Mod.getFoggyDay()){
-            return false;
-        }
-        Player thisPlayer = (Player) (Object)this;
-        if (thisPlayer.level().isDay() && !thisPlayer.level().isClientSide) {
-            float f = thisPlayer.getLightLevelDependentMagicValue();
-            BlockPos blockpos = BlockPos.containing(thisPlayer.getX(), thisPlayer.getEyeY(), thisPlayer.getZ());
-            boolean flag = thisPlayer.isInWaterRainOrBubble() || thisPlayer.isInPowderSnow || thisPlayer.wasInPowderSnow;
-            if (f > 0.5F && thisPlayer.getRandom().nextFloat() * 30.0F < (f - 0.4F) * 2.0F && !flag && thisPlayer.level().canSeeSky(blockpos)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

@@ -14,7 +14,6 @@
     "SlotMixin",
     "ExperienceOrbMixin",
     "EntityMixin",
-    "MobMixin",
     "PlayerListMixin",
     "VillagerMixin",
     "DoorBlockMixin",
@@ -24,7 +23,9 @@
     "VillagerHostilesSensorMixin",
     "SlimeMixin",
     "ItemMixin",
-    "SensorMixin"
+    "SensorMixin",
+    "EnchantmentHelperMixin",
+    "KeyboardInputMixin"
   ],
   "client": [
     "OptionsMixin",
@@ -43,10 +44,10 @@
     "LocalPlayerMixin",
     "DeathScreenMixin",
     "AbstractContainerScreenMixin",
-    "LevelRendererMixin",
     "DeathScreenAccessor",
     "GuiMixin",
-    "LightTextureMixin"
+    "LightTextureMixin",
+    "AbstractContainerMenuMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -2,30 +2,21 @@ package io.github.ziederziet.beundead.mixin;
 
 import com.google.common.collect.Maps;
 import io.github.ziederziet.beundead.BeUndead;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.tags.EntityTypeTags;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.animal.Animal;
-import net.minecraft.world.entity.animal.IronGolem;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameRules;
-import net.minecraft.world.level.Level;
 import net.minecraftforge.event.ForgeEventFactory;
-import net.minecraftforge.eventbus.api.Event;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -33,8 +24,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Map;
 
 @Mixin(LivingEntity.class)
@@ -95,11 +84,32 @@ public abstract class LivingEntityMixin {
 
     @Inject(at = @At("HEAD"), method = "canBreatheUnderwater()Z", cancellable = true)
     public boolean canBreatheUnderwater(CallbackInfoReturnable<Boolean> info) {
-        if (((EntityAccessor)this).getType() == EntityType.PLAYER && BeUndead.getZombieType((Player) (Object) this) == 3){
+        if ((Object)this instanceof Player player && BeUndead.getZombieType(player) == 3){
             info.setReturnValue(true);
             info.cancel();
             return true;
         }
         return false;
     }
+
+    @Inject(at = @At("HEAD"), method = "getHurtSound(Lnet/minecraft/world/damagesource/DamageSource;)Lnet/minecraft/sounds/SoundEvent;", cancellable = true)
+    protected SoundEvent getHurtSound(DamageSource pDamageSource, CallbackInfoReturnable<SoundEvent> info) {
+        if ((Object)this instanceof Player player && BeUndead.getZombieType(player) > 0){
+            SoundEvent hurtSound = BeUndead.getHurtSound(player);
+            info.setReturnValue(hurtSound);
+            return hurtSound;
+        }
+        return null;
+    }
+
+    @Inject(at = @At("HEAD"), method = "getDeathSound()Lnet/minecraft/sounds/SoundEvent;", cancellable = true)
+    protected SoundEvent getDeathSound(CallbackInfoReturnable<SoundEvent> info) {
+        if ((Object)this instanceof Player player && BeUndead.getZombieType(player) > 0){
+            SoundEvent deathSound = BeUndead.getDeathSound(player);
+            info.setReturnValue(deathSound);
+            return deathSound;
+        }
+        return null;
+    }
+
 }

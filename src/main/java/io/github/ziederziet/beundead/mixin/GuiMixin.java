@@ -38,13 +38,10 @@ public abstract class GuiMixin {
     @Shadow
     protected abstract void renderSlot(GuiGraphics pGuiGraphics, int pX, int pY, DeltaTracker pDeltaTracker, Player pPlayer, ItemStack pStack, int pSeed);
 
-    @Overwrite
-    private void renderItemHotbar(GuiGraphics pGuiGraphics, DeltaTracker pDeltaTracker) {
-        Player player = null;
-        if (Minecraft.getInstance().getCameraEntity() instanceof Player player1){
-            player = player1;
-        }
-        if (player != null) {
+    @Inject(at = @At("HEAD"), method = "renderItemHotbar(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/DeltaTracker;)V", cancellable = true)
+    private void renderItemHotbar(GuiGraphics pGuiGraphics, DeltaTracker pDeltaTracker, CallbackInfo info) {
+        if (Minecraft.getInstance().getCameraEntity() instanceof Player player && BeUndead.getZombieType(player) > 0 && BeUndead.getInvStateOfPlayer(player) == 0) {
+            info.cancel();
             ItemStack offhandItemstack = player.getOffhandItem();
             HumanoidArm humanoidarm = player.getMainArm().getOpposite();
             int i = pGuiGraphics.guiWidth() / 2;
@@ -54,20 +51,8 @@ public abstract class GuiMixin {
 
             int additionXSlot = 80;
 
-            if (BeUndead.getZombieType(player) == 0 || BeUndead.zombieHasChest(player)){
-                additionXSlot = 0;
-            }
-
-            if (BeUndead.getZombieType(player) > 0 && !BeUndead.zombieHasChest(player)) {
-                pGuiGraphics.blitSprite(HOTBAR_OFFHAND_RIGHT_SPRITE, i - 98 + additionXSlot, pGuiGraphics.guiHeight() - 22, 29, 22);
-                pGuiGraphics.blitSprite(HOTBAR_SELECTION_SPRITE, i - 91 + additionXSlot - 1, pGuiGraphics.guiHeight() - 22 - 1, 24, 23);
-            } else {
-                pGuiGraphics.blitSprite(HOTBAR_SPRITE, i - 91 + additionXSlot, pGuiGraphics.guiHeight() - 22, 182, 22);
-                pGuiGraphics.blitSprite(HOTBAR_SELECTION_SPRITE, i - 91 + additionXSlot - 1 + player.getInventory().selected * 20, pGuiGraphics.guiHeight() - 22 - 1, 24, 23);
-            }
-
-
-
+            pGuiGraphics.blitSprite(HOTBAR_OFFHAND_RIGHT_SPRITE, i - 98 + additionXSlot, pGuiGraphics.guiHeight() - 22, 29, 22);
+            pGuiGraphics.blitSprite(HOTBAR_SELECTION_SPRITE, i - 91 + additionXSlot - 1, pGuiGraphics.guiHeight() - 22 - 1, 24, 23);
 
             if (!offhandItemstack.isEmpty()) {
                 if (humanoidarm == HumanoidArm.LEFT) {
@@ -83,18 +68,12 @@ public abstract class GuiMixin {
             int i2;
             int j2;
             int k2;
-            if (BeUndead.getZombieType(player) > 0 && !BeUndead.zombieHasChest(player)){
-                i2 = 4;
-                j2 = i - 90 + 2 + additionXSlot;
-                k2 = pGuiGraphics.guiHeight() - 16 - 3;
-                this.renderSlot(pGuiGraphics, j2, k2, pDeltaTracker, player, (ItemStack)player.getInventory().items.get(i2), l++);
-            } else {
-                for(i2 = 0; i2 < 9; ++i2) {
-                    j2 = i - 90 + i2 * 20 + 2 + additionXSlot;
-                    k2 = pGuiGraphics.guiHeight() - 16 - 3;
-                    this.renderSlot(pGuiGraphics, j2, k2, pDeltaTracker, player, (ItemStack)player.getInventory().items.get(i2), l++);
-                }
-            }
+
+
+            i2 = 4;
+            j2 = i - 90 + 2 + additionXSlot;
+            k2 = pGuiGraphics.guiHeight() - 16 - 3;
+            this.renderSlot(pGuiGraphics, j2, k2, pDeltaTracker, player, (ItemStack)player.getInventory().items.get(i2), l++);
 
 
             if (!offhandItemstack.isEmpty()) {

@@ -14,6 +14,7 @@ import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
@@ -56,28 +57,62 @@ public class PlayerModelMixin {
 
                 ModelPart pRightSleeve = playerModelAccessor.getRightSleeve();
                 ModelPart pLeftSleeve = playerModelAccessor.getLeftSleeve();
+                
+                boolean doesRight = false; // MAIN HAND
+                boolean doesLeft = false;
+
+                if (player.isUsingItem()){
+                    switch (player.getUseItem().getUseAnimation()){
+                        case SPYGLASS, TOOT_HORN, SPEAR, BRUSH: {
+                            doesLeft = true;
+                            break;
+                        }
+                        case NONE, DRINK, BLOCK, EAT: {
+                            doesRight = true;
+                            doesLeft = true;
+                            break;
+                        }
+                        default: {
+                            break;
+                        }
+                    }
+
+                    if (player.getUsedItemHand() == InteractionHand.OFF_HAND){
+                        boolean doesRightB = doesRight;
+                        doesRight = doesLeft;
+                        doesLeft = doesRightB;
+                    }
+                }
+                else {
+                    doesRight = true;
+                    doesLeft = true;
+                }
 
                 float $$5 = Mth.sin(pAttackTime * 3.1415927F);
                 float $$6 = Mth.sin((1.0F - (1.0F - pAttackTime) * (1.0F - pAttackTime)) * 3.1415927F);
-                pRightArm.zRot = 0.0F;
-                pLeftArm.zRot = 0.0F;
-                pRightArm.yRot = -(0.1F - $$5 * 0.6F);
-                pLeftArm.yRot = 0.1F - $$5 * 0.6F;
-                pRightSleeve.zRot = 0.0F;
-                pLeftSleeve.zRot = 0.0F;
-                pRightSleeve.yRot = -(0.1F - $$5 * 0.6F);
-                pLeftSleeve.yRot = 0.1F - $$5 * 0.6F;
                 float $$7 = -3.1415927F / (pIsAggressive ? 1.5F : 2.25F);
-                pRightArm.xRot = $$7;
-                pLeftArm.xRot = $$7;
-                pRightArm.xRot += $$5 * 1.2F - $$6 * 0.4F;
-                pLeftArm.xRot += $$5 * 1.2F - $$6 * 0.4F;
-                pRightSleeve.xRot = $$7;
-                pLeftSleeve.xRot = $$7;
-                pRightSleeve.xRot += $$5 * 1.2F - $$6 * 0.4F;
-                pLeftSleeve.xRot += $$5 * 1.2F - $$6 * 0.4F;
-                bobArms(pRightArm, pLeftArm, pAgeInTicks);
-                bobArms(pRightSleeve, pLeftSleeve, pAgeInTicks);
+                if (doesRight){
+                    pRightArm.zRot = 0.0F;
+                    pRightArm.yRot = -(0.1F - $$5 * 0.6F);
+                    pRightSleeve.zRot = 0.0F;
+                    pRightSleeve.yRot = -(0.1F - $$5 * 0.6F);
+                    pRightArm.xRot = $$7;
+                    pRightArm.xRot += $$5 * 1.2F - $$6 * 0.4F;
+                    pRightSleeve.xRot = $$7;
+                    pRightSleeve.xRot += $$5 * 1.2F - $$6 * 0.4F;
+                    bobArms(pRightArm, pLeftArm, pAgeInTicks);
+                }
+                if (doesLeft){
+                    pLeftArm.zRot = 0.0F;
+                    pLeftArm.yRot = 0.1F - $$5 * 0.6F;
+                    pLeftSleeve.zRot = 0.0F;
+                    pLeftSleeve.yRot = 0.1F - $$5 * 0.6F;
+                    pLeftArm.xRot = $$7;
+                    pLeftArm.xRot += $$5 * 1.2F - $$6 * 0.4F;
+                    pLeftSleeve.xRot = $$7;
+                    pLeftSleeve.xRot += $$5 * 1.2F - $$6 * 0.4F;
+                    bobArms(pRightSleeve, pLeftSleeve, pAgeInTicks);
+                }
             }
         }
 

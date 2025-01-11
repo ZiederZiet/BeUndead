@@ -6,6 +6,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -21,8 +22,16 @@ public class AbstractContainerScreenMixin {
 //        if (pSlot.getSlotIndex() != pSlot.getContainerSlot()){
 //            System.out.print("HIER " + pSlot.getSlotIndex() + "/" + pSlot.getContainerSlot());
 //        }
-        if (pSlot.container instanceof Inventory inventory && pSlot.getSlotIndex() < 36 && BeUndead.getZombieType(inventory.player) > 0 && (!(BeUndead.zombieHasChest(inventory.player) && pSlot.getSlotIndex() < 9) && pSlot.getSlotIndex() != 4)){
-            pGuiGraphics.blitSprite(SLOT_DISABLED_TEXTURE, pSlot.x - 1, pSlot.y - 1, 18, 18);
+        if (pSlot.container instanceof Inventory inventory && BeUndead.getZombieType(inventory.player) > 0) {
+            int invState = BeUndead.getInvStateOfPlayer(inventory.player);
+            if (invState < 2)
+            {
+                if (pSlot.getSlotIndex() < 36 && (!(invState > 0 && pSlot.getSlotIndex() < 9) && pSlot.getSlotIndex() != 4)) {
+                    pGuiGraphics.blitSprite(SLOT_DISABLED_TEXTURE, pSlot.x - 1, pSlot.y - 1, 18, 18);
+                }
+            }
         }
     }
+
+
 }
