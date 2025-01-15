@@ -17,8 +17,6 @@ import net.minecraft.world.level.saveddata.SavedData;
 
 public class ZombieSettingsSavedData extends SavedData {
 
-    public static final ResourceLocation ZOMBIE_MOVEMENT_SPEED_MODIFIER_LOCATION = ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "zombie_speed");
-
     public static Factory<ZombieSettingsSavedData> FACTORY = new Factory<ZombieSettingsSavedData>(
             ZombieSettingsSavedData::create,
             (compoundTag, provider) -> load(compoundTag),
