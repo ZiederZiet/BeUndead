@@ -33,15 +33,8 @@ import static net.minecraft.client.model.AnimationUtils.bobArms;
 @OnlyIn(Dist.CLIENT)
 public class PlayerModelMixin {
 
-//    @Overwrite
-//    public RenderType renderType(ResourceLocation pLocation) {
-//        return ((ModelAccessor)this).getUsualRendertype().apply(pLocation);
-//    }
-
     @Inject(at = @At("TAIL"), method = "setupAnim(Lnet/minecraft/world/entity/LivingEntity;FFFFF)V")
     public void setupAnim(LivingEntity pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch, CallbackInfo info) {
-        //super.setupAnim(pEntity, pLimbSwing, pLimbSwingAmount, pAgeInTicks, pNetHeadYaw, pHeadPitch);
-
         if (pEntity instanceof Player player && BeUndead.getZombieType(player) > 0){
 
             if (player != Minecraft.getInstance().player || Minecraft.getInstance().options.getCameraType() != CameraType.FIRST_PERSON){
@@ -115,8 +108,5 @@ public class PlayerModelMixin {
                 }
             }
         }
-
-        //AnimationUtils.animateZombieArms(humanoidModelAccessor.getLeftArm(), humanoidModelAccessor.getRightArm(), false, ((EntityModelAccessor)this).getAttackTime(), pAgeInTicks);
-        //AnimationUtils.animateZombieArms(playerModelAccessor.getLeftArm(), playerModelAccessor.getRightArm(), false, , pAgeInTicks);
     }
 }

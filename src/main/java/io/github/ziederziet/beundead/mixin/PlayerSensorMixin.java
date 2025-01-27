@@ -25,13 +25,6 @@ import java.util.stream.Stream;
 
 @Mixin(PlayerSensor.class)
 public abstract class PlayerSensorMixin extends Sensor<LivingEntity> {
-//    @Inject(at = @At("HEAD"), method = "doTick(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/entity/LivingEntity;)V", cancellable = true)
-//    protected void doTick(ServerLevel pLevel, LivingEntity pEntity, CallbackInfo info){
-//        if (pEntity instanceof Player player && BeUndead.getZombieType(player) > 0){
-//            info.cancel();
-//        }
-//    }
-
     @Overwrite
     protected void doTick(ServerLevel pLevel, LivingEntity pEntity) {
         Stream var10000 = pLevel.players().stream().filter(EntitySelector.NO_SPECTATORS).filter((p_26744_) -> {

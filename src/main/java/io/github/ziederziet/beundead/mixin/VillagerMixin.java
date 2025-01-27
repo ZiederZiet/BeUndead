@@ -14,12 +14,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(Villager.class)
 public class VillagerMixin {
     @Inject(at = @At("HEAD"), method = "mobInteract(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;", cancellable = true)
-    public InteractionResult mobInteract(Player pPlayer, InteractionHand pHand, CallbackInfoReturnable<InteractionResult> info){
+    public void mobInteract(Player pPlayer, InteractionHand pHand, CallbackInfoReturnable<InteractionResult> info){
         if (BeUndead.getZombieType(pPlayer) > 0){
             info.setReturnValue(InteractionResult.PASS);
             info.cancel();
-            return InteractionResult.PASS;
         }
-        return null;
     }
 }

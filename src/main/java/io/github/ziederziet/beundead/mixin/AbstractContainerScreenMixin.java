@@ -18,10 +18,6 @@ public class AbstractContainerScreenMixin {
     private static final ResourceLocation SLOT_DISABLED_TEXTURE = ResourceLocation.withDefaultNamespace("container/slot_disabled");
     @Inject(at = @At("TAIL"), method = "renderSlot(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/world/inventory/Slot;)V")
     protected void renderSlot(GuiGraphics pGuiGraphics, Slot pSlot, CallbackInfo info){
-        //System.out.print(pSlot.getSlotIndex() + "/");
-//        if (pSlot.getSlotIndex() != pSlot.getContainerSlot()){
-//            System.out.print("HIER " + pSlot.getSlotIndex() + "/" + pSlot.getContainerSlot());
-//        }
         if (pSlot.container instanceof Inventory inventory && BeUndead.getZombieType(inventory.player) > 0) {
             int invState = BeUndead.getInvStateOfPlayer(inventory.player);
             if (invState < 2)

@@ -50,16 +50,6 @@ public abstract class DeathScreenMixin {
         }
     }
 
-//    @Inject(at = @At("HEAD"), method = "render(Lnet/minecraft/client/gui/GuiGraphics;IIF)V")
-//    public void render(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick, CallbackInfo info){
-//        int respawnTimer = BeUndead.getZombieRespawnTimer(Minecraft.getInstance().player);
-//        int seconds = (int) (Math.floor(respawnTimer / 20) % 60);
-//        int minutes = (int) Math.floor(respawnTimer / 20) / 60;
-//        System.out.println(respawnTimer);
-//        String timerString = " " + minutes + ":" + seconds;
-//        this.exitButtons.get(0).setMessage(Component.translatable("deathScreen.respawn").append(timerString));
-//    }
-
     @Shadow
     protected abstract void exitToTitleScreen();
 

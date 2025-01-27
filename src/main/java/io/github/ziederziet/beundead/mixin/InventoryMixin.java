@@ -45,21 +45,6 @@ public abstract class InventoryMixin {
         return null;
     }
 
-    @Shadow
-    protected abstract int addResource(ItemStack pStack);
-
-    @Shadow
-    protected abstract int addResource(int pSlot, ItemStack pStack);
-
-    @Shadow
-    public abstract int getSlotWithRemainingSpace(ItemStack pStack);
-
-    @Shadow
-    public abstract int getFreeSlot();
-
-    @Shadow
-    public abstract boolean add(int slot, ItemStack stack);
-
 
     @Inject(at = @At("HEAD"), method = "getFreeSlot()I", cancellable = true)
     public int getFreeSlotInject(CallbackInfoReturnable<Integer> info){

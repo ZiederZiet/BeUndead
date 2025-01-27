@@ -13,6 +13,4 @@ import java.util.List;
 public interface DeathScreenAccessor {
     @Accessor("exitButtons")
     List<Button> getExitButtons();
-//    @Shadow
-//    void setButtonsActive(boolean pActive);
 }

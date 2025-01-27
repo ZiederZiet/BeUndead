@@ -15,9 +15,6 @@ public interface EntityAccessor {
     @Accessor("entityData")
     SynchedEntityData getEntityData();
 
-    @Accessor("type")
-    EntityType<?> getType();
-
     @Accessor("level")
     Level getLevel();
 

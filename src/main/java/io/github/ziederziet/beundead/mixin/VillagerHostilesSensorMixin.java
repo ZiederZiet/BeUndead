@@ -12,24 +12,19 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(VillagerHostilesSensor.class)
 public class VillagerHostilesSensorMixin {
     @Inject(at = @At("HEAD"), method = "isHostile(Lnet/minecraft/world/entity/LivingEntity;)Z", cancellable = true)
-    private boolean isHostile(LivingEntity pEntity, CallbackInfoReturnable<Boolean> info) {
+    private void isHostile(LivingEntity pEntity, CallbackInfoReturnable<Boolean> info) {
         if (pEntity instanceof Player player && BeUndead.getZombieType(player) > 0){
             info.cancel();
             info.setReturnValue(true);
-            return true;
         }
-        return false;
     }
 
     @Inject(at = @At("HEAD"), method = "isClose(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/entity/LivingEntity;)Z", cancellable = true)
-    private boolean isClose(LivingEntity pAttacker, LivingEntity pTarget, CallbackInfoReturnable<Boolean> info) {
+    private void isClose(LivingEntity pAttacker, LivingEntity pTarget, CallbackInfoReturnable<Boolean> info) {
         if (pTarget instanceof Player){
             float $$2 = 8.0F;
-            boolean isClose = pTarget.distanceToSqr(pAttacker) <= (double)($$2 * $$2);
-            info.setReturnValue(isClose);
+            info.setReturnValue(pTarget.distanceToSqr(pAttacker) <= (double)($$2 * $$2));
             info.cancel();
-            return isClose;
         }
-        return false;
     }
 }

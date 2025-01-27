@@ -15,10 +15,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Options.class)
 public class OptionsMixin {
-    @Shadow
-    private int serverRenderDistance;
-    @Shadow
-    private OptionInstance<Integer> renderDistance;
     @Inject(at = @At("TAIL"), method = "getEffectiveRenderDistance()I", cancellable = true)
     public int getEffectiveRenderDistance(CallbackInfoReturnable<Integer> info) {
         int effectiveRenderDistance = info.getReturnValue();
