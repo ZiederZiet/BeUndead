@@ -440,7 +440,7 @@ public class ModEvents {
                                     }
                                 }
                             }
-                            if (mob.getLastHurtByMob() != null && mob.getTarget().is(player)){
+                            if (mob.getLastHurtByMob() != null && mob.getLastHurtByMob().is(player)){
                                 mob.setLastHurtByMob(null);
                             }
                         });
