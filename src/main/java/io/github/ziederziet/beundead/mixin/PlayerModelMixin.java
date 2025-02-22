@@ -28,6 +28,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import static net.minecraft.client.model.AnimationUtils.bobArms;
+import static net.minecraft.client.model.AnimationUtils.bobModelPart;
 
 @Mixin(PlayerModel.class)
 @OnlyIn(Dist.CLIENT)
@@ -93,7 +94,8 @@ public class PlayerModelMixin {
                     pRightArm.xRot += $$5 * 1.2F - $$6 * 0.4F;
                     pRightSleeve.xRot = $$7;
                     pRightSleeve.xRot += $$5 * 1.2F - $$6 * 0.4F;
-                    bobArms(pRightArm, pLeftArm, pAgeInTicks);
+                    bobModelPart(pRightArm, pAgeInTicks, 1.0F);
+                    bobModelPart(pRightSleeve, pAgeInTicks, 1.0F);
                 }
                 if (doesLeft){
                     pLeftArm.zRot = 0.0F;
@@ -104,7 +106,8 @@ public class PlayerModelMixin {
                     pLeftArm.xRot += $$5 * 1.2F - $$6 * 0.4F;
                     pLeftSleeve.xRot = $$7;
                     pLeftSleeve.xRot += $$5 * 1.2F - $$6 * 0.4F;
-                    bobArms(pRightSleeve, pLeftSleeve, pAgeInTicks);
+                    bobModelPart(pLeftArm, pAgeInTicks, 1.0F);
+                    bobModelPart(pLeftSleeve, pAgeInTicks, 1.0F);
                 }
             }
         }

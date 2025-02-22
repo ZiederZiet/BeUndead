@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(AbstractContainerScreen.class)
 public class AbstractContainerScreenMixin {
     private static final ResourceLocation SLOT_DISABLED_TEXTURE = ResourceLocation.withDefaultNamespace("container/slot_disabled");
-    @Inject(at = @At("TAIL"), method = "renderSlot(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/world/inventory/Slot;)V")
+    @Inject(at = @At("TAIL"), method = "renderSlot")
     protected void renderSlot(GuiGraphics pGuiGraphics, Slot pSlot, CallbackInfo info){
         if (pSlot.container instanceof Inventory inventory && BeUndead.getZombieType(inventory.player) > 0) {
             int invState = BeUndead.getInvStateOfPlayer(inventory.player);

@@ -19,16 +19,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(Item.class)
 public class ItemMixin {
     @Inject(at = @At("HEAD"), method = "use(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResultHolder;", cancellable = true)
-    public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pUsedHand, CallbackInfoReturnable<InteractionResultHolder<ItemStack>> info){
+    public void use(Level pLevel, Player pPlayer, InteractionHand pUsedHand, CallbackInfoReturnable<InteractionResultHolder<ItemStack>> info){
         if (BeUndead.getZombieType(pPlayer) > 0){
             if (!BeUndead.zombieHasChest(pPlayer) && pPlayer.getItemInHand(pUsedHand).is(Items.CHEST)){
                 if (pLevel.isClientSide()){
                     if (!BeUndead.Mod.clientCanChestExtension){
-                        return null;
+                        return;
                     }
                 }
                 else if (!ZombieSettingsSavedData.getZombieSettingsSavedData(pLevel.getServer()).canChestExtension()) {
-                    return null;
+                    return;
                 }
                 info.cancel();
                 if (!pLevel.isClientSide()){
@@ -36,22 +36,16 @@ public class ItemMixin {
                     pPlayer.getItemInHand(pUsedHand).consume(1, pPlayer);
                 }
                 pLevel.playSound(pPlayer, pPlayer.getX(), pPlayer.getY(), pPlayer.getZ(), SoundEvents.ARMOR_EQUIP_GENERIC, SoundSource.PLAYERS, 1.0F, 1.0F);
-                InteractionResultHolder<ItemStack> interactionResultHolder = InteractionResultHolder.consume(pPlayer.getItemInHand(pUsedHand));
-                info.setReturnValue(interactionResultHolder);
-                return interactionResultHolder;
+                info.setReturnValue(InteractionResultHolder.consume(pPlayer.getItemInHand(pUsedHand)));
             } else {
                 ItemStack itemstack = pPlayer.getItemInHand(pUsedHand);
                 FoodProperties foodproperties = (FoodProperties)itemstack.get(DataComponents.FOOD);
                 if (foodproperties != null){
                     if (!itemstack.is(BeUndead.UNDEAD_EATABLES)){
-                        InteractionResultHolder<ItemStack> interactionResultHolder = InteractionResultHolder.fail(itemstack);
-                        info.setReturnValue(interactionResultHolder);
-                        return interactionResultHolder;
+                        info.setReturnValue(InteractionResultHolder.fail(itemstack));
                     }
                 }
             }
-
         }
-        return null;
     }
 }

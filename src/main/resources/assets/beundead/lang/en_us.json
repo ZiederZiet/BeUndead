@@ -49,5 +49,8 @@
   "commands.zombie.drowned.disable": "Drowned are now disabled",
   "commands.zombie.speed.setto": "Speed for zombies set to %s",
   "commands.zombie.speed.default": "Speed for zombies are now set to default (%s)",
-  "commands.zombie.speed.player": "Speed for zombies are now set to default player speed (%s)"
+  "commands.zombie.speed.player": "Speed for zombies are now set to default player speed (%s)",
+  "commands.respawntimer.set": "Set the respawn timer to %s ticks for %s players",
+  "commands.respawntimer.get.not_respawning": "%s is not respawning",
+  "commands.respawntimer.get": "%s has a respawn timer of %s ticks or %s seconnds"
 }

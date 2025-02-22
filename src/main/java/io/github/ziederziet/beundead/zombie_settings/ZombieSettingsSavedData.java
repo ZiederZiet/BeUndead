@@ -36,7 +36,7 @@ public class ZombieSettingsSavedData extends SavedData {
     // Timer in seconds
     private int respawnTimer = 0;
     private int respawnTimerToZombie = 180;
-    private double zombieWalkSpeed = 0.46D;
+    private double zombieWalkSpeed = 1.0D; // 0.46   ZOMBIE
 
     public ZombieSettingsSavedData(){
     }

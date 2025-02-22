@@ -8,6 +8,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.DeathScreen;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -26,17 +27,14 @@ import java.util.List;
 @OnlyIn(Dist.CLIENT)
 @Mixin(DeathScreen.class)
 public abstract class DeathScreenMixin {
-    @Shadow
-    private Button exitToTitleButton;
-    @Shadow
-    public final List<Button> exitButtons = Lists.newArrayList();
-    @Shadow
-    public abstract void setButtonsActive(boolean pActive);
+    @Shadow private final List<Button> exitButtons = Lists.newArrayList();
+
     @Inject(at = @At("HEAD"), method = "setButtonsActive(Z)V", cancellable = true)
     private void setButtonsActiveOverwrite(boolean pActive, CallbackInfo info) {
-        if (BeUndead.getZombieRespawnTimer(Minecraft.getInstance().player) > 0){
-            long timeDif = BeUndead.getZombieRespawnTimer(Minecraft.getInstance().player) - Minecraft.getInstance().player.level().getGameTime();
-            if (timeDif > 0){
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player != null && BeUndead.getZombieRespawnTimer(player) > 0){
+            long timeDif = BeUndead.getZombieRespawnTimer(player) - player.level().getGameTime();
+            if (timeDif > 0 && !player.hasPermissions(2)) {
                 Button $$1;
                 for(Iterator var2 = this.exitButtons.iterator(); var2.hasNext();) {
                     $$1 = (Button)var2.next();

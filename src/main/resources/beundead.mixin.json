@@ -23,7 +23,8 @@
     "ItemMixin",
     "SensorMixin",
     "EnchantmentHelperMixin",
-    "KeyboardInputMixin"
+    "KeyboardInputMixin",
+    "NearestAttackableTargetGoalMixin"
   ],
   "client": [
     "OptionsMixin",

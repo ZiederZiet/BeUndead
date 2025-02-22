@@ -2,9 +2,8 @@ package io.github.ziederziet.beundead.event;
 
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.commands.ModCommands;
-import io.github.ziederziet.beundead.goal.CustomNearestAttackablePlayerGoal;
 import io.github.ziederziet.beundead.mixin.DeathScreenAccessor;
-import io.github.ziederziet.beundead.mixin.NearestAttackableTargetGoalAccessor;
+import io.github.ziederziet.beundead.theyre_coming.TheyreComingAccessor;
 import io.github.ziederziet.beundead.zombie_capability.InfectionZombieCapabilityProvider;
 import io.github.ziederziet.beundead.zombie_capability.ZombiePlayerCapabilityProvider;
 import io.github.ziederziet.beundead.zombie_settings.ZombieSettingsSavedData;
@@ -27,11 +26,7 @@ import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
-import net.minecraft.world.entity.ai.goal.WrappedGoal;
-import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.*;
@@ -183,12 +178,12 @@ public class ModEvents {
                     long respawnTimer = BeUndead.getZombieRespawnTimer(player);
                     long timeTo = respawnTimer - player.level().getGameTime();
                     if (timeTo == 1){
-                        ((DeathScreenAccessor)(Object)deathScreen).getExitButtons().getFirst().active = true;
-                        ((DeathScreenAccessor)(Object)deathScreen).getExitButtons().getFirst().setMessage(Component.translatable("deathScreen.respawn"));
+                        ((DeathScreenAccessor)deathScreen).getExitButtons().getFirst().active = true;
+                        ((DeathScreenAccessor)deathScreen).getExitButtons().getFirst().setMessage(Component.translatable("deathScreen.respawn"));
                     } else if (timeTo > 0 && timeTo % 20 == 0){
                         int minutes = (int)Math.floor(timeTo / 20D / 60D);
                         int seconds = (int)Math.floor(timeTo / 20D % 60D);
-                        ((DeathScreenAccessor)(Object)deathScreen).getExitButtons().getFirst().setMessage(Component.translatable("deathScreen.respawn").append(" " + minutes + ":" + (String.valueOf(seconds).length() == 1 ? "0" : "") + seconds));
+                        ((DeathScreenAccessor)deathScreen).getExitButtons().getFirst().setMessage(Component.translatable("deathScreen.respawn").append(" " + minutes + ":" + (String.valueOf(seconds).length() == 1 ? "0" : "") + seconds));
                     }
                 }
             }
@@ -199,7 +194,7 @@ public class ModEvents {
     public static void onPlayerSleepInBedEvent(PlayerSleepInBedEvent event){
         Vec3 vec3 = Vec3.atBottomCenterOf(event.getEntity().blockPosition());
         List<Player> list = event.getEntity().level().getEntitiesOfClass(Player.class, new AABB(vec3.x() - 8.0, vec3.y() - 5.0, vec3.z() - 8.0, vec3.x() + 8.0, vec3.y() + 5.0, vec3.z() + 8.0), (p_9062_) -> {
-            return BeUndead.getZombieType((Player) p_9062_) > 0;
+            return BeUndead.getZombieType(p_9062_) > 0;
         });
         if (!list.isEmpty()) {
             event.setResult(Player.BedSleepingProblem.NOT_SAFE);
@@ -314,7 +309,7 @@ public class ModEvents {
     }
 
     private static boolean isSunBurnTick(Player player) {
-        if (BeUndead.Mod.isFoggy()){
+        if (player.level().isClientSide() || TheyreComingAccessor.getPhase(player.getServer()) == 2){
             return false;
         }
         if (player.level().isDay() && !player.level().isClientSide) {
@@ -331,56 +326,8 @@ public class ModEvents {
 
     @SubscribeEvent
     public static void onEntityJoinLevel(EntityJoinLevelEvent event){
-//        if (event.getEntity() instanceof Player player){
-//            player.getAttribute(Attributes.MOVEMENT_SPEED).removeModifier(ZombieSettingsSavedData.ZOMBIE_MOVEMENT_SPEED_MODIFIER_LOCATION);
-//            if (BeUndead.getZombieType(player) > 0){
-//                player.getAttribute(Attributes.MOVEMENT_SPEED).addPermanentModifier(new AttributeModifier(, ));
-//            }
-//        }
-
-
         if (event.getEntity() instanceof WanderingTrader wanderingTrader){
             wanderingTrader.goalSelector.addGoal(1, new AvoidEntityGoal<Player>(wanderingTrader, Player.class, player -> BeUndead.getZombieType((Player) player) > 0,  8.0F, 0.5, 0.5, livingEntity -> EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(livingEntity)));
-        }
-
-        if (event.getEntity() instanceof Mob mob && (!(event.getEntity() instanceof NeutralMob) || event.getEntity() instanceof IronGolem)){ // && !(event.getEntity() instanceof NeutralMob)
-
-            Iterator<WrappedGoal> goals = new HashSet<>(mob.targetSelector.getAvailableGoals()).iterator();
-
-            List<NearestAttackableTargetGoal> listOfToRemove = new ArrayList<>();
-
-            while (goals.hasNext()){
-                WrappedGoal wrappedGoal = goals.next();
-                if (wrappedGoal != null && wrappedGoal.getGoal() instanceof NearestAttackableTargetGoal nearestAttackableTargetGoal){
-
-                    Class targetType = ((NearestAttackableTargetGoalAccessor)nearestAttackableTargetGoal).getTargetType();
-                    if (targetType == Player.class){
-
-                        mob.targetSelector.addGoal(wrappedGoal.getPriority(), CustomNearestAttackablePlayerGoal.copyFrom(nearestAttackableTargetGoal, 0, false));
-
-                        listOfToRemove.add(nearestAttackableTargetGoal);
-                    }
-
-                    if (targetType == Mob.class){
-
-                        mob.targetSelector.addGoal(wrappedGoal.getPriority(), CustomNearestAttackablePlayerGoal.copyFrom(nearestAttackableTargetGoal, -1, true));
-                        //System.out.print("HELO");
-                    }
-
-//                    if (targetType == Zombie.class || targetType == Monster.class){
-//
-//                        mob.targetSelector.addGoal(wrappedGoal.getPriority(), CustomNearestAttackablePlayerGoal.copyFrom(nearestAttackableTargetGoal, -1, true));
-//
-//                        //listOfToRemove.add(nearestAttackableTargetGoal);
-//                    }
-//
-//                    if (targetType == Mob.class){
-//                        mob.targetSelector.addGoal(wrappedGoal.getPriority(), CustomNearestAttackablePlayerGoal.copyFrom(nearestAttackableTargetGoal, -1, false));
-//                    }
-                }
-            }
-
-            listOfToRemove.forEach(mob.targetSelector::removeGoal);
         }
     }
 
@@ -424,6 +371,7 @@ public class ModEvents {
             boolean husks = savedData.hasHusks();
             boolean drowned = savedData.hasDrowned();
 
+            boolean respawnTimer = player.getServer().isDedicatedServer();
 
             int type = BeUndead.getZombieType(player);
             if (type == 0){
@@ -436,7 +384,9 @@ public class ModEvents {
                     if (event.getSource().is(DamageTypes.FELL_OUT_OF_WORLD) || event.getSource().is(DamageTypes.OUTSIDE_BORDER)){
                         BeUndead.setZombieType(player, moveType(type, getTypeMovementOnDeath(event.getSource(), player), husks, drowned));
 
-                        BeUndead.setZombieRespawnTimer(player, player.level().getGameTime() + ((long) savedData.getRespawnTimer() * 20 * 60));
+                        if (respawnTimer){
+                            BeUndead.setZombieRespawnTimer(player, player.level().getGameTime() + ((long) savedData.getRespawnTimer() * 20 * 60));
+                        }
                     } else {
                         event.setCanceled(true);
 
@@ -505,17 +455,17 @@ public class ModEvents {
                         BeUndead.checkItemsInNewState(player, !player.isSpectator());
                     }
                 }
-                else {
+                else if (respawnTimer) {
                     BeUndead.setZombieRespawnTimer(player, player.level().getGameTime() + ((long) savedData.getRespawnTimer() * 20));
                 }
-
-
             }
             else {
                 // SET NEW ZOMBIE TYPE
                 BeUndead.setZombieType(player, moveType(type, getTypeMovementOnDeath(event.getSource(), player), husks, drowned));
 
-                BeUndead.setZombieRespawnTimer(player, player.level().getGameTime() + ((long) savedData.getRespawnTimerToZombie() * 20));
+                if (respawnTimer) {
+                    BeUndead.setZombieRespawnTimer(player, player.level().getGameTime() + ((long) savedData.getRespawnTimerToZombie() * 20));
+                }
             }
         }
 

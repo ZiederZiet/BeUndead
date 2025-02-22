@@ -37,7 +37,7 @@ public abstract class GuiMixin {
     @Shadow
     protected abstract void renderSlot(GuiGraphics pGuiGraphics, int pX, int pY, DeltaTracker pDeltaTracker, Player pPlayer, ItemStack pStack, int pSeed);
 
-    @Inject(at = @At("HEAD"), method = "renderItemHotbar(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/DeltaTracker;)V", cancellable = true)
+    @Inject(at = @At("HEAD"), method = "renderItemHotbar", cancellable = true)
     private void renderItemHotbar(GuiGraphics pGuiGraphics, DeltaTracker pDeltaTracker, CallbackInfo info) {
         if (Minecraft.getInstance().getCameraEntity() instanceof Player player && BeUndead.getZombieType(player) > 0 && BeUndead.getInvStateOfPlayer(player) == 0) {
             info.cancel();
@@ -74,13 +74,12 @@ public abstract class GuiMixin {
             k2 = pGuiGraphics.guiHeight() - 16 - 3;
             this.renderSlot(pGuiGraphics, j2, k2, pDeltaTracker, player, (ItemStack)player.getInventory().items.get(i2), l++);
 
-
             if (!offhandItemstack.isEmpty()) {
                 i2 = pGuiGraphics.guiHeight() - 16 - 3;
                 if (humanoidarm == HumanoidArm.LEFT) {
-                    this.renderSlot(pGuiGraphics, i - 91 + additionXSlot - 26, i2, pDeltaTracker, player, offhandItemstack, l++);
+                    this.renderSlot(pGuiGraphics, i - 91 + additionXSlot - 26, i2, pDeltaTracker, player, offhandItemstack, l);
                 } else {
-                    this.renderSlot(pGuiGraphics, i + 91 + additionXSlot + 10, i2, pDeltaTracker, player, offhandItemstack, l++);
+                    this.renderSlot(pGuiGraphics, i + 91 + additionXSlot + 10, i2, pDeltaTracker, player, offhandItemstack, l);
                 }
             }
 
@@ -106,7 +105,7 @@ public abstract class GuiMixin {
 
     }
 
-    @Inject(at = @At("HEAD"), method = "renderExperienceBar(Lnet/minecraft/client/gui/GuiGraphics;I)V", cancellable = true)
+    @Inject(at = @At("HEAD"), method = "renderExperienceBar", cancellable = true)
     private void renderExperienceBar(GuiGraphics pGuiGraphics, int pX, CallbackInfo info){
         if (BeUndead.getZombieType(Minecraft.getInstance().player) > 0){
             Minecraft.getInstance().getProfiler().push("expBar");
@@ -128,7 +127,7 @@ public abstract class GuiMixin {
         }
     }
 
-    @Inject(at = @At("HEAD"), method = "renderExperienceLevel(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/DeltaTracker;)V", cancellable = true)
+    @Inject(at = @At("HEAD"), method = "renderExperienceLevel", cancellable = true)
     private void renderExperienceLevel(GuiGraphics p_335340_, DeltaTracker p_344840_, CallbackInfo info){
         if (BeUndead.getZombieType(Minecraft.getInstance().player) > 0){
             int i = Minecraft.getInstance().player.experienceLevel;

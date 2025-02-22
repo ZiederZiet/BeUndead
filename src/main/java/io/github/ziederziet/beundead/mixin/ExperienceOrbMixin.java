@@ -31,31 +31,32 @@ public abstract class ExperienceOrbMixin {
     @Shadow
     protected abstract void merge(ExperienceOrb pOrb);
 
-    @Overwrite
-    protected void scanForEntities() {
-        Level level = ((EntityAccessor)(Object)this).getLevel();
+    @Inject(at = @At("TAIL"), method = "scanForEntities")
+    protected void scanForEntities(CallbackInfo info) {
+//        if (this.followingPlayer == null || this.followingPlayer.distanceToSqr((ExperienceOrb)(Object)this) > 64.0) {
+//            Level level = ((EntityAccessor)(Object)this).getLevel();
+//
+//            Vec3 pos = ((EntityAccessor)(Object)this).getPosition();
+//            this.followingPlayer = level.getNearestPlayer(pos.x(), pos.y(), pos.z(), 8.0D, entity -> {
+//                if (entity instanceof Player player){
+//                    if (player.isSpectator() || player.isDeadOrDying()){
+//                        return false;
+//                    }
+//                    return BeUndead.getZombieType(player) == 0;
+//                }
+//                return false;
+//            });
 
-        Vec3 pos = ((EntityAccessor)(Object)this).getPosition();
+//            if (level instanceof ServerLevel) {
+//                for(ExperienceOrb experienceorb : level.getEntities(EntityTypeTest.forClass(ExperienceOrb.class), ((EntityAccessor)(Object)this).getBoundingBox().inflate((double)0.5F), this::canMerge)) {
+//                    this.merge(experienceorb);
+//                }
+//            }
+//        }
 
-        if (this.followingPlayer == null || this.followingPlayer.distanceToSqr((ExperienceOrb)(Object)this) > 64.0) {
-            this.followingPlayer = level.getNearestEntity(Player.class, TargetingConditions.forNonCombat().range(8.0).selector(livingEntity -> {
-                Player player = (Player) livingEntity;
-                if (player.isSpectator() || player.isDeadOrDying()){
-                    return false;
-                }
-                return BeUndead.getZombieType(player) == 0;
-            }), null, pos.x(), pos.y(), pos.z(), new AABB(pos.x() - 16D, pos.y() - 16D, pos.z() - 16D, pos.x() + 16D, pos.y() + 16D, pos.z() + 16D));
+        if (this.followingPlayer != null && BeUndead.getZombieType(this.followingPlayer) > 0){
+            this.followingPlayer = null;
         }
-
-        if (level instanceof ServerLevel) {
-            Iterator<ExperienceOrb> var1 = ((ServerLevel)level).getEntitiesOfClass(ExperienceOrb.class, ((EntityAccessor)this).getBoundingBox().inflate(0.5), experienceOrb -> canMerge(experienceOrb, 1, experienceOrb.getValue())).iterator();
-
-            while(var1.hasNext()) {
-                ExperienceOrb experienceorb = (ExperienceOrb)var1.next();
-                this.merge(experienceorb);
-            }
-        }
-
     }
 
     @Inject(at = @At("HEAD"), method = "playerTouch(Lnet/minecraft/world/entity/player/Player;)V", cancellable = true)

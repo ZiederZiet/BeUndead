@@ -5,7 +5,6 @@ import io.github.ziederziet.beundead.BeUndead;
 import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -42,25 +41,20 @@ public abstract class LivingEntityMixin {
     protected abstract void onEffectAdded(MobEffectInstance pEffectInstance, @Nullable Entity pEntity);
 
     @Inject(at = @At("HEAD"), method = "isInvertedHealAndHarm()Z", cancellable = true)
-    public boolean isInvertedHealAndHarm(CallbackInfoReturnable<Boolean> info) {
+    public void isInvertedHealAndHarm(CallbackInfoReturnable<Boolean> info) {
         if ((Object)this instanceof Player player && BeUndead.getZombieType(player) > 0){
             info.cancel();
             info.setReturnValue(true);
-            return true;
         }
-        return false;
     }
 
     @Inject(at = @At("HEAD"), method = "canBeAffected(Lnet/minecraft/world/effect/MobEffectInstance;)Z", cancellable = true)
-    public boolean canBeAffected(MobEffectInstance pEffectInstance, CallbackInfoReturnable<Boolean> info) {
+    public void canBeAffected(MobEffectInstance pEffectInstance, CallbackInfoReturnable<Boolean> info) {
         LivingEntity livingEntity = (LivingEntity) (Object)this;
         if ((livingEntity instanceof Player player && BeUndead.getZombieType(player) > 0) && (pEffectInstance.is(MobEffects.REGENERATION) || pEffectInstance.is(MobEffects.POISON))){
             info.setReturnValue(false);
             info.cancel();
-            return false;
         }
-
-        return false;
     }
 
     @Inject(at = @At("HEAD"), method = "dropExperience(Lnet/minecraft/world/entity/Entity;)V", cancellable = true)
@@ -83,33 +77,34 @@ public abstract class LivingEntityMixin {
     }
 
     @Inject(at = @At("HEAD"), method = "canBreatheUnderwater()Z", cancellable = true)
-    public boolean canBreatheUnderwater(CallbackInfoReturnable<Boolean> info) {
+    public void canBreatheUnderwater(CallbackInfoReturnable<Boolean> info) {
         if ((Object)this instanceof Player player && BeUndead.getZombieType(player) == 3){
             info.setReturnValue(true);
             info.cancel();
-            return true;
         }
-        return false;
     }
 
     @Inject(at = @At("HEAD"), method = "getHurtSound(Lnet/minecraft/world/damagesource/DamageSource;)Lnet/minecraft/sounds/SoundEvent;", cancellable = true)
-    protected SoundEvent getHurtSound(DamageSource pDamageSource, CallbackInfoReturnable<SoundEvent> info) {
+    protected void getHurtSound(DamageSource pDamageSource, CallbackInfoReturnable<SoundEvent> info) {
         if ((Object)this instanceof Player player && BeUndead.getZombieType(player) > 0){
             SoundEvent hurtSound = BeUndead.getHurtSound(player);
             info.setReturnValue(hurtSound);
-            return hurtSound;
         }
-        return null;
     }
 
     @Inject(at = @At("HEAD"), method = "getDeathSound()Lnet/minecraft/sounds/SoundEvent;", cancellable = true)
-    protected SoundEvent getDeathSound(CallbackInfoReturnable<SoundEvent> info) {
+    protected void getDeathSound(CallbackInfoReturnable<SoundEvent> info) {
         if ((Object)this instanceof Player player && BeUndead.getZombieType(player) > 0){
             SoundEvent deathSound = BeUndead.getDeathSound(player);
             info.setReturnValue(deathSound);
-            return deathSound;
         }
-        return null;
+    }
+
+    @Inject(at = @At("HEAD"), method = "hasEffect", cancellable = true)
+    public void hasEffect(Holder<MobEffect> pEffect, CallbackInfoReturnable<Boolean> info){
+        if ((Object)this instanceof Player player && pEffect.getRegisteredName() == "minecraft:night_vision" && BeUndead.getZombieType(player) > 0){
+            info.setReturnValue(true);
+        }
     }
 
 }

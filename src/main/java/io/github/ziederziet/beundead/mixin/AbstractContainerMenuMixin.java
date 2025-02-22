@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(AbstractContainerMenu.class)
 public class AbstractContainerMenuMixin {
-    @Inject(at = @At("HEAD"), method = "doClick(IILnet/minecraft/world/inventory/ClickType;Lnet/minecraft/world/entity/player/Player;)V", cancellable = true)
+    @Inject(at = @At("HEAD"), method = "doClick", cancellable = true)
     private void doClick(int pSlotId, int pButton, ClickType pClickType, Player pPlayer, CallbackInfo info){
         if (pClickType == ClickType.SWAP && BeUndead.getInvStateOfPlayer(pPlayer) < 1){
             info.cancel();

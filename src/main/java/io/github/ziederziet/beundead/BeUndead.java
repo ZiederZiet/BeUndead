@@ -68,7 +68,6 @@ public class BeUndead
 
     public static final String MODID = "beundead";
 
-
     public static final DeferredRegister<MobEffect> MOB_EFFECTS =
             DeferredRegister.create(ForgeRegistries.MOB_EFFECTS, BeUndead.MODID);
 
@@ -76,7 +75,6 @@ public class BeUndead
             () -> new InfectedMobEffect(MobEffectCategory.NEUTRAL, 1784089));
 
     public static final ResourceKey<DamageType> INFECTION_KILL = ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "infection_kill"));
-
 
     public BeUndead(FMLJavaModLoadingContext context)
     {
@@ -156,10 +154,6 @@ public class BeUndead
         else {
             return !player.isInWater() && ZombieSettingsSavedData.getZombieSettingsSavedData(((ServerPlayer)player).getServer()).getZombieJumpOnTheirOwn();
         }
-    }
-
-    public boolean isFoggy(){
-        return false; // GET FROM OTHER MODS
     }
 
     public static void setZombieColors(int type){
