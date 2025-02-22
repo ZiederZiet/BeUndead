@@ -224,6 +224,11 @@ public class ModEvents {
             int type = BeUndead.getZombieType(player);
 
             if (type > 0){
+                MobEffectInstance currentEffect = player.getEffect(MobEffects.NIGHT_VISION);
+                if (currentEffect == null || currentEffect.getDuration() < 61){
+                    player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 200, 0, false, false));
+                }
+
                 player.getCapability(InfectionZombieCapabilityProvider.ZOMBIE_CAPABILITY).ifPresent(infectionZombieCapability -> {
                     infectionZombieCapability.tick(player);
                 });

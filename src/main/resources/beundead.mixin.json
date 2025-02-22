@@ -43,8 +43,8 @@
     "AbstractContainerScreenMixin",
     "DeathScreenAccessor",
     "GuiMixin",
-    "LightTextureMixin",
-    "AbstractContainerMenuMixin"
+    "AbstractContainerMenuMixin",
+    "GameRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

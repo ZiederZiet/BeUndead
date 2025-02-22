@@ -28,18 +28,6 @@ import java.util.Map;
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
 
-    @Shadow
-    public boolean dead;
-
-    @Shadow
-    protected final Map<Holder<MobEffect>, MobEffectInstance> activeEffects = Maps.newHashMap();
-
-    @Shadow
-    protected abstract void onEffectUpdated(MobEffectInstance pEffectInstance, boolean pForced, @Nullable Entity pEntity);
-
-    @Shadow
-    protected abstract void onEffectAdded(MobEffectInstance pEffectInstance, @Nullable Entity pEntity);
-
     @Inject(at = @At("HEAD"), method = "isInvertedHealAndHarm()Z", cancellable = true)
     public void isInvertedHealAndHarm(CallbackInfoReturnable<Boolean> info) {
         if ((Object)this instanceof Player player && BeUndead.getZombieType(player) > 0){
@@ -99,12 +87,4 @@ public abstract class LivingEntityMixin {
             info.setReturnValue(deathSound);
         }
     }
-
-    @Inject(at = @At("HEAD"), method = "hasEffect", cancellable = true)
-    public void hasEffect(Holder<MobEffect> pEffect, CallbackInfoReturnable<Boolean> info){
-        if ((Object)this instanceof Player player && pEffect.getRegisteredName() == "minecraft:night_vision" && BeUndead.getZombieType(player) > 0){
-            info.setReturnValue(true);
-        }
-    }
-
 }
