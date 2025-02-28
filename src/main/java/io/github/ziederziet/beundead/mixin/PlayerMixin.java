@@ -1,37 +1,14 @@
 package io.github.ziederziet.beundead.mixin;
 
-import com.mojang.authlib.GameProfile;
-import com.mojang.serialization.DataResult;
 import io.github.ziederziet.beundead.BeUndead;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.GlobalPos;
 import net.minecraft.nbt.*;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageSources;
-import net.minecraft.world.damagesource.DamageTypes;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
-import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import java.util.Objects;
 
 
 @Mixin(Player.class)
@@ -50,8 +27,11 @@ public class PlayerMixin {
     }
 
     @Inject(at = @At("TAIL"), method = "getSpeed()F", cancellable = true)
-    public float getSpeed(CallbackInfoReturnable<Float> info){
-        return (float) (info.getReturnValueF() * BeUndead.getWalkingSpeed((Player)(Object)this));
+    public void getSpeed(CallbackInfoReturnable<Float> info){
+        Player player = (Player)(Object)this;
+        if (BeUndead.getZombieType(player) > 0){
+            info.setReturnValue((float) (info.getReturnValueF() * BeUndead.getWalkingSpeed(player)));
+        }
     }
 
     @Inject(at = @At("TAIL"), method = "defineSynchedData(Lnet/minecraft/network/syncher/SynchedEntityData$Builder;)V")

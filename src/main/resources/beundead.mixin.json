@@ -44,7 +44,8 @@
     "DeathScreenAccessor",
     "GuiMixin",
     "AbstractContainerMenuMixin",
-    "GameRendererMixin"
+    "GameRendererMixin",
+    "CycleButtonMixin"
   ],
   "injectors": {
     "defaultRequire": 1

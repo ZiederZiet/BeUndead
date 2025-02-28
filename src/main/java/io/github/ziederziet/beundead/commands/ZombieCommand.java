@@ -97,16 +97,6 @@ public class ZombieCommand extends BaseCommand {
                         return 0;
                     }
                     return getZombie(sourceStack.getSource(), EntityArgument.getPlayer(sourceStack, "target"));
-                })))).then(Commands.literal("setrespawntimer").then(Commands.literal("ashuman").then(Commands.argument("timer", IntegerArgumentType.integer()).executes(sourceStack -> {
-                    int timer = IntegerArgumentType.getInteger(sourceStack, "timer");
-                    ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setRespawnTimer(timer);
-                    sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.respawntimer.ashuman", new Object[]{timer}), true);
-                    return Command.SINGLE_SUCCESS;
-                }))).then(Commands.literal("aszombie").then(Commands.argument("timer", IntegerArgumentType.integer()).executes(sourceStack -> {
-                    int timer = IntegerArgumentType.getInteger(sourceStack, "timer");
-                    ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setRespawnTimerToZombie(timer);
-                    sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.respawntimer.aszombie", new Object[]{timer}), true);
-                    return Command.SINGLE_SUCCESS;
                 }))))
                 .then(Commands.literal("vision").then(Commands.literal("nightvision").then(Commands.literal("enabled").executes(sourceStack -> {
                     ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setZombieNightVision(true);

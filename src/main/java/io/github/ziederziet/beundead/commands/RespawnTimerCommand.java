@@ -6,6 +6,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import io.github.ziederziet.beundead.BeUndead;
+import io.github.ziederziet.beundead.zombie_settings.ZombieSettingsSavedData;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -43,6 +44,16 @@ public class RespawnTimerCommand extends BaseCommand {
             else {
                 sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.respawntimer.get.not_respawning", new Object[] { serverPlayer.getName() }), false);
             }
+            return Command.SINGLE_SUCCESS;
+        }))).then(Commands.literal("ashuman").then(Commands.argument("timer", IntegerArgumentType.integer()).executes(sourceStack -> {
+            int timer = IntegerArgumentType.getInteger(sourceStack, "timer");
+            ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setRespawnTimer(timer);
+            sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.respawntimer.ashuman", new Object[]{timer}), true);
+            return Command.SINGLE_SUCCESS;
+        }))).then(Commands.literal("aszombie").then(Commands.argument("timer", IntegerArgumentType.integer()).executes(sourceStack -> {
+            int timer = IntegerArgumentType.getInteger(sourceStack, "timer");
+            ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setRespawnTimerToZombie(timer);
+            sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.respawntimer.aszombie", new Object[]{timer}), true);
             return Command.SINGLE_SUCCESS;
         }))));
     }
