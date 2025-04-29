@@ -20,40 +20,11 @@ import java.util.Iterator;
 
 @Mixin(ExperienceOrb.class)
 public abstract class ExperienceOrbMixin {
-
-    private static boolean canMerge(ExperienceOrb pOrb, int pAmount, int pOther) {
-        return !pOrb.isRemoved() && (pOrb.getId() - pAmount) % 40 == 0 && pOrb.value == pOther;
-    }
-
     @Shadow
     private Player followingPlayer;
 
-    @Shadow
-    protected abstract void merge(ExperienceOrb pOrb);
-
     @Inject(at = @At("TAIL"), method = "scanForEntities")
     protected void scanForEntities(CallbackInfo info) {
-//        if (this.followingPlayer == null || this.followingPlayer.distanceToSqr((ExperienceOrb)(Object)this) > 64.0) {
-//            Level level = ((EntityAccessor)(Object)this).getLevel();
-//
-//            Vec3 pos = ((EntityAccessor)(Object)this).getPosition();
-//            this.followingPlayer = level.getNearestPlayer(pos.x(), pos.y(), pos.z(), 8.0D, entity -> {
-//                if (entity instanceof Player player){
-//                    if (player.isSpectator() || player.isDeadOrDying()){
-//                        return false;
-//                    }
-//                    return BeUndead.getZombieType(player) == 0;
-//                }
-//                return false;
-//            });
-
-//            if (level instanceof ServerLevel) {
-//                for(ExperienceOrb experienceorb : level.getEntities(EntityTypeTest.forClass(ExperienceOrb.class), ((EntityAccessor)(Object)this).getBoundingBox().inflate((double)0.5F), this::canMerge)) {
-//                    this.merge(experienceorb);
-//                }
-//            }
-//        }
-
         if (this.followingPlayer != null && BeUndead.getZombieType(this.followingPlayer) > 0){
             this.followingPlayer = null;
         }
