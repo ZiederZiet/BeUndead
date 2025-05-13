@@ -16,9 +16,7 @@ public class ModCommands {
         CommandBuildContext context = event.getBuildContext();
 
         commands.add(new ZombieCommand("zombie", 2));
-        commands.add(new RespawnTimerCommand("respawntimer", 2));
-//        commands.add(new RedmoonCommand("redmoon", 2));
-//        commands.add(new FogCommand("fog", 2));
+//        commands.add(new RespawnTimerCommand("respawntimer", 2));
 
         commands.forEach(command -> {
             command.register(dispatcher, context);

@@ -1,6 +1,7 @@
 package io.github.ziederziet.beundead.zombie_capability;
 
 import io.github.ziederziet.beundead.BeUndead;
+import io.github.ziederziet.beundead.api.BeUndeadApi;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -26,6 +27,7 @@ public class InfectionZombieCapability {
     public InfectionZombieCapability(){
         infecter = null;
     }
+
     public void saveNBTData(CompoundTag tag){
         if (infecter != null){
             tag.putUUID("Infecter", infecter);
@@ -63,7 +65,7 @@ public class InfectionZombieCapability {
     }
 
     public void tick(LivingEntity livingEntity){
-        if (livingEntity instanceof Villager || (livingEntity instanceof Player player && BeUndead.getZombieType(player) <= 0)){
+        if (livingEntity instanceof Villager || (livingEntity instanceof Player player && BeUndeadApi.getZombieType(player) <= 0)){
             if (this.infected > 30){
                 if (!livingEntity.hasEffect(BeUndead.INFECTED_EFFECT.getHolder().get())){
                     livingEntity.addEffect(new MobEffectInstance(BeUndead.INFECTED_EFFECT.getHolder().get(), -1, 0));

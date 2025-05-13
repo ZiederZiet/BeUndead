@@ -1,7 +1,6 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.BeUndead;
-import net.minecraft.client.Minecraft;
+import io.github.ziederziet.beundead.api.BeUndeadApi;
 import net.minecraft.network.protocol.game.ServerboundClientCommandPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
@@ -19,7 +18,7 @@ public class ServerGamePacketListenerImplMixin {
     public void handleClientCommand(ServerboundClientCommandPacket pPacket, CallbackInfo info){
         ServerboundClientCommandPacket.Action serverboundclientcommandpacket$action = pPacket.getAction();
         if (serverboundclientcommandpacket$action == ServerboundClientCommandPacket.Action.PERFORM_RESPAWN){
-            if (this.player.getEntityData().get(BeUndead.DATA_ZOMBIE_RESPAWN_TIME) > this.player.level().getGameTime() && this.player.getServer().isDedicatedServer() && !this.player.hasPermissions(2)){
+            if (BeUndeadApi.getZombieRespawnTimer(this.player) > this.player.level().getGameTime() && this.player.getServer().isDedicatedServer() && !this.player.hasPermissions(2)){
                 info.cancel();
             }
         }

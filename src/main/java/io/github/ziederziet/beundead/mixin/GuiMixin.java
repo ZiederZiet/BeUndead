@@ -2,6 +2,7 @@ package io.github.ziederziet.beundead.mixin;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import io.github.ziederziet.beundead.BeUndead;
+import io.github.ziederziet.beundead.api.BeUndeadApi;
 import net.minecraft.client.AttackIndicatorStatus;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -39,7 +40,7 @@ public abstract class GuiMixin {
 
     @Inject(at = @At("HEAD"), method = "renderItemHotbar", cancellable = true)
     private void renderItemHotbar(GuiGraphics pGuiGraphics, DeltaTracker pDeltaTracker, CallbackInfo info) {
-        if (Minecraft.getInstance().getCameraEntity() instanceof Player player && BeUndead.getZombieType(player) > 0 && BeUndead.getInvStateOfPlayer(player) == 0) {
+        if (Minecraft.getInstance().getCameraEntity() instanceof Player player && BeUndeadApi.getZombieType(player) > 0 && BeUndeadApi.getInvStateOfPlayer(player) == 0) {
             info.cancel();
             ItemStack offhandItemstack = player.getOffhandItem();
             HumanoidArm humanoidarm = player.getMainArm().getOpposite();
@@ -107,7 +108,7 @@ public abstract class GuiMixin {
 
     @Inject(at = @At("HEAD"), method = "renderExperienceBar", cancellable = true)
     private void renderExperienceBar(GuiGraphics pGuiGraphics, int pX, CallbackInfo info){
-        if (BeUndead.getZombieType(Minecraft.getInstance().player) > 0){
+        if (BeUndeadApi.getZombieType(Minecraft.getInstance().player) > 0){
             Minecraft.getInstance().getProfiler().push("expBar");
             int i = Minecraft.getInstance().player.getXpNeededForNextLevel();
             if (i > 0) {
@@ -129,7 +130,7 @@ public abstract class GuiMixin {
 
     @Inject(at = @At("HEAD"), method = "renderExperienceLevel", cancellable = true)
     private void renderExperienceLevel(GuiGraphics p_335340_, DeltaTracker p_344840_, CallbackInfo info){
-        if (BeUndead.getZombieType(Minecraft.getInstance().player) > 0){
+        if (BeUndeadApi.getZombieType(Minecraft.getInstance().player) > 0){
             int i = Minecraft.getInstance().player.experienceLevel;
             if (this.isExperienceBarVisible() && i > 0) {
                 Minecraft.getInstance().getProfiler().push("expLevel");

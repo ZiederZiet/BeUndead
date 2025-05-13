@@ -1,6 +1,7 @@
 package io.github.ziederziet.beundead.mixin;
 
 import io.github.ziederziet.beundead.BeUndead;
+import io.github.ziederziet.beundead.api.BeUndeadApi;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
@@ -25,10 +26,11 @@ import java.util.stream.Stream;
 
 @Mixin(PlayerSensor.class)
 public abstract class PlayerSensorMixin extends Sensor<LivingEntity> {
-    @Overwrite
-    protected void doTick(ServerLevel pLevel, LivingEntity pEntity) {
+    @Inject(at = @At("HEAD"), method = "doTick", cancellable = true)
+    protected void doTick(ServerLevel pLevel, LivingEntity pEntity, CallbackInfo info) {
+        info.cancel();
         Stream var10000 = pLevel.players().stream().filter(EntitySelector.NO_SPECTATORS).filter((p_26744_) -> {
-            return pEntity.closerThan(p_26744_, 16.0) && p_26744_ instanceof Player player && BeUndead.getZombieType(player) > 0;
+            return pEntity.closerThan(p_26744_, 16.0) && p_26744_ instanceof Player player && BeUndeadApi.getZombieType(player) > 0;
         });
         Objects.requireNonNull(pEntity);
         List<Player> $$2 = (List)var10000.sorted(Comparator.comparingDouble(entity -> pEntity.distanceToSqr((Entity) entity))).collect(Collectors.toList());

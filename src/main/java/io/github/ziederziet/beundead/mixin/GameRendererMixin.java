@@ -1,6 +1,7 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.BeUndead;
+import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.ClientInfo;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -13,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class GameRendererMixin {
     @Inject(at = @At("HEAD"), method = "getNightVisionScale", cancellable = true)
     private static void getNightVisionScale(LivingEntity pLivingEntity, float pNanoTime, CallbackInfoReturnable<Float> info){
-        if (pLivingEntity instanceof Player player && BeUndead.getZombieType(player) > 0){
+        if (pLivingEntity instanceof Player player && BeUndeadApi.getZombieType(player) > 0 && ClientInfo.zombieNightVision){
             info.setReturnValue(1.0F);
         }
     }

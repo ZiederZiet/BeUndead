@@ -3,6 +3,7 @@ package io.github.ziederziet.beundead.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.ziederziet.beundead.BeUndead;
+import io.github.ziederziet.beundead.api.BeUndeadApi;
 import io.github.ziederziet.beundead.mixin.PlayerModelMixin;
 import io.github.ziederziet.beundead.mixin.PlayerRendererMixin;
 import net.minecraft.client.model.PlayerModel;
@@ -27,7 +28,7 @@ public class ZombieChestLayer extends RenderLayer<AbstractClientPlayer, PlayerMo
 
     @Override
     public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int packedLight, AbstractClientPlayer abstractClientPlayer, float v, float v1, float v2, float v3, float v4, float v5) {
-        if (BeUndead.zombieHasChest(abstractClientPlayer)){
+        if (BeUndeadApi.hasZombieChest(abstractClientPlayer)){
             VertexConsumer vertexConsumer = multiBufferSource.getBuffer(RenderType.entitySolid(CHEST_LOCATION));
             model.renderToBuffer(poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY);
         }

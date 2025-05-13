@@ -1,20 +1,18 @@
 package io.github.ziederziet.beundead.event;
 
 import io.github.ziederziet.beundead.BeUndead;
+import io.github.ziederziet.beundead.api.BeUndeadApi;
 import io.github.ziederziet.beundead.commands.ModCommands;
-import io.github.ziederziet.beundead.mixin.DeathScreenAccessor;
+import io.github.ziederziet.beundead.config.ConfigAccessor;
+import io.github.ziederziet.beundead.networking.ModNetworking;
+import io.github.ziederziet.beundead.networking.UndeadDataPacket;
 import io.github.ziederziet.beundead.theyre_coming.TheyreComingAccessor;
 import io.github.ziederziet.beundead.zombie_capability.InfectionZombieCapabilityProvider;
 import io.github.ziederziet.beundead.zombie_capability.ZombiePlayerCapabilityProvider;
-import io.github.ziederziet.beundead.zombie_settings.ZombieSettingsSavedData;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.DeathScreen;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -48,9 +46,11 @@ import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.entity.player.CriticalHitEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerSleepInBedEvent;
 import net.minecraftforge.event.entity.player.PlayerSpawnPhantomsEvent;
+import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -61,12 +61,12 @@ import java.util.*;
 public class ModEvents {
     @SubscribeEvent
     public static void onLivingDamageEvent(LivingDamageEvent event){
-        if (event.getSource().getEntity() instanceof Player player && BeUndead.getZombieType(player) == 2){
+        if (event.getSource().getEntity() instanceof Player player && BeUndeadApi.getZombieType(player) == 2){
             event.getEntity().addEffect(new MobEffectInstance(MobEffects.HUNGER, 600, 0));
         }
 
-        if (event.getEntity() instanceof Villager || (event.getEntity() instanceof Player player && BeUndead.getZombieType(player) <= 0)){
-            if (event.getSource().getEntity() instanceof Zombie || (event.getSource().getEntity() instanceof Player playerAttacker && BeUndead.getZombieType(playerAttacker) > 0)){
+        if (event.getEntity() instanceof Villager || (event.getEntity() instanceof Player player && BeUndeadApi.getZombieType(player) <= 0)){
+            if (event.getSource().getEntity() instanceof Zombie || (event.getSource().getEntity() instanceof Player playerAttacker && BeUndeadApi.getZombieType(playerAttacker) > 0)){
 
                 if (event.getEntity().getRandom().nextBoolean()){
                     @Nullable Player infecter = event.getSource().getEntity() instanceof Player playerAttacker ? playerAttacker : null;
@@ -77,32 +77,12 @@ public class ModEvents {
             }
         }
     }
-//    @SubscribeEvent
-//    public static void onAttackEntityEvent(AttackEntityEvent event){
-//        if (BeUndead.getZombieType(event.getEntity()) > 0){
-//            if (event.getTarget() instanceof Monster){
-//                if (!(event.getTarget() instanceof Mob mob && mob.getTarget() == event.getEntity())){
-//                    event.setCanceled(true);
-//                }
-//            }
-//        }
-//    }
-
-//    @SubscribeEvent
-//    public static void onItemTossEvent(net.minecraftforge.event.entity.item.ItemTossEvent event) {
-//        event.getPlayer().getInventory().selected = 4;
-//    }
-
-//    @SubscribeEvent
-//    public static void onInputEvent(InputEvent.Key event){
-//        Minecraft.getInstance().player.getInventory().selected = 0;
-//    }
 
     @SubscribeEvent
     public static void onLivingEntityUseItemEvent(LivingEntityUseItemEvent event) {
-        if (event.getDuration() == 0 && event.getEntity() instanceof Player player && BeUndead.getZombieType(player) > 0 && event.getItem().is(BeUndead.UNDEAD_CURES)){
+        if (event.getDuration() == 0 && event.getEntity() instanceof Player player && BeUndeadApi.getZombieType(player) > 0 && event.getItem().is(BeUndead.UNDEAD_CURES)){
             if (player.hasEffect(MobEffects.WEAKNESS)){
-                BeUndead.startConverting(player, 0, player);
+                BeUndeadApi.startConverting(player, 0, player);
             }
         }
     }
@@ -128,8 +108,8 @@ public class ModEvents {
     @SubscribeEvent
     public static void onPlayerSleepInBedEvent(PlayerSleepInBedEvent event){
         Vec3 vec3 = Vec3.atBottomCenterOf(event.getEntity().blockPosition());
-        List<Player> list = event.getEntity().level().getEntitiesOfClass(Player.class, new AABB(vec3.x() - 8.0, vec3.y() - 5.0, vec3.z() - 8.0, vec3.x() + 8.0, vec3.y() + 5.0, vec3.z() + 8.0), (p_9062_) -> {
-            return BeUndead.getZombieType(p_9062_) > 0;
+        List<Player> list = event.getEntity().level().getEntitiesOfClass(Player.class, new AABB(vec3.x() - 8.0, vec3.y() - 5.0, vec3.z() - 8.0, vec3.x() + 8.0, vec3.y() + 5.0, vec3.z() + 8.0), (player) -> {
+            return BeUndeadApi.getZombieType(player) > 0;
         });
         if (!list.isEmpty()) {
             event.setResult(Player.BedSleepingProblem.NOT_SAFE);
@@ -139,16 +119,25 @@ public class ModEvents {
     @SubscribeEvent
     public static void onPlayerLoggedInEvent(PlayerEvent.PlayerLoggedInEvent event){
         if (!event.getEntity().level().isClientSide()){
-            ZombieSettingsSavedData savedData = ZombieSettingsSavedData.getZombieSettingsSavedData(event.getEntity().getServer());
+            ConfigAccessor config = ConfigAccessor.getConfig();
 
-            if (!savedData.canChestExtension()){
-                if (BeUndead.zombieHasChest(event.getEntity())){
+            if (!config.getZombieCanChestExtension()){
+                if (BeUndeadApi.hasZombieChest(event.getEntity())){
                     event.getEntity().drop(new ItemStack(Items.CHEST), true, false);
-                    BeUndead.setZombieChest(event.getEntity(), false);
+                    BeUndeadApi.setZombieChest(event.getEntity(), false);
                 }
             }
 
-            savedData.sendUpdatePacketTo((ServerPlayer) event.getEntity());
+            BeUndeadApi.sendUndeadPacket(event.getEntity());
+
+            ModNetworking.sendToClient(ConfigAccessor.getPacket(), (ServerPlayer) event.getEntity());
+        }
+    }
+
+    @SubscribeEvent
+    public static void onStartTracking(PlayerEvent.StartTracking event){
+        if (event.getTarget() instanceof Player toTrack){
+            ModNetworking.sendToClient(UndeadDataPacket.getPacket(toTrack), (ServerPlayer) event.getEntity());
         }
     }
 
@@ -156,32 +145,32 @@ public class ModEvents {
     public static void onLivingTickEvent(LivingEvent.LivingTickEvent event){
         boolean human = event.getEntity() instanceof Villager;
         if (event.getEntity() instanceof Player player){
-            int type = BeUndead.getZombieType(player);
+            int type = BeUndeadApi.getZombieType(player);
 
             if (type > 0){
-                MobEffectInstance currentEffect = player.getEffect(MobEffects.NIGHT_VISION);
-                if (currentEffect == null || currentEffect.getDuration() < 61){
-                    player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 200, 0, false, false));
+                if (ConfigAccessor.getConfig().getZombieNightVision()){
+                    MobEffectInstance currentEffect = player.getEffect(MobEffects.NIGHT_VISION);
+                    if (currentEffect == null || currentEffect.getDuration() < 61){
+                        player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 200, 0, false, false));
+                    }
                 }
 
                 player.getCapability(InfectionZombieCapabilityProvider.ZOMBIE_CAPABILITY).ifPresent(infectionZombieCapability -> {
                     infectionZombieCapability.tick(player);
                 });
 
-                int conversionTime = BeUndead.getZombieConversionTime(player);
+                long conversionTime = BeUndeadApi.getZombieConversionTime(player);
                 if (conversionTime >= 0){
                     if (conversionTime == 1){
-                        if (BeUndead.getZombieConversion(player) > 0){
-                            BeUndead.setZombieType(player, BeUndead.getZombieConversion(player));
+                        if (BeUndeadApi.getZombieConversionType(player) > 0){
+                            BeUndeadApi.setZombieType(player, BeUndeadApi.getZombieConversionType(player));
                         } else {
-                            BeUndead.revive(player, true);
+                            BeUndeadApi.revive(player, true);
                         }
-                    } else {
-                        BeUndead.setZombieConversionTime(player, conversionTime - 1);
                     }
                 }
 
-                if (BeUndead.getInvStateOfPlayer(player) == 0){
+                if (BeUndeadApi.getInvStateOfPlayer(player) == 0){
                     checkSideItems(player);
                     player.getInventory().selected = 4;
                 }
@@ -228,7 +217,7 @@ public class ModEvents {
                 int zombiePiglinAroundCount = entity.level().getEntitiesOfClass(ZombifiedPiglin.class, box)
                         .size();
 
-                zombieAroundCount += entity.level().getEntitiesOfClass(Player.class, box, player1 -> BeUndead.getZombieType(player1) > 0)
+                zombieAroundCount += entity.level().getEntitiesOfClass(Player.class, box, player1 -> BeUndeadApi.getZombieType(player1) > 0)
                         .size();
 
                 int finalZombieAroundCount = Math.round(zombieAroundCount - zombiePiglinAroundCount / 2F);
@@ -245,6 +234,13 @@ public class ModEvents {
             entity.getCapability(InfectionZombieCapabilityProvider.ZOMBIE_CAPABILITY).ifPresent(infectionZombieCapability -> {
                 infectionZombieCapability.tick(entity);
             });
+        }
+    }
+
+    @SubscribeEvent
+    public static void onCriticalHitEvent(CriticalHitEvent event){
+        if (BeUndeadApi.getZombieType(event.getEntity()) > 0 && !ConfigAccessor.getConfig().getZombieCanCrit()){
+            event.setResult(Event.Result.DENY);
         }
     }
 
@@ -267,23 +263,25 @@ public class ModEvents {
     @SubscribeEvent
     public static void onEntityJoinLevel(EntityJoinLevelEvent event){
         if (event.getEntity() instanceof WanderingTrader wanderingTrader){
-            wanderingTrader.goalSelector.addGoal(1, new AvoidEntityGoal<Player>(wanderingTrader, Player.class, player -> BeUndead.getZombieType((Player) player) > 0,  8.0F, 0.5, 0.5, livingEntity -> EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(livingEntity)));
+            wanderingTrader.goalSelector.addGoal(1, new AvoidEntityGoal<Player>(wanderingTrader, Player.class, player -> BeUndeadApi.getZombieType((Player) player) > 0,  8.0F, 0.5, 0.5, livingEntity -> EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(livingEntity)));
         }
     }
 
     @SubscribeEvent
     public static void onPlayerSpawnPhantomsEvent(PlayerSpawnPhantomsEvent event){
-        if (BeUndead.getZombieType(event.getEntity()) > 0){
+        if (BeUndeadApi.getZombieType(event.getEntity()) > 0){
             event.setPhantomsToSpawn(0);
         }
     }
 
     @SubscribeEvent
     public static void onPlayerClone(PlayerEvent.Clone event){
-        BeUndead.setZombieType(event.getEntity(), BeUndead.getZombieType(event.getOriginal()));
+        BeUndeadApi.setZombieType(event.getEntity(), BeUndeadApi.getZombieType(event.getOriginal()));
         if (event.getOriginal().level().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY) || !event.isWasDeath()){
-            BeUndead.setZombieChest(event.getEntity(), BeUndead.zombieHasChest(event.getOriginal()));
+            BeUndeadApi.setZombieChest(event.getEntity(), BeUndeadApi.hasZombieChest(event.getOriginal()));
         }
+
+        BeUndeadApi.sendUndeadPacket(event.getEntity());
 
         event.getOriginal().getCapability(ZombiePlayerCapabilityProvider.ZOMBIE_CAPABILITY).ifPresent(ogZombiePlayerCapability -> {
             event.getEntity().getCapability(ZombiePlayerCapabilityProvider.ZOMBIE_CAPABILITY).ifPresent(zombiePlayerCapability -> {
@@ -307,13 +305,13 @@ public class ModEvents {
         if (event.getEntity().level().isClientSide()) return;
 
         if (event.getEntity() instanceof Player player) {
-            ZombieSettingsSavedData savedData = ZombieSettingsSavedData.getZombieSettingsSavedData(((ServerPlayer)player).getServer());
-            boolean husks = savedData.hasHusks();
-            boolean drowned = savedData.hasDrowned();
+            ConfigAccessor config = ConfigAccessor.getConfig();
+            boolean husks = config.areHusksEnabled();
+            boolean drowned = config.areDrownedEnabled();
 
             boolean respawnTimer = player.getServer().isDedicatedServer();
 
-            int type = BeUndead.getZombieType(player);
+            int type = BeUndeadApi.getZombieType(player);
             if (type == 0){
 
                 boolean turnZombie = true;
@@ -322,10 +320,10 @@ public class ModEvents {
                     type = moveType(1, getTypeMovementOnDeath(event.getSource(), player), husks, drowned);
 
                     if (event.getSource().is(DamageTypes.FELL_OUT_OF_WORLD) || event.getSource().is(DamageTypes.OUTSIDE_BORDER)){
-                        BeUndead.setZombieType(player, moveType(type, getTypeMovementOnDeath(event.getSource(), player), husks, drowned));
+                        BeUndeadApi.setZombieType(player, moveType(type, getTypeMovementOnDeath(event.getSource(), player), husks, drowned));
 
                         if (respawnTimer){
-                            BeUndead.setZombieRespawnTimer(player, player.level().getGameTime() + ((long) savedData.getRespawnTimer() * 20 * 60));
+                            BeUndeadApi.setZombieRespawnTimer(player, player.level().getGameTime() + config.getRespawnTimer());
                         }
                     } else {
                         event.setCanceled(true);
@@ -380,7 +378,7 @@ public class ModEvents {
                             }
                         });
 
-                        BeUndead.setZombieType(player, type);
+                        BeUndeadApi.setZombieType(player, type);
                         player.removeAllEffects();
                         player.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 80, 0));
                         player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 1200, 0));
@@ -392,26 +390,25 @@ public class ModEvents {
                         player.getCombatTracker().recheckStatus();
                         player.setLastDeathLocation(Optional.of(GlobalPos.of(player.level().dimension(), player.blockPosition())));
 
-                        BeUndead.checkItemsInNewState(player, !player.isSpectator());
+                        BeUndeadApi.checkItemsInNewState(player, !player.isSpectator());
                     }
                 }
                 else if (respawnTimer) {
-                    BeUndead.setZombieRespawnTimer(player, player.level().getGameTime() + ((long) savedData.getRespawnTimer() * 20));
+                    BeUndeadApi.setZombieRespawnTimer(player, player.level().getGameTime() + config.getRespawnTimer());
                 }
             }
             else {
-                // SET NEW ZOMBIE TYPE
-                BeUndead.setZombieType(player, moveType(type, getTypeMovementOnDeath(event.getSource(), player), husks, drowned));
+                BeUndeadApi.setZombieType(player, moveType(type, getTypeMovementOnDeath(event.getSource(), player), husks, drowned));
 
                 if (respawnTimer) {
-                    BeUndead.setZombieRespawnTimer(player, player.level().getGameTime() + ((long) savedData.getRespawnTimerToZombie() * 20));
+                    BeUndeadApi.setZombieRespawnTimer(player, player.level().getGameTime() + config.getRespawnTimerToZombie());
                 }
             }
         }
 
         if (event.getEntity() instanceof Villager){
             boolean convert = event.getSource().is(BeUndead.INFECTION_KILL);
-            if (!convert && event.getSource().getEntity() instanceof Player player && BeUndead.getZombieType(player) > 0) {
+            if (!convert && event.getSource().getEntity() instanceof Player player && BeUndeadApi.getZombieType(player) > 0) {
                 convert = true;
                 player.getFoodData().setFoodLevel(Math.min(20, player.getFoodData().getFoodLevel() + 4));
                 player.getFoodData().setSaturation(Math.min(20, player.getFoodData().getSaturationLevel() + FoodConstants.saturationByModifier(4, 3F)));
@@ -502,7 +499,7 @@ public class ModEvents {
 
     @SubscribeEvent
     public static void onBreakSpeed(PlayerEvent.BreakSpeed event){
-        if (BeUndead.getZombieType(event.getEntity()) > 0){
+        if (BeUndeadApi.getZombieType(event.getEntity()) > 0){
             event.setNewSpeed(event.getNewSpeed() / 3);
         }
     }

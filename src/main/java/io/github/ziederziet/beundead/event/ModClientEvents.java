@@ -1,6 +1,7 @@
 package io.github.ziederziet.beundead.event;
 
 import io.github.ziederziet.beundead.BeUndead;
+import io.github.ziederziet.beundead.api.BeUndeadApi;
 import io.github.ziederziet.beundead.mixin.DeathScreenAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.DeathScreen;
@@ -19,7 +20,7 @@ public class ModClientEvents {
             LocalPlayer player = Minecraft.getInstance().player;
             if (player.level().isClientSide()){
                 if (Minecraft.getInstance().screen instanceof DeathScreen deathScreen){
-                    long respawnTimer = BeUndead.getZombieRespawnTimer(player);
+                    long respawnTimer = BeUndeadApi.getZombieRespawnTimer(player);
                     long timeTo = respawnTimer - player.level().getGameTime();
                     if (timeTo == 1){
                         ((DeathScreenAccessor)deathScreen).getExitButtons().getFirst().active = true;

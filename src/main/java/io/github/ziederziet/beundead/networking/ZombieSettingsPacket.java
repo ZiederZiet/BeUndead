@@ -1,6 +1,7 @@
 package io.github.ziederziet.beundead.networking;
 
 import io.github.ziederziet.beundead.BeUndead;
+import io.github.ziederziet.beundead.common.ClientInfo;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.event.network.CustomPayloadEvent;
@@ -41,12 +42,12 @@ public class ZombieSettingsPacket {
 
     public void handle(CustomPayloadEvent.Context context){
         if (context.isClientSide()){
-            BeUndead.Mod.clientZombieInvState = invState;
-            BeUndead.Mod.clientCanChestExtension = canChestExtension;
-            BeUndead.Mod.clientZombieNightVision = nightVision;
-            BeUndead.Mod.clientZombieJumpOnTheirOwn = jumpOnTheirOwn;
-            BeUndead.Mod.clientZombieMaxViewDistance = zombieMaxViewDistance;
-            BeUndead.Mod.clientZombieWalkingSpeed = zombieWalkingSpeed;
+            ClientInfo.zombieInvState = invState;
+            ClientInfo.canChestExtension = canChestExtension;
+            ClientInfo.zombieNightVision = nightVision;
+            ClientInfo.zombieJumpOnTheirOwn = jumpOnTheirOwn;
+            ClientInfo.zombieMaxViewDistance = zombieMaxViewDistance;
+            ClientInfo.zombieWalkingSpeed = zombieWalkingSpeed;
         }
     }
 }

@@ -7,11 +7,11 @@ import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import io.github.ziederziet.beundead.BeUndead;
+import io.github.ziederziet.beundead.api.BeUndeadApi;
 import io.github.ziederziet.beundead.zombie_capability.InfectionZombieCapability;
 import io.github.ziederziet.beundead.zombie_capability.InfectionZombieCapabilityProvider;
 import io.github.ziederziet.beundead.zombie_capability.ZombiePlayerCapability;
 import io.github.ziederziet.beundead.zombie_capability.ZombiePlayerCapabilityProvider;
-import io.github.ziederziet.beundead.zombie_settings.ZombieSettingsSavedData;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -33,10 +33,7 @@ public class ZombieCommand extends BaseCommand {
     @Override
     public void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context) {
         dispatcher.register(((LiteralArgumentBuilder<CommandSourceStack>) (getBaseBuilder())).executes(sourceStack -> {
-//            if (!sourceStack.getSource().isPlayer()){
-//                return 0;
-//            }
-            if (!sourceStack.getSource().isPlayer() || BeUndead.getZombieType(sourceStack.getSource().getPlayer()) > 0){
+            if (!sourceStack.getSource().isPlayer() || BeUndeadApi.getZombieType(sourceStack.getSource().getPlayer()) > 0){
                 return 0;
             }
             return zombiefy(sourceStack.getSource(), sourceStack.getSource().getPlayer(), 1);
@@ -51,27 +48,7 @@ public class ZombieCommand extends BaseCommand {
                 return 0;
             }
             return reviveZombies(sourceStack.getSource(), EntityArgument.getPlayers(sourceStack, "targets"));
-        }))).then(Commands.literal("type")
-                        .then(Commands.literal("husks").then(Commands.literal("enable").executes(sourceStack -> {
-                            ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setHusks(true, sourceStack.getSource().getServer());
-                            sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.husks.enable"), true);
-                            return Command.SINGLE_SUCCESS;
-                        })).then(Commands.literal("disable").executes(sourceStack -> {
-                            ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setHusks(false, sourceStack.getSource().getServer());
-                            sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.husks.disable"), true);
-                            return Command.SINGLE_SUCCESS;
-                        })))
-                        .then(Commands.literal("drowned").then(Commands.literal("enable").executes(sourceStack -> {
-                            ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setDrowned(true, sourceStack.getSource().getServer());
-                            sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.drowned.enable"), true);
-                            return Command.SINGLE_SUCCESS;
-                        })).then(Commands.literal("disable").executes(sourceStack -> {
-                            ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setDrowned(false, sourceStack.getSource().getServer());
-                            sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.drowned.disable"), true);
-                            return Command.SINGLE_SUCCESS;
-                        })))
-
-                        .then(Commands.literal("set").then(Commands.argument("targets", EntityArgument.players())
+        }))).then(Commands.literal("type").then(Commands.literal("set").then(Commands.argument("targets", EntityArgument.players())
                 .then(Commands.literal("human").then(Commands.argument("convert", BoolArgumentType.bool()).executes(sourceStack -> {
                     Collection<ServerPlayer> players = EntityArgument.getPlayers(sourceStack, "targets");
                     return setTypeForPlayers(sourceStack.getSource(), players, 0, Component.translatable("entity.minecraft.player"), BoolArgumentType.getBool(sourceStack, "convert"));
@@ -97,61 +74,8 @@ public class ZombieCommand extends BaseCommand {
                         return 0;
                     }
                     return getZombie(sourceStack.getSource(), EntityArgument.getPlayer(sourceStack, "target"));
-                }))))
-                .then(Commands.literal("vision").then(Commands.literal("nightvision").then(Commands.literal("enabled").executes(sourceStack -> {
-                    ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setZombieNightVision(true);
-                    sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.nightvision.enable"), true);
-                    return Command.SINGLE_SUCCESS;
-                })).then(Commands.literal("disabled").executes(sourceStack -> {
-                    ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setZombieNightVision(false);
-                    sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.nightvision.disable"), true);
-                    return Command.SINGLE_SUCCESS;
-                })))
-                        .then(Commands.literal("maxrenderdistance").then(Commands.literal("set").then(Commands.argument("maxrenderdistance", IntegerArgumentType.integer()).executes(sourceStack -> {
-                            int maxrenderdistance = IntegerArgumentType.getInteger(sourceStack, "maxrenderdistance");
-                            ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setZombieMaxViewDistance(maxrenderdistance);
-                            sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.maxrenderdistance.setto", new Object[] { maxrenderdistance }), true);
-                            return Command.SINGLE_SUCCESS;
-                        }))).then(Commands.literal("disable").executes(sourceStack -> {
-                            ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setZombieMaxViewDistance(0);
-                            sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.maxrenderdistance.setto", new Object[] { 0 }), true);
-                            return Command.SINGLE_SUCCESS;
-                        }))))
-                        .then(Commands.literal("speed").then(Commands.literal("set").then(Commands.argument("speed", DoubleArgumentType.doubleArg()).executes(sourceStack -> {
-                            double speed = DoubleArgumentType.getDouble(sourceStack, "speed");
-                            ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setZombieSpeed(speed);
-                            sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.speed.setto", new Object[] { speed }), true);
-                            return Command.SINGLE_SUCCESS;
-                        }))).then(Commands.literal("default").executes(sourceStack -> {
-                            double speed = 0.46D;
-                            ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setZombieSpeed(speed);
-                            sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.speed.default", new Object[] { speed }), true);
-                            return Command.SINGLE_SUCCESS;
-                        })).then(Commands.literal("player").executes(sourceStack -> {
-                            double speed = 1D;
-                            ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setZombieSpeed(speed);
-                            sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.speed.player", new Object[] { speed }), true);
-                            return Command.SINGLE_SUCCESS;
-                        })))
-
-                .then(Commands.literal("infection").executes(sourceStack -> {
-                            boolean infection = ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).hasInfection();
-                            if (infection){
-                                sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.infection.get.enabled"), false);
-                            } else {
-                                sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.infection.get.disabled"), false);
-                            }
-                            return infection ? 1 : 0;
-                        })
-                        .then(Commands.literal("enable").executes(sourceStack -> {
-                    ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setInfection(true, sourceStack.getSource().getServer());
-                    sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.infection.enabled"), true);
-                    return Command.SINGLE_SUCCESS;
-                })).then(Commands.literal("disable").executes(sourceStack -> {
-                    ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setInfection(false, sourceStack.getSource().getServer());
-                    sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.infection.disabled"), true);
-                    return Command.SINGLE_SUCCESS;
-                })).then(Commands.literal("cure").then(Commands.argument("targets", EntityArgument.players()).executes(sourceStack -> {
+                })))).then(Commands.literal("infection")
+                .then(Commands.literal("cure").then(Commands.argument("targets", EntityArgument.players()).executes(sourceStack -> {
                     Collection<ServerPlayer> players = EntityArgument.getPlayers(sourceStack, "targets");
                     if (players.isEmpty()){
                         return 0;
@@ -191,68 +115,26 @@ public class ZombieCommand extends BaseCommand {
 
                             }
                             return 0;
-                        })))
-                )
-                        .then(Commands.literal("jump").then(Commands.literal("enable").executes(sourceStack -> {
-                            ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setZombieJumpOnTheirOwn(true);
-                            sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.jump.enable"), true);
-                            return Command.SINGLE_SUCCESS;
-                        })).then(Commands.literal("onlyauto").executes(sourceStack -> {
-                            ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setZombieJumpOnTheirOwn(false);
-                            sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.jump.onlyauto"), true);
-                            return Command.SINGLE_SUCCESS;
-                        })))
-
-                        .then(Commands.literal("inventory").then(Commands.literal("oneslot").executes(sourceStack -> {
-                            ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setZombieInvState(0, sourceStack.getSource().getServer());
-                            sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.inventory.setto.oneslot"), true);
-                            return Command.SINGLE_SUCCESS;
-                        })).then(Commands.literal("hotbar").executes(sourceStack -> {
-                            ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setZombieInvState(1, sourceStack.getSource().getServer());
-                            sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.inventory.setto.hotbar"), true);
-                            return Command.SINGLE_SUCCESS;
-                        })).then(Commands.literal("fullinventory").executes(sourceStack -> {
-                            ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setZombieInvState(2, sourceStack.getSource().getServer());
-                            sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.inventory.setto.fullinventory"), true);
-                            return Command.SINGLE_SUCCESS;
-                        })).then(Commands.literal("chests").executes(sourceStack -> {
-                                    boolean canChestExtension = ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).canChestExtension();
-                                    if (canChestExtension){
-                                        sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.chests.get.enabled"), false);
-                                    } else {
-                                        sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.chests.get.disabled"), false);
-                                    }
-                                    return canChestExtension ? 1 : 0;
-                                })
-                                .then(Commands.literal("enable").executes(sourceStack -> {
-                                    sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.chests.enable"), true);
-                                    ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setZombieCanChestExtension(true, sourceStack.getSource().getServer());
-                                    return 0;
-                                })).then(Commands.literal("disable").executes(sourceStack -> {
-                                    sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.chests.disable"), true);
-                                    ZombieSettingsSavedData.getZombieSettingsSavedData(sourceStack.getSource().getServer()).setZombieCanChestExtension(false, sourceStack.getSource().getServer());
-                                    return 0;
-                                }))))
-                .then(Commands.literal("conversion").then(Commands.literal("start").then(Commands.argument("target", EntityArgument.player()).executes(sourceStack -> {
+                        })))).then(Commands.literal("conversion").then(Commands.literal("start").then(Commands.argument("target", EntityArgument.player()).executes(sourceStack -> {
             Player player = EntityArgument.getPlayer(sourceStack, "target");
             if (player == null){
                 return 0;
             }
-            if (BeUndead.getZombieConversionTime(player) > 0){
+            if (BeUndeadApi.getZombieConversionTime(player) > 0){
                 sourceStack.getSource().sendFailure(Component.translatable("commands.zombie.conversion_start.fail", new Object[] {player.getName()}));
                 return 0;
             }
-            BeUndead.startConverting(player, 0, null);
-            int conversion = BeUndead.getZombieConversionTime(player);
+            BeUndeadApi.startConverting(player, 0, null);
+            long conversion = BeUndeadApi.getZombieConversionTime(player);
             sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.conversion_start", new Object[] {player.getName(), conversion}), true);
             return Command.SINGLE_SUCCESS;
         }))).then(
                 Commands.literal("get").then(Commands.argument("target", EntityArgument.player()).executes(sourceStack -> {
                     Player player = EntityArgument.getPlayer(sourceStack, "target");
                     Component playerName = player.getName();
-                    int conversionTime = BeUndead.getZombieConversionTime(player);
+                    long conversionTime = BeUndeadApi.getZombieConversionTime(player);
                     sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.get.conversion_time", new Object[]{playerName, conversionTime}), false);
-                    return conversionTime;
+                    return Math.toIntExact(conversionTime);
         }))).then(
                 Commands.literal("set").then(Commands.argument("target", EntityArgument.player()).then(Commands.argument("conversion_time", IntegerArgumentType.integer()).executes(sourceStack -> {
                     Player player = EntityArgument.getPlayer(sourceStack, "target");
@@ -261,10 +143,10 @@ public class ZombieCommand extends BaseCommand {
                     if (conversionTime <= 0){
                         conversionTime = 1;
                     }
-                    if (BeUndead.getZombieConversionTime(player) <= 0){
-                        BeUndead.startConverting(player, 0, null);
+                    if (BeUndeadApi.getZombieConversionTime(player) <= 0){
+                        BeUndeadApi.startConverting(player, 0, null);
                     }
-                    BeUndead.setZombieConversionTime(player, conversionTime);
+                    BeUndeadApi.setZombieConversionTime(player, conversionTime);
                     int finalConversionTime = conversionTime;
                     sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.set.conversion_time", new Object[]{playerName, finalConversionTime}), true);
                     return Command.SINGLE_SUCCESS;
@@ -276,16 +158,16 @@ public class ZombieCommand extends BaseCommand {
         Iterator<ServerPlayer> playerIterator = players.iterator();
         while (playerIterator.hasNext()){
             ServerPlayer player = playerIterator.next();
-            if (BeUndead.getZombieType(player) != type){
-                int oldInvState = BeUndead.getInvStateOfPlayer(player);
+            if (BeUndeadApi.getZombieType(player) != type){
+                int oldInvState = BeUndeadApi.getInvStateOfPlayer(player);
                 playersSet++;
                 if (convert){
-                    BeUndead.startConverting(player, type, null);
+                    BeUndeadApi.startConverting(player, type, null);
                 } else {
-                    BeUndead.setZombieType(player, type);
+                    BeUndeadApi.setZombieType(player, type);
                 }
-                if (oldInvState > BeUndead.getInvStateOfPlayer(player)){
-                    BeUndead.checkItemsInNewState(player, true);
+                if (oldInvState > BeUndeadApi.getInvStateOfPlayer(player)){
+                    BeUndeadApi.checkItemsInNewState(player, true);
                 }
             }
         }
@@ -297,7 +179,7 @@ public class ZombieCommand extends BaseCommand {
     }
 
     private static int reviveZombie(CommandSourceStack sourceStack, ServerPlayer player){
-        if (BeUndead.getZombieType(player) == 0){
+        if (BeUndeadApi.getZombieType(player) == 0){
             if (player == sourceStack.getPlayer()){
                 sourceStack.sendFailure(Component.translatable("commands.zombie.revive.not_zombie.self"));
             } else {
@@ -305,7 +187,7 @@ public class ZombieCommand extends BaseCommand {
             }
             return 0;
         }
-        BeUndead.revive(player, false);
+        BeUndeadApi.revive(player, false);
         if (player == sourceStack.getPlayer()){
             sourceStack.sendSuccess(() -> {
                 return Component.translatable("commands.zombie.revive.self", new Object[]{});
@@ -324,9 +206,9 @@ public class ZombieCommand extends BaseCommand {
         Iterator<ServerPlayer> playerIterator = players.iterator();
         while (playerIterator.hasNext()){
             ServerPlayer player = playerIterator.next();
-            if (BeUndead.getZombieType(player) > 0){
+            if (BeUndeadApi.getZombieType(player) > 0){
                 revived++;
-                BeUndead.revive(player, false);
+                BeUndeadApi.revive(player, false);
             }
         }
         int finalRevived = revived;
@@ -338,13 +220,13 @@ public class ZombieCommand extends BaseCommand {
 
     private static int getZombie(CommandSourceStack sourceStack, ServerPlayer player){
         String translatable = "commands.zombie.get.not_zombie";
-        if (BeUndead.getZombieType(player) == 1){
+        if (BeUndeadApi.getZombieType(player) == 1){
             translatable = "commands.zombie.get.zombie";
         }
-        if (BeUndead.getZombieType(player) == 2){
+        if (BeUndeadApi.getZombieType(player) == 2){
             translatable = "commands.zombie.get.husk";
         }
-        if (BeUndead.getZombieType(player) == 3){
+        if (BeUndeadApi.getZombieType(player) == 3){
             translatable = "commands.zombie.get.drowned";
         }
         if (player == sourceStack.getPlayer()){
@@ -356,12 +238,12 @@ public class ZombieCommand extends BaseCommand {
         }, false);
 
 
-        return BeUndead.getZombieType(player);
+        return BeUndeadApi.getZombieType(player);
     }
 
     private static int zombiefy(CommandSourceStack sourceStack, ServerPlayer player, int to){
         player.getInventory().dropAll();
-        BeUndead.setZombieType(player, to);
+        BeUndeadApi.setZombieType(player, to);
         if (player == sourceStack.getPlayer()){
             sourceStack.sendSuccess(() -> {
                 return Component.translatable("commands.zombiefy.self", new Object[]{});
@@ -374,19 +256,19 @@ public class ZombieCommand extends BaseCommand {
 
         return Command.SINGLE_SUCCESS;
     }
-
-    private static int getPos(CommandSourceStack sourceStack, ServerPlayer player){
-        if (sourceStack.getPlayer() == player){
-            sourceStack.sendSuccess(() -> {
-                return Component.translatable("commands.getpos.self", new Object[]{(int)player.getX(), (int)player.getY(), (int)player.getZ(), player.level().dimension().location().toString()});
-            }, true);
-        }
-        else {
-            sourceStack.sendSuccess(() -> {
-                return Component.translatable("commands.getpos", new Object[]{player.getDisplayName(), (int)player.getX(), (int)player.getY(), (int)player.getZ(), player.level().dimension().location().toString()});
-            }, true);
-        }
-
-        return Command.SINGLE_SUCCESS;
-    }
+//
+//    private static int getPos(CommandSourceStack sourceStack, ServerPlayer player){
+//        if (sourceStack.getPlayer() == player){
+//            sourceStack.sendSuccess(() -> {
+//                return Component.translatable("commands.getpos.self", new Object[]{(int)player.getX(), (int)player.getY(), (int)player.getZ(), player.level().dimension().location().toString()});
+//            }, true);
+//        }
+//        else {
+//            sourceStack.sendSuccess(() -> {
+//                return Component.translatable("commands.getpos", new Object[]{player.getDisplayName(), (int)player.getX(), (int)player.getY(), (int)player.getZ(), player.level().dimension().location().toString()});
+//            }, true);
+//        }
+//
+//        return Command.SINGLE_SUCCESS;
+//    }
 }

@@ -1,7 +1,9 @@
 package io.github.ziederziet.beundead.mixin;
 
 import io.github.ziederziet.beundead.BeUndead;
-import io.github.ziederziet.beundead.zombie_settings.ZombieSettingsSavedData;
+import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.ClientInfo;
+import io.github.ziederziet.beundead.config.ConfigAccessor;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -19,26 +21,26 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(Item.class)
 public class ItemMixin {
     @Inject(at = @At("HEAD"), method = "use(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResultHolder;", cancellable = true)
-    public void use(Level pLevel, Player pPlayer, InteractionHand pUsedHand, CallbackInfoReturnable<InteractionResultHolder<ItemStack>> info){
-        if (BeUndead.getZombieType(pPlayer) > 0){
-            if (!BeUndead.zombieHasChest(pPlayer) && pPlayer.getItemInHand(pUsedHand).is(Items.CHEST)){
-                if (pLevel.isClientSide()){
-                    if (!BeUndead.Mod.clientCanChestExtension){
+    public void use(Level level, Player player, InteractionHand usedHand, CallbackInfoReturnable<InteractionResultHolder<ItemStack>> info){
+        if (BeUndeadApi.getZombieType(player) > 0){
+            if (!BeUndeadApi.hasZombieChest(player) && player.getItemInHand(usedHand).is(Items.CHEST)){
+                if (level.isClientSide()){
+                    if (!ClientInfo.canChestExtension){
                         return;
                     }
                 }
-                else if (!ZombieSettingsSavedData.getZombieSettingsSavedData(pLevel.getServer()).canChestExtension()) {
+                else if (!ConfigAccessor.getConfig().getZombieCanChestExtension()) {
                     return;
                 }
                 info.cancel();
-                if (!pLevel.isClientSide()){
-                    BeUndead.setZombieChest(pPlayer, true);
-                    pPlayer.getItemInHand(pUsedHand).consume(1, pPlayer);
+                if (!level.isClientSide()){
+                    BeUndeadApi.setZombieChest(player, true);
+                    player.getItemInHand(usedHand).consume(1, player);
                 }
-                pLevel.playSound(pPlayer, pPlayer.getX(), pPlayer.getY(), pPlayer.getZ(), SoundEvents.ARMOR_EQUIP_GENERIC, SoundSource.PLAYERS, 1.0F, 1.0F);
-                info.setReturnValue(InteractionResultHolder.consume(pPlayer.getItemInHand(pUsedHand)));
+                level.playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.ARMOR_EQUIP_GENERIC, SoundSource.PLAYERS, 1.0F, 1.0F);
+                info.setReturnValue(InteractionResultHolder.consume(player.getItemInHand(usedHand)));
             } else {
-                ItemStack itemstack = pPlayer.getItemInHand(pUsedHand);
+                ItemStack itemstack = player.getItemInHand(usedHand);
                 FoodProperties foodproperties = (FoodProperties)itemstack.get(DataComponents.FOOD);
                 if (foodproperties != null){
                     if (!itemstack.is(BeUndead.UNDEAD_EATABLES)){
