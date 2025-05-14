@@ -1,8 +1,6 @@
 package io.github.ziederziet.beundead.mixin;
 
-import com.mojang.datafixers.util.Pair;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;

@@ -71,18 +71,15 @@ public abstract class InventoryMixin {
             if (slot > 9){
                 if (invState < 2){
                     info.setReturnValue(false);
-                    return;
                 }
             }
             else if (slot != 4){
                 if (invState < 1){
                     info.setReturnValue(false);
-                    return;
                 }
             }
             else {
                 info.setReturnValue(false);
-                return;
             }
         }
     }

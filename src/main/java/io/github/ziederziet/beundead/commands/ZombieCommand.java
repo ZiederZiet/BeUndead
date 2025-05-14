@@ -112,7 +112,6 @@ public class ZombieCommand extends BaseCommand {
                                     sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.infection.get.amount", new Object[] {serverPlayer.getName(), amount}), false);
                                     return amount;
                                 }
-
                             }
                             return 0;
                         })))).then(Commands.literal("conversion").then(Commands.literal("start").then(Commands.argument("target", EntityArgument.player()).executes(sourceStack -> {
