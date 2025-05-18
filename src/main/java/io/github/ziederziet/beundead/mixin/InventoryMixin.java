@@ -59,7 +59,7 @@ public abstract class InventoryMixin {
             return;
         }
 
-        info.setReturnValue(0);
+        //info.setReturnValue(0);
     }
 
 
