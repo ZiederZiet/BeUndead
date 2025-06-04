@@ -2,6 +2,8 @@ package io.github.ziederziet.beundead.mixin;
 
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.client.UndeadSkinManager;
+import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -42,6 +44,13 @@ public class EntityMixin {
                 info.setReturnValue(InteractionResult.SUCCESS);
                 info.cancel();
             }
+        }
+    }
+
+    @Inject(at = @At("HEAD"), method = "onClientRemoval")
+    public void onClientRemoval(CallbackInfo info){
+        if ((Object)this instanceof AbstractClientPlayer abstractClientPlayer){
+            UndeadSkinManager.removeSkin(abstractClientPlayer.getSkin().texture());
         }
     }
 }

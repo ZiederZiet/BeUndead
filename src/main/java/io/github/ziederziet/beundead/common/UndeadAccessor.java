@@ -1,5 +1,8 @@
 package io.github.ziederziet.beundead.common;
 
+import javax.annotation.Nullable;
+import java.util.UUID;
+
 public interface UndeadAccessor {
     boolean hasZombieChest();
     void setZombieChest(boolean has);
@@ -13,4 +16,6 @@ public interface UndeadAccessor {
     void setConverting(boolean converting);
     int getType();
     void setType(int type);
+    UUID getConversionStarter();
+    void setConversionStarter(@Nullable UUID conversionStarter);
 }

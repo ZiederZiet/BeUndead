@@ -1,9 +1,6 @@
 package io.github.ziederziet.beundead.networking;
 
-import io.github.ziederziet.beundead.common.UndeadAccessor;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.network.CustomPayloadEvent;
 
 public class RespawnTimerPacket {

@@ -42,6 +42,7 @@ public class UndeadDataPacket {
                 undeadAccessor.setZombieChest(chest);
             }
         }
+        context.setPacketHandled(true);
     }
 
     public static UndeadDataPacket getPacket(Player player){

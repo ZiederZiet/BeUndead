@@ -1,7 +1,6 @@
 package io.github.ziederziet.beundead;
 
-import io.github.ziederziet.beundead.zombie_capability.InfectionZombieCapabilityProvider;
-import io.github.ziederziet.beundead.zombie_capability.ZombiePlayerCapabilityProvider;
+import io.github.ziederziet.beundead.common.InfectionAccessor;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
@@ -14,8 +13,6 @@ public class InfectedMobEffect extends MobEffect {
     @Override
     public void onEffectAdded(LivingEntity pLivingEntity, int pAmplifier) {
         super.onEffectAdded(pLivingEntity, pAmplifier);
-        pLivingEntity.getCapability(InfectionZombieCapabilityProvider.ZOMBIE_CAPABILITY).ifPresent(zombiePlayerCapability -> {
-            zombiePlayerCapability.infectBy(null, 30, 30);
-        });
+        ((InfectionAccessor)pLivingEntity).infectBy(null, 30, 30);
     }
 }

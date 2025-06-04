@@ -3,22 +3,16 @@ package io.github.ziederziet.beundead.commands;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
-import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
-import io.github.ziederziet.beundead.zombie_capability.InfectionZombieCapability;
-import io.github.ziederziet.beundead.zombie_capability.InfectionZombieCapabilityProvider;
-import io.github.ziederziet.beundead.zombie_capability.ZombiePlayerCapability;
-import io.github.ziederziet.beundead.zombie_capability.ZombiePlayerCapabilityProvider;
+import io.github.ziederziet.beundead.common.InfectionAccessor;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.util.LazyOptional;
 
@@ -81,9 +75,7 @@ public class ZombieCommand extends BaseCommand {
                         return 0;
                     }
                     players.forEach(serverPlayer -> {
-                        serverPlayer.getCapability(InfectionZombieCapabilityProvider.ZOMBIE_CAPABILITY).ifPresent(zombiePlayerCapability -> {
-                            zombiePlayerCapability.removeInfection(serverPlayer);
-                        });
+                        ((InfectionAccessor)serverPlayer).removeInfection(serverPlayer);
                     });
 
                     sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.infection.cure.players"), true);
@@ -95,25 +87,17 @@ public class ZombieCommand extends BaseCommand {
                             }
                             if (players.size() > 1){
                                 int amount = (int) players.stream().filter(serverPlayer -> {
-                                    LazyOptional<InfectionZombieCapability> capabilityLazyOptional = serverPlayer.getCapability(InfectionZombieCapabilityProvider.ZOMBIE_CAPABILITY);
-                                    if (capabilityLazyOptional.isPresent()){
-                                        return capabilityLazyOptional.resolve().get().isInfected();
-                                    }
-                                    return false;
+                                    return ((InfectionAccessor)serverPlayer).isInfected();
                                 }).count();
                                 sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.infection.get.players", new Object[] {amount}), false);
                                 return amount;
                             }
                             else {
                                 ServerPlayer serverPlayer = players.iterator().next();
-                                LazyOptional<InfectionZombieCapability> capabilityLazyOptional = serverPlayer.getCapability(InfectionZombieCapabilityProvider.ZOMBIE_CAPABILITY);
-                                if (capabilityLazyOptional.isPresent()){
-                                    int amount = capabilityLazyOptional.resolve().get().getInfected();
-                                    sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.infection.get.amount", new Object[] {serverPlayer.getName(), amount}), false);
-                                    return amount;
-                                }
+                                int amount = ((InfectionAccessor)serverPlayer).getInfected();
+                                sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.infection.get.amount", new Object[] {serverPlayer.getName(), amount}), false);
+                                return amount;
                             }
-                            return 0;
                         })))).then(Commands.literal("conversion").then(Commands.literal("start").then(Commands.argument("target", EntityArgument.player()).executes(sourceStack -> {
             Player player = EntityArgument.getPlayer(sourceStack, "target");
             if (player == null){

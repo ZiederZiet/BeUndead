@@ -3,17 +3,15 @@ package io.github.ziederziet.beundead.event;
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
 import io.github.ziederziet.beundead.commands.ModCommands;
+import io.github.ziederziet.beundead.common.InfectionAccessor;
 import io.github.ziederziet.beundead.config.ConfigAccessor;
 import io.github.ziederziet.beundead.networking.ModNetworking;
 import io.github.ziederziet.beundead.networking.UndeadDataPacket;
 import io.github.ziederziet.beundead.theyre_coming.TheyreComingAccessor;
-import io.github.ziederziet.beundead.zombie_capability.InfectionZombieCapabilityProvider;
-import io.github.ziederziet.beundead.zombie_capability.ZombiePlayerCapabilityProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
@@ -70,9 +68,7 @@ public class ModEvents {
 
                 if (event.getEntity().getRandom().nextBoolean()){
                     @Nullable Player infecter = event.getSource().getEntity() instanceof Player playerAttacker ? playerAttacker : null;
-                    event.getEntity().getCapability(InfectionZombieCapabilityProvider.ZOMBIE_CAPABILITY).ifPresent(zombiePlayerCapability -> {
-                        zombiePlayerCapability.infectBy(infecter, event.getSource().getEntity() instanceof ZombifiedPiglin ? 15 : 28, 0);
-                    });
+                    ((InfectionAccessor)event.getEntity()).infectBy(infecter, event.getSource().getEntity() instanceof ZombifiedPiglin ? 15 : 28, 0);
                 }
             }
         }
@@ -136,10 +132,15 @@ public class ModEvents {
 
     @SubscribeEvent
     public static void onStartTracking(PlayerEvent.StartTracking event){
-        if (event.getTarget() instanceof Player toTrack){
+        if (event.getTarget() instanceof Player toTrack && !toTrack.level().isClientSide()){
             ModNetworking.sendToClient(UndeadDataPacket.getPacket(toTrack), (ServerPlayer) event.getEntity());
         }
     }
+
+//    @SubscribeEvent
+//    public static void onStopTracking(PlayerEvent.StopTracking event){
+//
+//    }
 
     @SubscribeEvent
     public static void onLivingTickEvent(LivingEvent.LivingTickEvent event){
@@ -155,9 +156,9 @@ public class ModEvents {
                     }
                 }
 
-                player.getCapability(InfectionZombieCapabilityProvider.ZOMBIE_CAPABILITY).ifPresent(infectionZombieCapability -> {
-                    infectionZombieCapability.tick(player);
-                });
+                if (event.getEntity() instanceof InfectionAccessor infectionAccessor){
+                    infectionAccessor.tick(event.getEntity());
+                }
 
                 long conversionTime = BeUndeadApi.getZombieConversionTime(player);
                 if (conversionTime >= 0){
@@ -221,19 +222,17 @@ public class ModEvents {
                         .size();
 
                 int finalZombieAroundCount = Math.round(zombieAroundCount - zombiePiglinAroundCount / 2F);
-                entity.getCapability(InfectionZombieCapabilityProvider.ZOMBIE_CAPABILITY).ifPresent(zombiePlayerCapability -> {
-                    if (entity.hasEffect(BeUndead.INFECTED_EFFECT.getHolder().get())){
-                        zombiePlayerCapability.infectBy(null, finalZombieAroundCount, 0);
-                    }
-                    else {
-                        zombiePlayerCapability.infectBy(null, finalZombieAroundCount, 20);
-                    }
-                });
-            }
 
-            entity.getCapability(InfectionZombieCapabilityProvider.ZOMBIE_CAPABILITY).ifPresent(infectionZombieCapability -> {
-                infectionZombieCapability.tick(entity);
-            });
+                if (entity.hasEffect(BeUndead.INFECTED_EFFECT.getHolder().get())){
+                    ((InfectionAccessor)entity).infectBy(null, finalZombieAroundCount, 0);
+                }
+                else {
+                    ((InfectionAccessor)entity).infectBy(null, finalZombieAroundCount, 20);
+                }
+            }
+            if (event.getEntity() instanceof InfectionAccessor infectionAccessor){
+                infectionAccessor.tick(event.getEntity());
+            }
         }
     }
 
@@ -282,22 +281,6 @@ public class ModEvents {
         }
 
         BeUndeadApi.sendUndeadPacket(event.getEntity());
-
-        event.getOriginal().getCapability(ZombiePlayerCapabilityProvider.ZOMBIE_CAPABILITY).ifPresent(ogZombiePlayerCapability -> {
-            event.getEntity().getCapability(ZombiePlayerCapabilityProvider.ZOMBIE_CAPABILITY).ifPresent(zombiePlayerCapability -> {
-                zombiePlayerCapability.cloneFrom(ogZombiePlayerCapability);
-            });
-        });
-    }
-
-    @SubscribeEvent
-    public static void onAttachCapabilitiesPlayer(AttachCapabilitiesEvent<Entity> event) {
-        if (event.getObject() instanceof Player){
-            event.addCapability(ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "zombie_player_capability"), new ZombiePlayerCapabilityProvider());
-        }
-        if (event.getObject() instanceof Player || event.getObject() instanceof Villager){
-            event.addCapability(ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "infection_zombie_capability"), new InfectionZombieCapabilityProvider());
-        }
     }
 
     @SubscribeEvent

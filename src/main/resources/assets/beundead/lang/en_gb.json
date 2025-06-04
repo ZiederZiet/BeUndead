@@ -1,4 +1,7 @@
 {
+  "effect.beundead.infected": "Infected",
+  "death.attack.infectionKill": "%1$s was infected",
+  "death.attack.infectionKill.player": "%1$s was infected by %2$s",
   "commands.zombiefy.self": "You are a zombie now",
   "commands.zombiefy": "%s is now a zombie",
   "commands.zombie.get.non_zombie": "%s is not a zombie",
@@ -15,8 +18,9 @@
   "commands.zombie.revive": "%s is no longer a zombie",
   "commands.zombie.revive.players": "%s player(s) are revived",
   "commands.zombie.set.players": "%s player(s) are now %s",
-  "commands.zombie.get.conversion_time": "%s is converting in %s ticks",
-  "commands.zombie.set.conversion_time": "%s is now converting in %s ticks",
   "commands.zombie.conversion_start": "%s is now converting in %s ticks",
-  "commands.zombie.conversion_start.fail": "%s is already a player"
+  "commands.zombie.conversion_start.fail": "%s is already a player",
+  "commands.zombie.infection.cure.players": "Cured player(s)'s infection(s)",
+  "commands.zombie.infection.get.players": "%s players are infected",
+  "commands.zombie.infection.get.amount": "%s has an infection of %s"
 }

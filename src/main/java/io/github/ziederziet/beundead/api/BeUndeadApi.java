@@ -1,14 +1,12 @@
 package io.github.ziederziet.beundead.api;
 
-import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.common.ClientInfo;
+import io.github.ziederziet.beundead.common.InfectionAccessor;
 import io.github.ziederziet.beundead.common.UndeadAccessor;
 import io.github.ziederziet.beundead.config.ConfigAccessor;
 import io.github.ziederziet.beundead.networking.ModNetworking;
 import io.github.ziederziet.beundead.networking.RespawnTimerPacket;
 import io.github.ziederziet.beundead.networking.UndeadDataPacket;
-import io.github.ziederziet.beundead.zombie_capability.InfectionZombieCapabilityProvider;
-import io.github.ziederziet.beundead.zombie_capability.ZombiePlayerCapabilityProvider;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -146,25 +144,21 @@ public class BeUndeadApi {
     public static void revive(Player player, boolean fromConversion){
         if (fromConversion){
             player.level().playSound(null, player.blockPosition(), SoundEvents.ZOMBIE_VILLAGER_CONVERTED, SoundSource.PLAYERS, 1F, 1F);
-            player.getCapability(ZombiePlayerCapabilityProvider.ZOMBIE_CAPABILITY).ifPresent(zombiePlayerCapability -> {
-                @Nullable UUID conversionStarter = zombiePlayerCapability.getConversionStarter();
-                if (conversionStarter != null){
-                    if (player.level() instanceof ServerLevel serverLevel){
-                        @Nullable Player reviver = serverLevel.getPlayerByUUID(conversionStarter);
-                        if (reviver != null){
-                            CriteriaTriggers.CURED_ZOMBIE_VILLAGER.trigger((ServerPlayer)reviver, null, null);
-                        }
+            @Nullable UUID conversionStarter = ((UndeadAccessor)player).getConversionStarter();
+            if (conversionStarter != null){
+                if (player.level() instanceof ServerLevel serverLevel){
+                    @Nullable Player reviver = serverLevel.getPlayerByUUID(conversionStarter);
+                    if (reviver != null){
+                        CriteriaTriggers.CURED_ZOMBIE_VILLAGER.trigger((ServerPlayer)reviver, null, null);
                     }
                 }
-            });
+            }
         }
         BeUndeadApi.setZombieType(player, 0);
         if (BeUndeadApi.hasZombieChest(player)){
             player.drop(new ItemStack(Items.CHEST), true, false);
         }
-        player.getCapability(InfectionZombieCapabilityProvider.ZOMBIE_CAPABILITY).ifPresent(zombiePlayerCapability -> {
-            zombiePlayerCapability.removeInfection(player);
-        });
+        ((InfectionAccessor)player).removeInfection(player);
         player.removeAllEffects();
         player.setHealth(4F);
         setZombieChest(player, false);
@@ -178,9 +172,7 @@ public class BeUndeadApi {
         if (getZombieType(player) > 0 && player.hasEffect(MobEffects.WEAKNESS) && !player.hasEffect(MobEffects.DAMAGE_BOOST)){
             player.removeEffect(MobEffects.WEAKNESS);
 
-            player.getCapability(ZombiePlayerCapabilityProvider.ZOMBIE_CAPABILITY).ifPresent(zombiePlayerCapability -> {
-                zombiePlayerCapability.setConversionStarter(starter.getUUID());
-            });
+            ((UndeadAccessor)player).setConversionStarter(starter.getUUID());
 
             BeUndeadApi.setZombieConversionType(player, toType);
             int conversionTime = player.getRandom().nextInt(2401) + 3600;
