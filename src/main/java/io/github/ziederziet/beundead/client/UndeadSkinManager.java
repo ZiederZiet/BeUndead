@@ -108,9 +108,9 @@ public class UndeadSkinManager {
 
                     double light = (r * 0.85 + g + b * 0.7) / 2.55;
 
-                    r = (int) Math.round(Math.clamp(light * BeUndeadApi.ZOMBIE_COLORS[type - 1].x + (BeUndeadApi.ZOMBIE_COLOR_OFFSETS[type - 1].x * 255D), 0D, 255D));
-                    g = (int) Math.round(Math.clamp(light * BeUndeadApi.ZOMBIE_COLORS[type - 1].y + (BeUndeadApi.ZOMBIE_COLOR_OFFSETS[type - 1].y * 255D), 0D, 255D));
-                    b = (int) Math.round(Math.clamp(light * BeUndeadApi.ZOMBIE_COLORS[type - 1].z + (BeUndeadApi.ZOMBIE_COLOR_OFFSETS[type - 1].z * 255D), 0D, 255D));
+                    r = (int) Math.round(Math.min(Math.max(light * BeUndeadApi.ZOMBIE_COLORS[type - 1].x + (BeUndeadApi.ZOMBIE_COLOR_OFFSETS[type - 1].x * 255D), 0D), 255D));
+                    g = (int) Math.round(Math.min(Math.max(light * BeUndeadApi.ZOMBIE_COLORS[type - 1].y + (BeUndeadApi.ZOMBIE_COLOR_OFFSETS[type - 1].y * 255D), 0D), 255D));
+                    b = (int) Math.round(Math.min(Math.max(light * BeUndeadApi.ZOMBIE_COLORS[type - 1].z + (BeUndeadApi.ZOMBIE_COLOR_OFFSETS[type - 1].z * 255D), 0D), 255D));
 
                     nativeImage.setPixelRGBA(x, y, FastColor.ARGB32.color(a, r, g, b));
                 }

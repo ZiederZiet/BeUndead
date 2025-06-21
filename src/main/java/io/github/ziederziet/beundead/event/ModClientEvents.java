@@ -25,12 +25,12 @@ public class ModClientEvents {
                     long respawnTimer = BeUndeadApi.getZombieRespawnTimer(player);
                     long timeTo = respawnTimer - player.level().getGameTime();
                     if (timeTo == 1){
-                        ((DeathScreenAccessor)deathScreen).getExitButtons().getFirst().active = true;
-                        ((DeathScreenAccessor)deathScreen).getExitButtons().getFirst().setMessage(Component.translatable("deathScreen.respawn"));
+                        ((DeathScreenAccessor)deathScreen).getExitButtons().get(0).active = true;
+                        ((DeathScreenAccessor)deathScreen).getExitButtons().get(0).setMessage(Component.translatable("deathScreen.respawn"));
                     } else if (timeTo > 0 && timeTo % 20 == 0){
                         int minutes = (int)Math.floor(timeTo / 20D / 60D);
                         int seconds = (int)Math.floor(timeTo / 20D % 60D);
-                        ((DeathScreenAccessor)deathScreen).getExitButtons().getFirst().setMessage(Component.translatable("deathScreen.respawn").append(" " + minutes + ":" + (String.valueOf(seconds).length() == 1 ? "0" : "") + seconds));
+                        ((DeathScreenAccessor)deathScreen).getExitButtons().get(0).setMessage(Component.translatable("deathScreen.respawn").append(" " + minutes + ":" + (String.valueOf(seconds).length() == 1 ? "0" : "") + seconds));
                     }
                 }
             }
