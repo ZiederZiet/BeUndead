@@ -39,7 +39,7 @@ public class EntityMixin {
     public void interact(Player player, InteractionHand pHand, CallbackInfoReturnable<InteractionResult> info){
         if ((Object)this instanceof Player revived){
             if (revived.hasEffect(MobEffects.WEAKNESS) && player.getItemInHand(pHand).is(BeUndead.UNDEAD_CURES)) {
-                player.getItemInHand(pHand).consume(1, revived);
+                player.getItemInHand(pHand).shrink(1);
                 BeUndeadApi.startConverting(revived, 0, player);
                 info.setReturnValue(InteractionResult.SUCCESS);
                 info.cancel();
@@ -50,7 +50,7 @@ public class EntityMixin {
     @Inject(at = @At("HEAD"), method = "onClientRemoval")
     public void onClientRemoval(CallbackInfo info){
         if ((Object)this instanceof AbstractClientPlayer abstractClientPlayer){
-            UndeadSkinManager.removeSkin(abstractClientPlayer.getSkin().texture());
+            UndeadSkinManager.removeSkin(abstractClientPlayer.getSkinTextureLocation());
         }
     }
 }

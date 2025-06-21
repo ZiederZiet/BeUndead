@@ -20,6 +20,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -28,6 +29,8 @@ import java.util.Map;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
+
+    @Shadow protected abstract void dropExperience();
 
     @Inject(at = @At("HEAD"), method = "isInvertedHealAndHarm()Z", cancellable = true)
     public void isInvertedHealAndHarm(CallbackInfoReturnable<Boolean> info) {
@@ -40,16 +43,15 @@ public abstract class LivingEntityMixin {
     @Inject(at = @At("HEAD"), method = "canBeAffected(Lnet/minecraft/world/effect/MobEffectInstance;)Z", cancellable = true)
     public void canBeAffected(MobEffectInstance pEffectInstance, CallbackInfoReturnable<Boolean> info) {
         LivingEntity livingEntity = (LivingEntity) (Object)this;
-        if ((livingEntity instanceof Player player && BeUndeadApi.getZombieType(player) > 0) && (pEffectInstance.is(MobEffects.REGENERATION) || pEffectInstance.is(MobEffects.POISON))){
+        if ((livingEntity instanceof Player player && BeUndeadApi.getZombieType(player) > 0) && (pEffectInstance.getEffect() == MobEffects.REGENERATION || pEffectInstance.getEffect() == MobEffects.POISON)){
             info.setReturnValue(false);
             info.cancel();
         }
     }
 
-    @Inject(at = @At("HEAD"), method = "dropExperience(Lnet/minecraft/world/entity/Entity;)V", cancellable = true)
-    protected void dropExperience(@Nullable Entity pEntity, CallbackInfo info) {
-        if (pEntity instanceof Player player && !player.level().isClientSide() && BeUndeadApi.getZombieType(player) > 0){
-            info.cancel();
+    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;dropEquipment()V"), method = "dropAllDeathLoot")
+    protected void dropExperience(LivingEntity instance, DamageSource source) {
+        if (source.getEntity() instanceof Player player && !player.level().isClientSide() && BeUndeadApi.getZombieType(player) > 0){
             LivingEntity thisEntity = (LivingEntity) (Object) this;
             if (!(thisEntity instanceof Monster)){
                 if (thisEntity instanceof AbstractVillager){
@@ -57,12 +59,14 @@ public abstract class LivingEntityMixin {
                     player.giveExperiencePoints(reward);
                 }
                 else if (thisEntity.shouldDropExperience() && thisEntity.level().getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)){
-                    int reward = ForgeEventFactory.getExperienceDrop(thisEntity, player, thisEntity.getExperienceReward((ServerLevel) player.level(), pEntity));
+                    int reward = ForgeEventFactory.getExperienceDrop(thisEntity, player, thisEntity.getExperienceReward());
                     player.giveExperiencePoints(reward);
                 }
             }
         }
-
+        else {
+            this.dropExperience();
+        }
     }
 
     @Inject(at = @At("HEAD"), method = "canBreatheUnderwater()Z", cancellable = true)

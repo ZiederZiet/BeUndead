@@ -201,15 +201,15 @@ public class UndeadMixin implements UndeadAccessor, InfectionAccessor {
     public void removeInfection(Player player){
         this.infected = 0;
         this.infectDieTicks = 0;
-        player.removeEffect(BeUndead.INFECTED_EFFECT.getHolder().get());
+        player.removeEffect(BeUndead.INFECTED_EFFECT.get());
     }
 
     @Override
     public void tick(LivingEntity livingEntity){
         if (livingEntity instanceof Villager || (livingEntity instanceof Player player && BeUndeadApi.getZombieType(player) <= 0)){
             if (this.infected > 30){
-                if (!livingEntity.hasEffect(BeUndead.INFECTED_EFFECT.getHolder().get())){
-                    livingEntity.addEffect(new MobEffectInstance(BeUndead.INFECTED_EFFECT.getHolder().get(), -1, 0));
+                if (!livingEntity.hasEffect(BeUndead.INFECTED_EFFECT.get())){
+                    livingEntity.addEffect(new MobEffectInstance(BeUndead.INFECTED_EFFECT.get(), -1, 0));
                 }
 
                 if (!(livingEntity instanceof Player player && player.isCreative()) && !livingEntity.isSpectator()){
@@ -235,8 +235,8 @@ public class UndeadMixin implements UndeadAccessor, InfectionAccessor {
             }
         }
         else {
-            if (livingEntity.hasEffect(BeUndead.INFECTED_EFFECT.getHolder().get())){
-                livingEntity.removeEffect(BeUndead.INFECTED_EFFECT.getHolder().get());
+            if (livingEntity.hasEffect(BeUndead.INFECTED_EFFECT.get())){
+                livingEntity.removeEffect(BeUndead.INFECTED_EFFECT.get());
             }
         }
     }

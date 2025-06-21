@@ -30,7 +30,7 @@ public class ZombieChestLayer extends RenderLayer<AbstractClientPlayer, PlayerMo
     public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int packedLight, AbstractClientPlayer abstractClientPlayer, float v, float v1, float v2, float v3, float v4, float v5) {
         if (BeUndeadApi.hasZombieChest(abstractClientPlayer)){
             VertexConsumer vertexConsumer = multiBufferSource.getBuffer(RenderType.entitySolid(CHEST_LOCATION));
-            model.renderToBuffer(poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY);
+            model.renderToBuffer(poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY, v, v1, v2, v3);
         }
     }
 }

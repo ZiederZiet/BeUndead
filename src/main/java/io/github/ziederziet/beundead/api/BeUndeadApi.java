@@ -42,6 +42,7 @@ public class BeUndeadApi {
     public static void sendUndeadPacket(Player player){
         if (!player.level().isClientSide()){
             ModNetworking.sendToAllTrackingAndSelfClients(UndeadDataPacket.getPacket(player), player);
+            ModNetworking.sendToClient(UndeadDataPacket.getPacket(player), (ServerPlayer) player);
         }
     }
 
@@ -73,7 +74,7 @@ public class BeUndeadApi {
             case 2 -> SoundEvents.HUSK_AMBIENT;
             default -> SoundEvents.ZOMBIE_AMBIENT;
         };
-        player.makeSound(soundEvents);
+        player.playSound(soundEvents);
     }
 
     public static void playStepSound(Player player){
@@ -82,7 +83,7 @@ public class BeUndeadApi {
             case 2 -> SoundEvents.HUSK_STEP;
             default -> SoundEvents.ZOMBIE_STEP;
         };
-        player.makeSound(soundEvents);
+        player.playSound(soundEvents);
     }
 
     public static double getWalkingSpeed(Player player){

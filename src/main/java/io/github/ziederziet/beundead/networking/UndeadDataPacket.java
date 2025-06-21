@@ -4,7 +4,10 @@ import io.github.ziederziet.beundead.common.UndeadAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.network.CustomPayloadEvent;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkEvent;
+
+import java.util.function.Supplier;
 
 public class UndeadDataPacket {
     int playerId;
@@ -33,20 +36,30 @@ public class UndeadDataPacket {
         buffer.writeBoolean(chest);
     }
 
-    public void handle(CustomPayloadEvent.Context context){
-        if (context.isClientSide()){
-            if (Minecraft.getInstance().level.getEntity(playerId) instanceof Player player){
-                UndeadAccessor undeadAccessor = (UndeadAccessor) player;
-                undeadAccessor.setType(type);
-                undeadAccessor.setConverting(converting);
-                undeadAccessor.setZombieChest(chest);
+    public void handle(Supplier<NetworkEvent.Context> contextSupplier){
+        NetworkEvent.Context context = contextSupplier.get();
+
+        context.enqueueWork(() -> {
+            if (context.getDirection() == NetworkDirection.PLAY_TO_CLIENT && Minecraft.getInstance().level != null){
+                if (Minecraft.getInstance().level.getEntity(playerId) instanceof Player player){
+                    System.out.println("LOLL: " + type);
+
+                    UndeadAccessor undeadAccessor = (UndeadAccessor) player;
+                    undeadAccessor.setType(type);
+                    undeadAccessor.setConverting(converting);
+                    undeadAccessor.setZombieChest(chest);
+                }
             }
-        }
-        context.setPacketHandled(true);
+
+            context.setPacketHandled(true);
+        });
     }
 
     public static UndeadDataPacket getPacket(Player player){
         UndeadAccessor undeadAccessor = (UndeadAccessor) player;
+
+        System.out.println("LFISABHDGIKDSJBSDBGS: " + undeadAccessor.getType());
+
         return new UndeadDataPacket(player.getId(), undeadAccessor.getType(), undeadAccessor.getZombieConversionTime() > 0, undeadAccessor.hasZombieChest());
     }
 }

@@ -36,8 +36,7 @@ public class ZombieChestModel<T extends LivingEntity> extends EntityModel<T> {
     }
 
     @Override
-    public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int i, int i1, int i2) {
-        //System.out.println("IHFIKUOSDGHUJSDHKJSDHGJSDBGKJSDBG");
-        bb_main.render(poseStack, vertexConsumer, i, i1, i2);
+    public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int i, int i1, float v, float v1, float v2, float v3) {
+        bb_main.render(poseStack, vertexConsumer, i, i1);
     }
 }

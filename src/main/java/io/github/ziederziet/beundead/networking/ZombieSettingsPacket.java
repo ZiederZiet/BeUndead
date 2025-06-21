@@ -1,10 +1,11 @@
 package io.github.ziederziet.beundead.networking;
 
-import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.common.ClientInfo;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
-import net.minecraftforge.event.network.CustomPayloadEvent;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkEvent;
+
+import java.util.function.Supplier;
 
 public class ZombieSettingsPacket {
     int invState;
@@ -40,14 +41,18 @@ public class ZombieSettingsPacket {
         buffer.writeDouble(zombieWalkingSpeed);
     }
 
-    public void handle(CustomPayloadEvent.Context context){
-        if (context.isClientSide()){
-            ClientInfo.zombieInvState = invState;
-            ClientInfo.canChestExtension = canChestExtension;
-            ClientInfo.zombieNightVision = nightVision;
-            ClientInfo.zombieJumpOnTheirOwn = jumpOnTheirOwn;
-            ClientInfo.zombieMaxViewDistance = zombieMaxViewDistance;
-            ClientInfo.zombieWalkingSpeed = zombieWalkingSpeed;
-        }
+    public void handle(Supplier<NetworkEvent.Context> contextSupplier){
+        NetworkEvent.Context context = contextSupplier.get();
+        context.enqueueWork(() -> {
+            if (context.getDirection() == NetworkDirection.PLAY_TO_CLIENT){
+                ClientInfo.zombieInvState = invState;
+                ClientInfo.canChestExtension = canChestExtension;
+                ClientInfo.zombieNightVision = nightVision;
+                ClientInfo.zombieJumpOnTheirOwn = jumpOnTheirOwn;
+                ClientInfo.zombieMaxViewDistance = zombieMaxViewDistance;
+                ClientInfo.zombieWalkingSpeed = zombieWalkingSpeed;
+            }
+            context.setPacketHandled(true);
+        });
     }
 }

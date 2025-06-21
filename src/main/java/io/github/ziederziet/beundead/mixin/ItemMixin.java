@@ -4,7 +4,6 @@ import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
 import io.github.ziederziet.beundead.common.ClientInfo;
 import io.github.ziederziet.beundead.config.ConfigAccessor;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -35,13 +34,13 @@ public class ItemMixin {
                 info.cancel();
                 if (!level.isClientSide()){
                     BeUndeadApi.setZombieChest(player, true);
-                    player.getItemInHand(usedHand).consume(1, player);
+                    player.getItemInHand(usedHand).shrink(1);
                 }
                 level.playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.ARMOR_EQUIP_GENERIC, SoundSource.PLAYERS, 1.0F, 1.0F);
                 info.setReturnValue(InteractionResultHolder.consume(player.getItemInHand(usedHand)));
             } else {
                 ItemStack itemstack = player.getItemInHand(usedHand);
-                FoodProperties foodproperties = (FoodProperties)itemstack.get(DataComponents.FOOD);
+                FoodProperties foodproperties = itemstack.getFoodProperties(player);
                 if (foodproperties != null){
                     if (!itemstack.is(BeUndead.UNDEAD_EATABLES)){
                         info.setReturnValue(InteractionResultHolder.fail(itemstack));

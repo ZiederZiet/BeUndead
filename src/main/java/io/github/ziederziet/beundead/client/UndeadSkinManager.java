@@ -1,5 +1,7 @@
 package io.github.ziederziet.beundead.client;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.mojang.blaze3d.platform.NativeImage;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
 import net.minecraft.client.Minecraft;
@@ -13,8 +15,10 @@ import net.minecraft.world.phys.Vec3;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
@@ -57,20 +61,32 @@ public class UndeadSkinManager {
             Optional<Resource> optional = minecraft.getResourceManager().getResource(defaultLocation);
 
             BufferedImage skinImage = null;
-
             try {
                 if (optional.isPresent()){
                     skinImage = ImageIO.read(optional.get().open());
                 }
                 else {
-                    URL url = new URL(player.getSkin().textureUrl());
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                    connection.setRequestProperty("User-Agent", "Mozilla/5.0");
-                    connection.connect();
+                    String uuidStr = player.getUUID().toString().replace("-", "");
+                    String profileUrlStr = "https://sessionserver.mojang.com/session/minecraft/profile/" + uuidStr;
+                    URL profileUrl = new URL(profileUrlStr);
+                    HttpURLConnection profileConnection = (HttpURLConnection) profileUrl.openConnection();
+                    //connection.setRequestProperty("User-Agent", "Mozilla/5.0");
+                    profileConnection.connect();
 
-                    InputStream inputStream = connection.getInputStream();
+                    InputStream profileInputStream = profileConnection.getInputStream();
 
-                    skinImage = ImageIO.read(inputStream);
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(profileInputStream));
+                    StringBuilder json = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        json.append(line);
+                    }
+
+                    JsonObject response = new Gson().fromJson(json.toString(), JsonObject.class);
+
+                    System.out.println("RESPAWNE: " + response);
+
+                    //skinImage = ImageIO.read(inputStream);
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -102,7 +118,7 @@ public class UndeadSkinManager {
 
             DynamicTexture dynamicTexture = new DynamicTexture(nativeImage);
 
-            return minecraft.getTextureManager().register("undeadskin/" + location.getPath(), dynamicTexture);
+            return minecraft.getTextureManager().register("undeadskin" + type + "/" + location.getPath(), dynamicTexture);
 
 //            if (optional.isPresent()){
 //                System.out.println("THERE");

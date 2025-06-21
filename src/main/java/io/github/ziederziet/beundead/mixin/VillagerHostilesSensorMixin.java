@@ -1,5 +1,6 @@
 package io.github.ziederziet.beundead.mixin;
 
+import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.sensing.VillagerHostilesSensor;
@@ -23,7 +24,8 @@ public class VillagerHostilesSensorMixin {
     private void isClose(LivingEntity pAttacker, LivingEntity pTarget, CallbackInfoReturnable<Boolean> info) {
         if (pTarget instanceof Player){
             float $$2 = 8.0F;
-            info.setReturnValue(pTarget.distanceToSqr(pAttacker) <= (double)($$2 * $$2));
+            boolean isClose = pTarget.distanceToSqr(pAttacker) <= (double)($$2 * $$2);
+            info.setReturnValue(isClose);
             info.cancel();
         }
     }
