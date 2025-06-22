@@ -1,7 +1,9 @@
 package io.github.ziederziet.beundead.client;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
 import com.mojang.blaze3d.platform.NativeImage;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
 import net.minecraft.client.Minecraft;
@@ -11,16 +13,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.util.FastColor;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.phys.Vec3;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -66,27 +66,15 @@ public class UndeadSkinManager {
                     skinImage = ImageIO.read(optional.get().open());
                 }
                 else {
-                    String uuidStr = player.getUUID().toString().replace("-", "");
-                    String profileUrlStr = "https://sessionserver.mojang.com/session/minecraft/profile/" + uuidStr;
-                    URL profileUrl = new URL(profileUrlStr);
-                    HttpURLConnection profileConnection = (HttpURLConnection) profileUrl.openConnection();
-                    //connection.setRequestProperty("User-Agent", "Mozilla/5.0");
-                    profileConnection.connect();
+                    String skinUrlStr = UndeadSkinManager.getSkinUrl(player);
+                    URL url = new URL(skinUrlStr);
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestProperty("User-Agent", "Mozilla/5.0");
+                    connection.connect();
 
-                    InputStream profileInputStream = profileConnection.getInputStream();
+                    InputStream inputStream = connection.getInputStream();
 
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(profileInputStream));
-                    StringBuilder json = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        json.append(line);
-                    }
-
-                    JsonObject response = new Gson().fromJson(json.toString(), JsonObject.class);
-
-                    System.out.println("RESPAWNE: " + response);
-
-                    //skinImage = ImageIO.read(inputStream);
+                    skinImage = ImageIO.read(inputStream);
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -157,5 +145,20 @@ public class UndeadSkinManager {
 
             //return defaultLocation;
         });
+    }
+
+    public static String getSkinUrl(Player player) {
+        GameProfile profile = player.getGameProfile();
+        Property prop = profile.getProperties().get("textures").stream().findFirst().orElse(null);
+        if (prop == null) return null;
+
+        String json = new String(Base64.getDecoder().decode(prop.getValue()));
+        JsonObject obj = JsonParser.parseString(json).getAsJsonObject();
+
+        JsonObject tex = obj.getAsJsonObject("textures");
+        if (tex.has("SKIN")) {
+            return tex.getAsJsonObject("SKIN").get("url").getAsString();
+        }
+        return null;
     }
 }

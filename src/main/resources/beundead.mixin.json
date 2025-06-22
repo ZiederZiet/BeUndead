@@ -29,6 +29,7 @@
     "VillagerMixin"
   ],
   "client": [
+    "AbstractClientPlayerMixin",
     "AbstractContainerMenuMixin",
     "AbstractContainerScreenMixin",
     "CycleButtonMixin",
@@ -45,7 +46,6 @@
     "PlayerMixin",
     "PlayerModelAccessor",
     "PlayerModelMixin",
-    "PlayerRendererMixin",
     "SlotMixin",
     "TargetGoalAccessor"
   ],

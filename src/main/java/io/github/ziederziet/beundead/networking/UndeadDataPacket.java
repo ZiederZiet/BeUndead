@@ -42,8 +42,6 @@ public class UndeadDataPacket {
         context.enqueueWork(() -> {
             if (context.getDirection() == NetworkDirection.PLAY_TO_CLIENT && Minecraft.getInstance().level != null){
                 if (Minecraft.getInstance().level.getEntity(playerId) instanceof Player player){
-                    System.out.println("LOLL: " + type);
-
                     UndeadAccessor undeadAccessor = (UndeadAccessor) player;
                     undeadAccessor.setType(type);
                     undeadAccessor.setConverting(converting);
@@ -57,8 +55,6 @@ public class UndeadDataPacket {
 
     public static UndeadDataPacket getPacket(Player player){
         UndeadAccessor undeadAccessor = (UndeadAccessor) player;
-
-        System.out.println("LFISABHDGIKDSJBSDBGS: " + undeadAccessor.getType());
 
         return new UndeadDataPacket(player.getId(), undeadAccessor.getType(), undeadAccessor.getZombieConversionTime() > 0, undeadAccessor.hasZombieChest());
     }
