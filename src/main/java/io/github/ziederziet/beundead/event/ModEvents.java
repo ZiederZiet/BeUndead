@@ -40,10 +40,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.*;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.living.LivingDamageEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.CriticalHitEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerSleepInBedEvent;
@@ -57,6 +54,13 @@ import java.util.*;
 
 @Mod.EventBusSubscriber(modid = BeUndead.MODID)
 public class ModEvents {
+    @SubscribeEvent
+    public static void onMobEffectEventAdded(MobEffectEvent.Added event){
+        if (event.getEntity() instanceof InfectionAccessor infectionAccessor){
+            infectionAccessor.infectBy(null, 30, 30);
+        }
+    }
+
     @SubscribeEvent
     public static void onLivingDamageEvent(LivingDamageEvent event){
         if (event.getSource().getEntity() instanceof Player player && BeUndeadApi.getZombieType(player) == 2){
