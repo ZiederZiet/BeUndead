@@ -41,13 +41,15 @@ public class ZombieSettingsPacket {
     }
 
     public void handle(CustomPayloadEvent.Context context){
-        if (context.isClientSide()){
-            ClientInfo.zombieInvState = invState;
-            ClientInfo.canChestExtension = canChestExtension;
-            ClientInfo.zombieNightVision = nightVision;
-            ClientInfo.zombieJumpOnTheirOwn = jumpOnTheirOwn;
-            ClientInfo.zombieMaxViewDistance = zombieMaxViewDistance;
-            ClientInfo.zombieWalkingSpeed = zombieWalkingSpeed;
-        }
+        context.enqueueWork(() -> {
+            if (context.isClientSide()){
+                ClientInfo.zombieInvState = invState;
+                ClientInfo.canChestExtension = canChestExtension;
+                ClientInfo.zombieNightVision = nightVision;
+                ClientInfo.zombieJumpOnTheirOwn = jumpOnTheirOwn;
+                ClientInfo.zombieMaxViewDistance = zombieMaxViewDistance;
+                ClientInfo.zombieWalkingSpeed = zombieWalkingSpeed;
+            }
+        });
     }
 }

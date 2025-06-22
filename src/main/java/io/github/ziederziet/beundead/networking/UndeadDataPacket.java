@@ -34,15 +34,17 @@ public class UndeadDataPacket {
     }
 
     public void handle(CustomPayloadEvent.Context context){
-        if (context.isClientSide()){
-            if (Minecraft.getInstance().level.getEntity(playerId) instanceof Player player){
-                UndeadAccessor undeadAccessor = (UndeadAccessor) player;
-                undeadAccessor.setType(type);
-                undeadAccessor.setConverting(converting);
-                undeadAccessor.setZombieChest(chest);
+        context.enqueueWork(() -> {
+            if (context.isClientSide()){
+                if (Minecraft.getInstance().level.getEntity(playerId) instanceof Player player){
+                    UndeadAccessor undeadAccessor = (UndeadAccessor) player;
+                    undeadAccessor.setType(type);
+                    undeadAccessor.setConverting(converting);
+                    undeadAccessor.setZombieChest(chest);
+                }
             }
-        }
-        context.setPacketHandled(true);
+            context.setPacketHandled(true);
+        });
     }
 
     public static UndeadDataPacket getPacket(Player player){
