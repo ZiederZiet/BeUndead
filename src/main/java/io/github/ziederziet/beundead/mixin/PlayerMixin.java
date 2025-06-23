@@ -20,25 +20,25 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class PlayerMixin {
     public int ambientSoundTime;
 
-    @Redirect(
-            method = "attack(Lnet/minecraft/world/entity/Entity;)V",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/world/item/enchantment/EnchantmentHelper;getDamageBonus(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/MobType;)F"
-            )
-    )
-    public float getDamageBonus(ItemStack pStack, MobType pCreatureAttribute, Entity pTarget){
-        Player player = (Player) (Object) this;
-        float ogFloat = EnchantmentHelper.getDamageBonus(player.getMainHandItem(), ((LivingEntity)pTarget).getMobType());
-
-        if (pTarget instanceof Player target){
-            if (BeUndeadApi.getZombieType(target) > 0){
-                ogFloat = EnchantmentHelper.getDamageBonus(player.getMainHandItem(), MobType.UNDEAD);
-            }
-        }
-
-        return ogFloat;
-    }
+//    @Redirect(
+//            method = "attack(Lnet/minecraft/world/entity/Entity;)V",
+//            at = @At(
+//                    value = "INVOKE",
+//                    target = "Lnet/minecraft/world/item/enchantment/EnchantmentHelper;getDamageBonus(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/MobType;)F"
+//            )
+//    )
+//    public float getDamageBonus(ItemStack pStack, MobType pCreatureAttribute, Entity pTarget){
+//        Player player = (Player) (Object) this;
+//        float ogFloat = EnchantmentHelper.getDamageBonus(player.getMainHandItem(), ((LivingEntity)pTarget).getMobType());
+//
+//        if (pTarget instanceof Player target){
+//            if (BeUndeadApi.getZombieType(target) > 0){
+//                ogFloat = EnchantmentHelper.getDamageBonus(player.getMainHandItem(), MobType.UNDEAD);
+//            }
+//        }
+//
+//        return ogFloat;
+//    }
 
     @Inject(at = @At("HEAD"), method = "tick()V")
     public void tick(CallbackInfo info){

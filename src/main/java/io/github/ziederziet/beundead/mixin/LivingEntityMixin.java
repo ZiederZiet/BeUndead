@@ -32,22 +32,22 @@ public abstract class LivingEntityMixin {
 
     @Shadow protected abstract void dropExperience();
 
-    @Inject(at = @At("HEAD"), method = "isInvertedHealAndHarm()Z", cancellable = true)
-    public void isInvertedHealAndHarm(CallbackInfoReturnable<Boolean> info) {
-        if ((Object)this instanceof Player player && BeUndeadApi.getZombieType(player) > 0){
-            info.cancel();
-            info.setReturnValue(true);
-        }
-    }
+//    @Inject(at = @At("HEAD"), method = "isInvertedHealAndHarm()Z", cancellable = true)
+//    public void isInvertedHealAndHarm(CallbackInfoReturnable<Boolean> info) {
+//        if ((Object)this instanceof Player player && BeUndeadApi.getZombieType(player) > 0){
+//            info.cancel();
+//            info.setReturnValue(true);
+//        }
+//    }
 
-    @Inject(at = @At("HEAD"), method = "canBeAffected(Lnet/minecraft/world/effect/MobEffectInstance;)Z", cancellable = true)
-    public void canBeAffected(MobEffectInstance pEffectInstance, CallbackInfoReturnable<Boolean> info) {
-        LivingEntity livingEntity = (LivingEntity) (Object)this;
-        if ((livingEntity instanceof Player player && BeUndeadApi.getZombieType(player) > 0) && (pEffectInstance.getEffect() == MobEffects.REGENERATION || pEffectInstance.getEffect() == MobEffects.POISON)){
-            info.setReturnValue(false);
-            info.cancel();
-        }
-    }
+//    @Inject(at = @At("HEAD"), method = "canBeAffected(Lnet/minecraft/world/effect/MobEffectInstance;)Z", cancellable = true)
+//    public void canBeAffected(MobEffectInstance pEffectInstance, CallbackInfoReturnable<Boolean> info) {
+//        LivingEntity livingEntity = (LivingEntity) (Object)this;
+//        if ((livingEntity instanceof Player player && BeUndeadApi.getZombieType(player) > 0) && (pEffectInstance.getEffect() == MobEffects.REGENERATION || pEffectInstance.getEffect() == MobEffects.POISON)){
+//            info.setReturnValue(false);
+//            info.cancel();
+//        }
+//    }
 
     @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;dropEquipment()V"), method = "dropAllDeathLoot")
     protected void dropExperience(LivingEntity instance, DamageSource source) {
@@ -71,9 +71,12 @@ public abstract class LivingEntityMixin {
 
     @Inject(at = @At("HEAD"), method = "canBreatheUnderwater()Z", cancellable = true)
     public void canBreatheUnderwater(CallbackInfoReturnable<Boolean> info) {
-        if ((Object)this instanceof Player player && BeUndeadApi.getZombieType(player) == 3){
-            info.setReturnValue(true);
-            info.cancel();
+        if ((Object)this instanceof Player player){
+            int type = BeUndeadApi.getZombieType(player);
+            if (type > 0 && type < 3){
+                info.setReturnValue(false);
+                info.cancel();
+            }
         }
     }
 
@@ -90,6 +93,14 @@ public abstract class LivingEntityMixin {
         if ((Object)this instanceof Player player && BeUndeadApi.getZombieType(player) > 0){
             SoundEvent deathSound = BeUndeadApi.getDeathSound(player);
             info.setReturnValue(deathSound);
+        }
+    }
+
+    @Inject(at = @At("HEAD"), method = "getMobType", cancellable = true)
+    public void getMobType(CallbackInfoReturnable<MobType> info){
+        if ((Object)this instanceof Player player && BeUndeadApi.getZombieType(player) > 0){
+            info.setReturnValue(MobType.UNDEAD);
+            info.cancel();
         }
     }
 }

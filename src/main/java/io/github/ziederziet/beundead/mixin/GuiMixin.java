@@ -68,7 +68,7 @@ public abstract class GuiMixin {
                 pGuiGraphics.pose().popPose();
                 int l = 1;
 
-                this.renderSlot(pGuiGraphics, i - 90 * 20 + 2 + additionXSlot, this.screenHeight - 16 - 3, pPartialTick, player, (ItemStack)player.getInventory().items.get(4), l++);
+                this.renderSlot(pGuiGraphics, i - 90 + 2 + additionXSlot, this.screenHeight - 16 - 3, pPartialTick, player, (ItemStack)player.getInventory().items.get(4), l++);
 
                 if (!itemstack.isEmpty()) {
                     int i2 = this.screenHeight - 16 - 3;
