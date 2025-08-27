@@ -7,31 +7,36 @@ import io.github.ziederziet.beundead.config.ConfigAccessor;
 import io.github.ziederziet.beundead.networking.ModNetworking;
 import io.github.ziederziet.beundead.networking.RespawnTimerPacket;
 import io.github.ziederziet.beundead.networking.UndeadDataPacket;
+import io.github.ziederziet.beundead.theyre_coming.TheyreComingAccessor;
 import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.joml.Vector3f;
 
-import javax.annotation.Nullable;
 import java.util.UUID;
 
 public class BeUndeadApi {
-    public static final Vector3f[] ZOMBIE_COLORS = new Vector3f[] { new Vector3f(0.8F, 1.0F, 0.85F), new Vector3f(0.80F, 0.72F, 0.49F), new Vector3f(0.7F, 0.8F, 0.8F) };
-    public static final Vector3f[] ZOMBIE_COLOR_OFFSETS = new Vector3f[] { new Vector3f(0.0F, 0.1F, 0.0F), new Vector3f(0.03F, 0.05F, 0.0F), new Vector3f(-0.1F, 0.1F, 0.1F) };
+    public static final Vector3f[] ZOMBIE_COLORS = new Vector3f[] { new Vector3f(0.8F, 1.0F, 0.85F), new Vector3f(0.7F, 0.8F, 0.8F), new Vector3f(0.80F, 0.72F, 0.49F) };
+    public static final Vector3f[] ZOMBIE_COLOR_OFFSETS = new Vector3f[] { new Vector3f(0.0F, 0.1F, 0.0F), new Vector3f(-0.1F, 0.1F, 0.1F), new Vector3f(0.03F, 0.05F, 0.0F) };
 
     public static int getZombieType(Player player) {
         return ((UndeadAccessor)player).getType();
     }
 
-    public static void setZombieType(Player player, int type) {
+    public static void setZombieType(Player player, int type, boolean packet) {
         ((UndeadAccessor)player).setType(type);
 
         sendUndeadPacket(player);
@@ -39,9 +44,13 @@ public class BeUndeadApi {
         BeUndeadApi.setZombieRespawnTimer(player, -1);
     }
 
+    public static void setZombieType(Player player, int type) {
+        setZombieType(player, type, true);
+    }
+
     public static void sendUndeadPacket(Player player){
         if (!player.level().isClientSide()){
-            ModNetworking.sendToAllTrackingAndSelfClients(UndeadDataPacket.getPacket(player), player);
+            ModNetworking.sendToAllTrackingAndSelfClients(UndeadDataPacket.getPacket(player), (ServerPlayer) player);
         }
     }
 
@@ -108,6 +117,9 @@ public class BeUndeadApi {
         return ((UndeadAccessor)player).hasZombieChest();
     }
     public static void setZombieChest(Player player, boolean has){
+        setZombieChest(player, has, true);
+    }
+    public static void setZombieChest(Player player, boolean has, boolean packet){
         ((UndeadAccessor)player).setZombieChest(has);
 
         sendUndeadPacket(player);
@@ -144,10 +156,10 @@ public class BeUndeadApi {
     public static void revive(Player player, boolean fromConversion){
         if (fromConversion){
             player.level().playSound(null, player.blockPosition(), SoundEvents.ZOMBIE_VILLAGER_CONVERTED, SoundSource.PLAYERS, 1F, 1F);
-            @Nullable UUID conversionStarter = ((UndeadAccessor)player).getConversionStarter();
+            UUID conversionStarter = ((UndeadAccessor)player).getConversionStarter();
             if (conversionStarter != null){
                 if (player.level() instanceof ServerLevel serverLevel){
-                    @Nullable Player reviver = serverLevel.getPlayerByUUID(conversionStarter);
+                    Player reviver = serverLevel.getPlayerByUUID(conversionStarter);
                     if (reviver != null){
                         CriteriaTriggers.CURED_ZOMBIE_VILLAGER.trigger((ServerPlayer)reviver, null, null);
                     }
@@ -215,6 +227,98 @@ public class BeUndeadApi {
         else{
             ConfigAccessor config = ConfigAccessor.getConfig();
             return Math.min(config.getZombieInvState() + (hasChest && config.getZombieCanChestExtension() ? 1 : 0), 2);
+        }
+    }
+
+    // MOVEMENT UP -> HUSK
+    // MOVEMENT DOWN -> DROWNED
+    public static int getTypeMovementOnDeath(DamageSource damageSource, LivingEntity entity){
+        if (damageSource.is(DamageTypes.DROWN) || damageSource.is(DamageTypes.TRIDENT)){
+            return -1;
+        } else if (damageSource.is(DamageTypes.WITHER)) {
+            return 1;
+        } else {
+            if (entity.isInWater()){
+                return -1;
+            } else {
+                boolean hasDesert = true;
+                for (int x = -1; x < 2; x++) {
+                    for (int z = -1; z < 2; z++) {
+                        hasDesert = entity.level().getBlockState(new BlockPos(entity.getBlockX() + x, (int)Math.floor(entity.getY() - 0.8D), entity.getBlockZ() + z)).is(BlockTags.SAND);
+                        if (!hasDesert){
+                            break;
+                        }
+                    }
+                }
+                if (hasDesert){
+                    return 1;
+                }
+            }
+        }
+        return 0;
+    }
+
+    // MOVEMENT UP -> HUSK
+    // MOVEMENT DOWN -> DROWNED
+    public static int moveType(int type, int movement, boolean husks, boolean drowned){
+        while (movement < 0 && type != 3){
+            movement++;
+            if (type == 2){
+                type = 1;
+            } else if (type == 1 && drowned){
+                type = 3;
+                break;
+            }
+            else {
+                break;
+            }
+        }
+        while (movement > 0 && type != 2){
+            movement--;
+            if (type == 3){
+                type = 1;
+            } else if (type == 1 && husks){
+                type = 2;
+                break;
+            }
+            else {
+                break;
+            }
+        }
+        return type;
+    }
+
+    public static boolean isSunBurnTick(Player player) {
+        if (player.level().isClientSide() || TheyreComingAccessor.getPhase(player.getServer()) == 2){
+            return false;
+        }
+        if (player.level().isDay() && !player.level().isClientSide) {
+            float f = player.getLightLevelDependentMagicValue();
+            BlockPos blockpos = BlockPos.containing(player.getX(), player.getEyeY(), player.getZ());
+            boolean flag = player.isInWaterRainOrBubble() || player.isInPowderSnow || player.wasInPowderSnow;
+            if (f > 0.5F && player.getRandom().nextFloat() * 30.0F < (f - 0.4F) * 2.0F && !flag && player.level().canSeeSky(blockpos)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static void checkSideItems(Player player) {
+        boolean emptyFirstSlot = player.getInventory().items.get(4).isEmpty();
+        for (int i = 0; i < 9; i++) {
+            if (i != 4){
+                if (!player.getInventory().items.get(i).isEmpty()){
+                    if (emptyFirstSlot){
+                        player.getInventory().items.set(4, player.getInventory().items.get(i));
+                        player.getInventory().items.set(i, ItemStack.EMPTY);
+                        emptyFirstSlot = false;
+                    } else {
+                        player.drop(player.getInventory().items.get(i), true);
+                        player.getInventory().items.set(i, ItemStack.EMPTY);
+                    }
+                }
+            }
         }
     }
 }

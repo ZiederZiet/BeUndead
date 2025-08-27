@@ -1,10 +1,11 @@
 package io.github.ziederziet.beundead.config;
 
 import io.github.ziederziet.beundead.networking.ZombieSettingsPacket;
+import me.shedaniel.autoconfig.AutoConfig;
 
 public interface ConfigAccessor {
     static ConfigAccessor getConfig(){
-        return ModConfig.Instance;
+        return AutoConfig.getConfigHolder(ModConfig.class).getConfig();
     }
 
     public static ZombieSettingsPacket getPacket(){
@@ -25,7 +26,7 @@ public interface ConfigAccessor {
     boolean getZombieJumpOnTheirOwn();
     boolean getZombieCanCrit();
     int getZombieMaxViewDistance();
-    boolean getInfection();
+    boolean isInfectionEnabled();
     boolean getOnlyTurnWhenInfected();
     boolean getForceTurnWhenInfected();
     // Timer in seconds

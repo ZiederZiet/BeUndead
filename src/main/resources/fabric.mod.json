@@ -1,0 +1,40 @@
+{
+	"schemaVersion": 1,
+	"id": "beundead",
+	"version": "${version}",
+	"name": "Be Undead",
+	"description": "This mod lets players convert into zombies after death. These player-zombies can be revived. This mod also adds a new difficulty with monster raid nights.",
+	"authors": [
+		"ZiederZiet"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "All Rights Reserved",
+	"icon": "assets/beundead/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"io.github.ziederziet.beundead.BeUndead"
+		],
+		"client": [
+			"io.github.ziederziet.beundead.BeUndeadClient"
+		],
+		"modmenu": [
+			"io.github.ziederziet.beundead.config.ConfigScreen"
+		]
+	},
+	"mixins": [
+		"beundead.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.17.2",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}

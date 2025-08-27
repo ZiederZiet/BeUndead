@@ -1,6 +1,5 @@
 package io.github.ziederziet.beundead.common;
 
-import javax.annotation.Nullable;
 import java.util.UUID;
 
 public interface UndeadAccessor {
@@ -17,5 +16,5 @@ public interface UndeadAccessor {
     int getType();
     void setType(int type);
     UUID getConversionStarter();
-    void setConversionStarter(@Nullable UUID conversionStarter);
+    void setConversionStarter(UUID conversionStarter);
 }

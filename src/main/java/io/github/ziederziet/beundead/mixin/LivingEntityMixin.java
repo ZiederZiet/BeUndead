@@ -1,33 +1,130 @@
 package io.github.ziederziet.beundead.mixin;
 
-import com.google.common.collect.Maps;
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
-import net.minecraft.core.Holder;
+import io.github.ziederziet.beundead.common.InfectionAccessor;
+import io.github.ziederziet.beundead.config.ConfigAccessor;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.monster.ZombifiedPiglin;
 import net.minecraft.world.entity.npc.AbstractVillager;
+import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.food.FoodProperties;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameRules;
-import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import javax.annotation.Nullable;
-import java.util.Map;
-
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
+
+    @Inject(at = @At("TAIL"), method = "tick")
+    public void tick(CallbackInfo info){
+        LivingEntity livingEntity = (LivingEntity)(Object)this;
+
+        boolean human = livingEntity instanceof Villager;
+        if (livingEntity instanceof Player player){
+            int type = BeUndeadApi.getZombieType(player);
+
+            if (type > 0){
+                if (ConfigAccessor.getConfig().getZombieNightVision()){
+                    MobEffectInstance currentEffect = player.getEffect(MobEffects.NIGHT_VISION);
+                    if (currentEffect == null || currentEffect.getDuration() < 61){
+                        player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 200, 0, false, false));
+                    }
+                }
+
+                if (livingEntity instanceof InfectionAccessor infectionAccessor){
+                    infectionAccessor.tick(livingEntity);
+                }
+
+                long conversionTime = BeUndeadApi.getZombieConversionTime(player);
+                if (conversionTime >= 0){
+                    if (conversionTime == 1){
+                        if (BeUndeadApi.getZombieConversionType(player) > 0){
+                            BeUndeadApi.setZombieType(player, BeUndeadApi.getZombieConversionType(player));
+                        } else {
+                            BeUndeadApi.revive(player, true);
+                        }
+                    }
+                }
+
+                if (BeUndeadApi.getInvStateOfPlayer(player) == 0){
+                    BeUndeadApi.checkSideItems(player);
+                    player.getInventory().selected = 4;
+                }
+
+                if (type != 2 && BeUndeadApi.isSunBurnTick(player)){
+                    ItemStack itemstack = player.getItemBySlot(EquipmentSlot.HEAD);
+                    if (!itemstack.isEmpty()) {
+                        if (itemstack.isDamageableItem()) {
+                            itemstack.hurtAndBreak(player.getRandom().nextInt(2), player, EquipmentSlot.HEAD);
+                            Item item = itemstack.getItem();
+                            itemstack.setDamageValue(itemstack.getDamageValue() + player.getRandom().nextInt(2));
+                            if (itemstack.getDamageValue() >= itemstack.getMaxDamage()) {
+                                player.onEquippedItemBroken(item, EquipmentSlot.HEAD);
+                                player.setItemSlot(EquipmentSlot.HEAD, ItemStack.EMPTY);
+                            }
+                        }
+                    }
+                    else {
+                        player.igniteForSeconds(8.0F);
+                    }
+                }
+            }
+            else {
+                human = true;
+            }
+        }
+
+        if (human){
+            if (livingEntity.level().getRandom().nextInt(81) == 0) {
+                double zombieRange = 16D;
+
+                AABB box = new AABB(
+                        livingEntity.getX() - zombieRange,
+                        livingEntity.getEyeY() - zombieRange / 2D,
+                        livingEntity.getZ() - zombieRange,
+                        livingEntity.getX() + zombieRange,
+                        livingEntity.getEyeY() + zombieRange / 2D,
+                        livingEntity.getZ() + zombieRange);
+
+                int zombieAroundCount = livingEntity.level().getEntitiesOfClass(Zombie.class, box)
+                        .size();
+
+                int zombiePiglinAroundCount = livingEntity.level().getEntitiesOfClass(ZombifiedPiglin.class, box)
+                        .size();
+
+                zombieAroundCount += livingEntity.level().getEntitiesOfClass(Player.class, box, player1 -> BeUndeadApi.getZombieType(player1) > 0)
+                        .size();
+
+                int finalZombieAroundCount = Math.round(zombieAroundCount - zombiePiglinAroundCount / 2F);
+
+                if (livingEntity.hasEffect(BeUndead.INFECTED_EFFECT_HOLDER)){
+                    ((InfectionAccessor)livingEntity).infectBy(null, finalZombieAroundCount, 0);
+                }
+                else {
+                    ((InfectionAccessor)livingEntity).infectBy(null, finalZombieAroundCount, 20);
+                }
+            }
+            if (livingEntity instanceof InfectionAccessor infectionAccessor){
+                infectionAccessor.tick(livingEntity);
+            }
+        }
+    }
 
     @Inject(at = @At("HEAD"), method = "isInvertedHealAndHarm()Z", cancellable = true)
     public void isInvertedHealAndHarm(CallbackInfoReturnable<Boolean> info) {
@@ -40,14 +137,14 @@ public abstract class LivingEntityMixin {
     @Inject(at = @At("HEAD"), method = "canBeAffected(Lnet/minecraft/world/effect/MobEffectInstance;)Z", cancellable = true)
     public void canBeAffected(MobEffectInstance pEffectInstance, CallbackInfoReturnable<Boolean> info) {
         LivingEntity livingEntity = (LivingEntity) (Object)this;
-        if ((livingEntity instanceof Player player && BeUndeadApi.getZombieType(player) > 0) && (pEffectInstance.is(MobEffects.REGENERATION) || pEffectInstance.is(MobEffects.POISON))){
+        if ((livingEntity instanceof Player player && BeUndeadApi.getZombieType(player) > 0) && (pEffectInstance.is(MobEffects.REGENERATION) || pEffectInstance.is(MobEffects.POISON) || pEffectInstance.is(MobEffects.HUNGER))){
             info.setReturnValue(false);
             info.cancel();
         }
     }
 
     @Inject(at = @At("HEAD"), method = "dropExperience(Lnet/minecraft/world/entity/Entity;)V", cancellable = true)
-    protected void dropExperience(@Nullable Entity pEntity, CallbackInfo info) {
+    protected void dropExperience(Entity pEntity, CallbackInfo info) {
         if (pEntity instanceof Player player && !player.level().isClientSide() && BeUndeadApi.getZombieType(player) > 0){
             info.cancel();
             LivingEntity thisEntity = (LivingEntity) (Object) this;
@@ -57,7 +154,7 @@ public abstract class LivingEntityMixin {
                     player.giveExperiencePoints(reward);
                 }
                 else if (thisEntity.shouldDropExperience() && thisEntity.level().getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)){
-                    int reward = ForgeEventFactory.getExperienceDrop(thisEntity, player, thisEntity.getExperienceReward((ServerLevel) player.level(), pEntity));
+                    int reward = thisEntity.getExperienceReward((ServerLevel) player.level(), pEntity);
                     player.giveExperiencePoints(reward);
                 }
             }
@@ -86,6 +183,15 @@ public abstract class LivingEntityMixin {
         if ((Object)this instanceof Player player && BeUndeadApi.getZombieType(player) > 0){
             SoundEvent deathSound = BeUndeadApi.getDeathSound(player);
             info.setReturnValue(deathSound);
+        }
+    }
+
+    @Inject(at = @At("HEAD"), method = "eat(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/food/FoodProperties;)Lnet/minecraft/world/item/ItemStack;")
+    public void eat(Level level, ItemStack itemStack, FoodProperties foodProperties, CallbackInfoReturnable<ItemStack> info){
+        if ((LivingEntity)(Object)this instanceof Player player && BeUndeadApi.getZombieType(player) > 0 && itemStack.is(BeUndead.UNDEAD_CURES)){
+            if (player.hasEffect(MobEffects.WEAKNESS)){
+                BeUndeadApi.startConverting(player, 0, player);
+            }
         }
     }
 }

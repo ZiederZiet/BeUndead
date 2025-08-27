@@ -22,10 +22,6 @@ import java.util.Map;
 import java.util.Optional;
 
 public class UndeadSkinManager {
-//    public static final Vec3[] ZOMBIE_COLORS = new Vec3[] { new Vec3(0.8D, 1.0D, 0.85D), new Vec3(0.7D, 0.8D, 0.8D), new Vec3(0.80D, 0.72D, 0.49D) };
-//    public static final Vec3[] ZOMBIE_COLOR_OFFSETS = new Vec3[] { new Vec3(0.0D, 0.1D, 0.0D), new Vec3(-0.1D, 0.1D, 0.1D), new Vec3(0.03D, 0.05D, 0.0D) };
-
-
 
     private static final Map<ResourceLocation, ResourceLocation> modifiedZombieSkins = new HashMap<>();
     private static final Map<ResourceLocation, ResourceLocation> modifiedHuskSkins = new HashMap<>();

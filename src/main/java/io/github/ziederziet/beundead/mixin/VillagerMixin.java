@@ -16,17 +16,15 @@ import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.UUID;
 
 @Mixin(Villager.class)
 public class VillagerMixin implements InfectionAccessor {
 
-    private @Nullable UUID infecter = null;
+    private UUID infecter = null;
     private int infected = 0;
     private int infectDieTicks = 0;
 
@@ -39,7 +37,7 @@ public class VillagerMixin implements InfectionAccessor {
     }
 
     @Override
-    public void infectBy(@Nullable Player playerInfecter, int infect, int max){
+    public void infectBy(Player playerInfecter, int infect, int max){
         if (max <= 0){
             if (this.infected < 30 && this.infected + infect >= 30){
                 if (playerInfecter != null){
@@ -57,15 +55,15 @@ public class VillagerMixin implements InfectionAccessor {
     public void removeInfection(Player player){
         this.infected = 0;
         this.infectDieTicks = 0;
-        player.removeEffect(BeUndead.INFECTED_EFFECT.getHolder().get());
+        player.removeEffect(BeUndead.INFECTED_EFFECT_HOLDER);
     }
 
     @Override
     public void tick(LivingEntity livingEntity){
         if (livingEntity instanceof Villager || (livingEntity instanceof Player player && BeUndeadApi.getZombieType(player) <= 0)){
             if (this.infected > 30){
-                if (!livingEntity.hasEffect(BeUndead.INFECTED_EFFECT.getHolder().get())){
-                    livingEntity.addEffect(new MobEffectInstance(BeUndead.INFECTED_EFFECT.getHolder().get(), -1, 0));
+                if (!livingEntity.hasEffect(BeUndead.INFECTED_EFFECT_HOLDER)){
+                    livingEntity.addEffect(new MobEffectInstance(BeUndead.INFECTED_EFFECT_HOLDER, -1, 0));
                 }
 
                 if (!(livingEntity instanceof Player player && player.isCreative()) && !livingEntity.isSpectator()){
@@ -91,8 +89,8 @@ public class VillagerMixin implements InfectionAccessor {
             }
         }
         else {
-            if (livingEntity.hasEffect(BeUndead.INFECTED_EFFECT.getHolder().get())){
-                livingEntity.removeEffect(BeUndead.INFECTED_EFFECT.getHolder().get());
+            if (livingEntity.hasEffect(BeUndead.INFECTED_EFFECT_HOLDER)){
+                livingEntity.removeEffect(BeUndead.INFECTED_EFFECT_HOLDER);
             }
         }
     }

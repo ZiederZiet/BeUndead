@@ -1,12 +1,11 @@
 {
   "required": true,
   "package": "io.github.ziederziet.beundead.mixin",
-  "minVersion": 0.7,
+  "compatibilityLevel": "JAVA_21",
   "mixins": [
     "BedBlockMixin",
     "DoorBlockMixin",
     "EnchantmentHelperMixin",
-    "EntityAccessor",
     "EntityMixin",
     "ExperienceOrbMixin",
     "InventoryMixin",
@@ -15,6 +14,7 @@
     "LivingEntityMixin",
     "NearestAttackableTargetGoalAccessor",
     "NearestAttackableTargetGoalMixin",
+    "PhantomSpawnerMixin",
     "PlayerMixin",
     "PlayerSensorMixin",
     "SensorMixin",
@@ -26,7 +26,8 @@
     "TargetingConditionsAccessor",
     "UndeadMixin",
     "VillagerHostilesSensorMixin",
-    "VillagerMixin"
+    "VillagerMixin",
+    "WanderingTraderMixin"
   ],
   "client": [
     "AbstractContainerMenuMixin",
@@ -52,5 +53,7 @@
   "injectors": {
     "defaultRequire": 1
   },
-  "refmap": "beundead.mixin-refmap.json"
+  "overwrites": {
+    "requireAnnotations": true
+	}
 }

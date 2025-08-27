@@ -19,7 +19,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,10 +32,9 @@ public class UndeadMixin implements UndeadAccessor, InfectionAccessor {
 
     private boolean converting;
 
-    private @Nullable UUID conversionStarter;
+    private UUID conversionStarter;
 
-
-    private @Nullable UUID infecter = null;
+    private UUID infecter = null;
     private int infected = 0;
     private int infectDieTicks = 0;
 
@@ -119,7 +117,6 @@ public class UndeadMixin implements UndeadAccessor, InfectionAccessor {
     public void readAdditionalSaveData(CompoundTag pCompound, CallbackInfo info) {
         int zombietype = pCompound.getInt("ZombieType");
         boolean zombiechest = pCompound.getBoolean("ZombieChest");
-        SynchedEntityData entityData = ((EntityAccessor)this).getEntityData();
         if (pCompound.contains("RespawnTimer")){
             respawnTimer = pCompound.getLong("RespawnTimer");
         }
@@ -150,7 +147,6 @@ public class UndeadMixin implements UndeadAccessor, InfectionAccessor {
 
     @Inject(at = @At("TAIL"), method = "addAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V")
     public void addAdditionalSaveData(CompoundTag pCompound, CallbackInfo info) {
-        SynchedEntityData entityData = ((EntityAccessor)this).getEntityData();
         pCompound.putInt("ZombieType", type);
         pCompound.putBoolean("ZombieChest", zombieChest);
         if (respawnTimer > 0){
@@ -178,12 +174,12 @@ public class UndeadMixin implements UndeadAccessor, InfectionAccessor {
     }
 
     @Override
-    public void setConversionStarter(@Nullable UUID conversionStarter){
+    public void setConversionStarter(UUID conversionStarter){
         this.conversionStarter = conversionStarter;
     }
 
     @Override
-    public void infectBy(@Nullable Player playerInfecter, int infect, int max){
+    public void infectBy(Player playerInfecter, int infect, int max){
         if (max <= 0){
             if (this.infected < 30 && this.infected + infect >= 30){
                 if (playerInfecter != null){
@@ -201,15 +197,15 @@ public class UndeadMixin implements UndeadAccessor, InfectionAccessor {
     public void removeInfection(Player player){
         this.infected = 0;
         this.infectDieTicks = 0;
-        player.removeEffect(BeUndead.INFECTED_EFFECT.getHolder().get());
+        player.removeEffect(BeUndead.INFECTED_EFFECT_HOLDER);
     }
 
     @Override
     public void tick(LivingEntity livingEntity){
         if (livingEntity instanceof Villager || (livingEntity instanceof Player player && BeUndeadApi.getZombieType(player) <= 0)){
             if (this.infected > 30){
-                if (!livingEntity.hasEffect(BeUndead.INFECTED_EFFECT.getHolder().get())){
-                    livingEntity.addEffect(new MobEffectInstance(BeUndead.INFECTED_EFFECT.getHolder().get(), -1, 0));
+                if (!livingEntity.hasEffect(BeUndead.INFECTED_EFFECT_HOLDER)){
+                    livingEntity.addEffect(new MobEffectInstance(BeUndead.INFECTED_EFFECT_HOLDER, -1, 0));
                 }
 
                 if (!(livingEntity instanceof Player player && player.isCreative()) && !livingEntity.isSpectator()){
@@ -235,8 +231,8 @@ public class UndeadMixin implements UndeadAccessor, InfectionAccessor {
             }
         }
         else {
-            if (livingEntity.hasEffect(BeUndead.INFECTED_EFFECT.getHolder().get())){
-                livingEntity.removeEffect(BeUndead.INFECTED_EFFECT.getHolder().get());
+            if (livingEntity.hasEffect(BeUndead.INFECTED_EFFECT_HOLDER)){
+                livingEntity.removeEffect(BeUndead.INFECTED_EFFECT_HOLDER);
             }
         }
     }

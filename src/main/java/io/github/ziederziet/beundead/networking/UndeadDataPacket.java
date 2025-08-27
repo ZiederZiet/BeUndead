@@ -1,12 +1,21 @@
 package io.github.ziederziet.beundead.networking;
 
+import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.common.UndeadAccessor;
-import net.minecraft.client.Minecraft;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.network.CustomPayloadEvent;
 
-public class UndeadDataPacket {
+public class UndeadDataPacket implements CustomPacketPayload {
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "undead_data");
+    public static final CustomPacketPayload.Type<UndeadDataPacket> TYPE = new CustomPacketPayload.Type<>(ID);
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, UndeadDataPacket> CODEC = StreamCodec.of((object, object2) -> object2.encode(object), UndeadDataPacket::new);
+
     int playerId;
     int type;
     boolean converting;
@@ -33,22 +42,22 @@ public class UndeadDataPacket {
         buffer.writeBoolean(chest);
     }
 
-    public void handle(CustomPayloadEvent.Context context){
-        context.enqueueWork(() -> {
-            if (context.isClientSide()){
-                if (Minecraft.getInstance().level.getEntity(playerId) instanceof Player player){
-                    UndeadAccessor undeadAccessor = (UndeadAccessor) player;
-                    undeadAccessor.setType(type);
-                    undeadAccessor.setConverting(converting);
-                    undeadAccessor.setZombieChest(chest);
-                }
-            }
-            context.setPacketHandled(true);
-        });
+    public void handle(ClientPlayNetworking.Context context){
+        if (context.client().level.getEntity(playerId) instanceof Player player){
+            UndeadAccessor undeadAccessor = (UndeadAccessor) player;
+            undeadAccessor.setType(type);
+            undeadAccessor.setConverting(converting);
+            undeadAccessor.setZombieChest(chest);
+        }
     }
 
     public static UndeadDataPacket getPacket(Player player){
         UndeadAccessor undeadAccessor = (UndeadAccessor) player;
         return new UndeadDataPacket(player.getId(), undeadAccessor.getType(), undeadAccessor.getZombieConversionTime() > 0, undeadAccessor.hasZombieChest());
+    }
+
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

@@ -1,13 +1,13 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
-import net.minecraft.nbt.*;
-import net.minecraft.network.syncher.SynchedEntityData;
+import io.github.ziederziet.beundead.config.ConfigAccessor;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -33,5 +33,21 @@ public class PlayerMixin {
         if (BeUndeadApi.getZombieType(player) > 0){
             info.setReturnValue((float) (info.getReturnValueF() * BeUndeadApi.getWalkingSpeed(player)));
         }
+    }
+
+    @Inject(at = @At("TAIL"), method = "getDestroySpeed", cancellable = true)
+    public void getDestroySpeed(BlockState blockState, CallbackInfoReturnable<Float> info){
+        if (BeUndeadApi.getZombieType((Player)(Object)this) > 0){
+            info.setReturnValue(info.getReturnValueF() / 3F);
+        }
+    }
+
+    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;onClimbable()Z"), method = "attack")
+    public boolean noCritRedirect(Player instance){
+        if (BeUndeadApi.getZombieType(instance) > 0 && !ConfigAccessor.getConfig().getZombieCanCrit()){
+            return true;
+        }
+
+        return instance.onClimbable();
     }
 }

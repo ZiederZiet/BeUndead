@@ -2,11 +2,19 @@ package io.github.ziederziet.beundead.networking;
 
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.common.ClientInfo;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
-import net.minecraftforge.event.network.CustomPayloadEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 
-public class ZombieSettingsPacket {
+public class ZombieSettingsPacket implements CustomPacketPayload {
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "zombie_settings");
+    public static final Type<ZombieSettingsPacket> TYPE = new Type<>(ID);
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, ZombieSettingsPacket> CODEC = StreamCodec.of((object, object2) -> object2.encode(object), ZombieSettingsPacket::new);
+
     int invState;
     boolean canChestExtension;
     boolean nightVision;
@@ -40,16 +48,17 @@ public class ZombieSettingsPacket {
         buffer.writeDouble(zombieWalkingSpeed);
     }
 
-    public void handle(CustomPayloadEvent.Context context){
-        context.enqueueWork(() -> {
-            if (context.isClientSide()){
-                ClientInfo.zombieInvState = invState;
-                ClientInfo.canChestExtension = canChestExtension;
-                ClientInfo.zombieNightVision = nightVision;
-                ClientInfo.zombieJumpOnTheirOwn = jumpOnTheirOwn;
-                ClientInfo.zombieMaxViewDistance = zombieMaxViewDistance;
-                ClientInfo.zombieWalkingSpeed = zombieWalkingSpeed;
-            }
-        });
+    public void handle(ClientPlayNetworking.Context context){
+        ClientInfo.zombieInvState = invState;
+        ClientInfo.canChestExtension = canChestExtension;
+        ClientInfo.zombieNightVision = nightVision;
+        ClientInfo.zombieJumpOnTheirOwn = jumpOnTheirOwn;
+        ClientInfo.zombieMaxViewDistance = zombieMaxViewDistance;
+        ClientInfo.zombieWalkingSpeed = zombieWalkingSpeed;
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

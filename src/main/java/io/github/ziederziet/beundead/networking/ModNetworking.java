@@ -1,58 +1,52 @@
 package io.github.ziederziet.beundead.networking;
 
-import io.github.ziederziet.beundead.BeUndead;
-import net.minecraft.resources.ResourceLocation;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraftforge.network.ChannelBuilder;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.network.SimpleChannel;
 
 public class ModNetworking {
-    public static final SimpleChannel INSTANCE = ChannelBuilder.named(ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "main"))
-            .serverAcceptedVersions((server, version) -> true)
-            .clientAcceptedVersions((server, version) -> true)
-            .networkProtocolVersion(1)
-            .simpleChannel();
-
-    public static void register(){
-        INSTANCE.messageBuilder(ZombieSettingsPacket.class, NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(ZombieSettingsPacket::encode)
-                .decoder(ZombieSettingsPacket::new)
-                .consumerMainThread(ZombieSettingsPacket::handle)
-                .add();
-
-        INSTANCE.messageBuilder(UndeadDataPacket.class, NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(UndeadDataPacket::encode)
-                .decoder(UndeadDataPacket::new)
-                .consumerMainThread(UndeadDataPacket::handle)
-                .add();
-
-        INSTANCE.messageBuilder(RespawnTimerPacket.class, NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(RespawnTimerPacket::encode)
-                .decoder(RespawnTimerPacket::new)
-                .consumerMainThread(RespawnTimerPacket::handle)
-                .add();
+    public static void sendToServer(CustomPacketPayload msg){
+        ClientPlayNetworking.send(msg);
     }
 
-    public static void sendToServer(Object msg){
-        INSTANCE.send(msg, PacketDistributor.SERVER.noArg());
+    public static void sendToClient(CustomPacketPayload msg, ServerPlayer serverPlayer){
+        ServerPlayNetworking.send(serverPlayer, msg);
     }
 
-    public static void sendToClient(Object msg, ServerPlayer serverPlayer){
-        INSTANCE.send(msg, PacketDistributor.PLAYER.with(serverPlayer));
+    public static void sendToAllClients(MinecraftServer server, CustomPacketPayload msg){
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+            ServerPlayNetworking.send(player, msg);
+        }
     }
 
-    public static void sendToAllClients(Object msg){
-        INSTANCE.send(msg, PacketDistributor.ALL.noArg());
+    public static void sendToAllTrackingAndSelfClients(CustomPacketPayload msg, ServerPlayer toTrack){
+        for (ServerPlayer player : PlayerLookup.tracking(toTrack)){
+            ServerPlayNetworking.send(player, msg);
+        }
+        ServerPlayNetworking.send(toTrack, msg);
     }
 
-    public static void sendToAllTrackingAndSelfClients(Object msg, Entity toTrack){
-        INSTANCE.send(msg, PacketDistributor.TRACKING_ENTITY_AND_SELF.with(toTrack));
+    public static void sendToAllTrackingClients(CustomPacketPayload msg, Entity toTrack){
+        for (ServerPlayer player : PlayerLookup.tracking(toTrack)){
+            ServerPlayNetworking.send(player, msg);
+        }
     }
 
-    public static void sendToAllTrackingClients(Object msg, Entity toTrack){
-        INSTANCE.send(msg, PacketDistributor.TRACKING_ENTITY.with(toTrack));
+    public static void registerC2S() {
+    }
+
+    public static void registerS2C() {
+        //PayloadTypeRegistry.playS2C().register(UndeadDataPacket.TYPE, UndeadDataPacket.)
+        PayloadTypeRegistry.playS2C().register(ZombieSettingsPacket.TYPE, ZombieSettingsPacket.CODEC);
+        PayloadTypeRegistry.playS2C().register(UndeadDataPacket.TYPE, UndeadDataPacket.CODEC);
+        PayloadTypeRegistry.playS2C().register(RespawnTimerPacket.TYPE, RespawnTimerPacket.CODEC);
+        ClientPlayNetworking.registerGlobalReceiver(ZombieSettingsPacket.TYPE, ZombieSettingsPacket::handle);
+        ClientPlayNetworking.registerGlobalReceiver(UndeadDataPacket.TYPE, UndeadDataPacket::handle);
+        ClientPlayNetworking.registerGlobalReceiver(RespawnTimerPacket.TYPE, RespawnTimerPacket::handle);
     }
 }
