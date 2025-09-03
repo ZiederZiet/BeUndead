@@ -3,6 +3,7 @@
   "package": "io.github.ziederziet.beundead.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "AvoidEntityGoalMixin",
     "BedBlockMixin",
     "DoorBlockMixin",
     "EnchantmentHelperMixin",
@@ -14,6 +15,7 @@
     "LivingEntityMixin",
     "NearestAttackableTargetGoalAccessor",
     "NearestAttackableTargetGoalMixin",
+    "NearestVisibleLivingEntitiesMixin",
     "PhantomSpawnerMixin",
     "PlayerMixin",
     "PlayerSensorMixin",
@@ -40,6 +42,7 @@
     "GuiMixin",
     "HumanoidModelAccessor",
     "InventoryMixin",
+    "LightTextureMixin",
     "LivingEntityRendererMixin",
     "LocalPlayerMixin",
     "OptionsMixin",

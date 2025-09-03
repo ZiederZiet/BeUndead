@@ -90,27 +90,6 @@ public class BeUndead implements ModInitializer {
 
 	public static final ResourceKey<DamageType> INFECTION_KILL = ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "infection_kill"));
 
-//	public BeUndead(FMLJavaModLoadingContext context)
-//	{
-//		IEventBus modEventBus = context.getModEventBus();
-//
-//		modEventBus.addListener(this::commonSetup);
-//
-//		context.registerConfig(net.minecraftforge.fml.config.ModConfig.Type.COMMON, ModConfig.SPEC);
-//		ModConfig.loadConfig(ModConfig.SPEC, FMLPaths.CONFIGDIR.get().resolve(BeUndead.MODID + "-common.toml"));
-//
-//		MinecraftForge.EVENT_BUS.register(this);
-//
-//		modEventBus.addListener(this::addCreative);
-//	}
-
-//	private void commonSetup(final FMLCommonSetupEvent event)
-//	{
-//		event.enqueueWork(() -> {
-//			ModNetworking.register();
-//		});
-//	}
-
 	public static final TagKey<Item> UNDEAD_CURES = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "undead_cures"));
 	public static final TagKey<Item> UNDEAD_EATABLES = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "undead_eatables"));
 
@@ -132,6 +111,8 @@ public class BeUndead implements ModInitializer {
 				INFECTED_EFFECT);
 		INFECTED_EFFECT_HOLDER = BuiltInRegistries.MOB_EFFECT.getHolderOrThrow(INFECTED_EFFECT_KEY);
 		ModCommands.registerCommands();
+
+
 		ServerLivingEntityEvents.ALLOW_DEATH.register((livingEntity, damageSource, v) -> {
 			if (livingEntity.level().isClientSide()) return true;
 
@@ -140,84 +121,77 @@ public class BeUndead implements ModInitializer {
 				boolean husks = config.areHusksEnabled();
 				boolean drowned = config.areDrownedEnabled();
 
-				boolean respawnTimer = player.getServer().isDedicatedServer();
+				boolean respawnTimer = true;//player.getServer().isDedicatedServer();
 
 				int type = BeUndeadApi.getZombieType(player);
 				if (type == 0){
 
 					boolean turnZombie = true;
 
-//					if (config.getOnlyTurnWhenInfected() &&){
-//
-//					}
+					if (config.getOnlyTurnWhenInfected()){
+						turnZombie = damageSource.is(BeUndead.INFECTION_KILL) || damageSource.getEntity() instanceof Zombie || ((InfectionAccessor)player).getOutInfection() >= BeUndeadApi.OUT_INFECTION_SHOW;
+					}
 
 					if (turnZombie){
 						type = BeUndeadApi.moveType(1, BeUndeadApi.getTypeMovementOnDeath(damageSource, player), husks, drowned);
 
-						if (damageSource.is(DamageTypes.FELL_OUT_OF_WORLD) || damageSource.is(DamageTypes.OUTSIDE_BORDER)){
-							BeUndeadApi.setZombieType(player, BeUndeadApi.moveType(type, BeUndeadApi.getTypeMovementOnDeath(damageSource, player), husks, drowned));
+						player.setHealth(20F);
+						player.getFoodData().setFoodLevel(20);
+						player.getFoodData().setSaturation(20F);
 
-							if (respawnTimer){
-								BeUndeadApi.setZombieRespawnTimer(player, player.level().getGameTime() + config.getRespawnTimer());
-							}
-						} else {
-							player.setHealth(20F);
-							player.getFoodData().setFoodLevel(20);
-							player.getFoodData().setSaturation(20F);
+						((ServerLevel)player.level()).getServer().sendSystemMessage(player.getCombatTracker().getDeathMessage());
 
-							((ServerLevel)player.level()).getServer().sendSystemMessage(player.getCombatTracker().getDeathMessage());
-
-							if (!player.isSpectator()){
-								if (!player.level().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)) {
-									for(int i = 0; i < player.getInventory().getContainerSize(); ++i) {
-										ItemStack itemstack = player.getInventory().getItem(i);
-										if (!itemstack.isEmpty() && EnchantmentHelper.has(itemstack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP)) {
-											player.getInventory().removeItemNoUpdate(i);
-										}
+						if (!player.isSpectator()){
+							if (!player.level().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)) {
+								for(int i = 0; i < player.getInventory().getContainerSize(); ++i) {
+									ItemStack itemstack = player.getInventory().getItem(i);
+									if (!itemstack.isEmpty() && EnchantmentHelper.has(itemstack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP)) {
+										player.getInventory().removeItemNoUpdate(i);
 									}
 								}
 							}
-
-							if (player.level() instanceof ServerLevel serverlevel) {
-								if (!player.wasExperienceConsumed()) {
-									ExperienceOrb.award(serverlevel, player.position(), player.getExperienceReward(serverlevel, player));
-									player.totalExperience = 0;
-									player.experienceLevel = 0;
-									player.experienceProgress = 0;
-								}
-							}
-							player.getInventory().dropAll();
-
-							player.level().getEntitiesOfClass(Mob.class, new AABB(player.blockPosition()).inflate(64D, 32D, 64D)).forEach(mob -> {
-								if (mob.getTarget() != null && mob.getTarget().is(player)){
-									if (!(mob instanceof IronGolem)){
-										mob.setTarget(null);
-										if (mob instanceof NeutralMob neutralMob){
-											neutralMob.stopBeingAngry();
-										}
-									}
-								}
-								if (mob.getLastHurtByMob() != null && mob.getLastHurtByMob().is(player)){
-									mob.setLastHurtByMob(null);
-								}
-							});
-
-							BeUndeadApi.setZombieType(player, type);
-							player.removeAllEffects();
-							player.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 80, 0));
-							player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 1200, 0));
-							player.awardStat(Stats.DEATHS);
-							player.resetStat(Stats.CUSTOM.get(Stats.TIME_SINCE_DEATH));
-							player.resetStat(Stats.CUSTOM.get(Stats.TIME_SINCE_REST));
-							player.clearFire();
-							player.setSharedFlagOnFire(false);
-							player.getCombatTracker().recheckStatus();
-							player.setLastDeathLocation(Optional.of(GlobalPos.of(player.level().dimension(), player.blockPosition())));
-
-							BeUndeadApi.checkItemsInNewState(player, !player.isSpectator());
-
-							return false;
 						}
+
+						if (player.level() instanceof ServerLevel serverlevel) {
+							if (!player.wasExperienceConsumed()) {
+								ExperienceOrb.award(serverlevel, player.position(), player.getExperienceReward(serverlevel, player));
+								player.totalExperience = 0;
+								player.experienceLevel = 0;
+								player.experienceProgress = 0;
+							}
+						}
+
+						//player.getInventory().dropAll();
+
+						player.level().getEntitiesOfClass(Mob.class, new AABB(player.blockPosition()).inflate(64D, 32D, 64D)).forEach(mob -> {
+							if (mob.getTarget() != null && mob.getTarget().is(player)){
+								if (!(mob instanceof IronGolem)){
+									mob.setTarget(null);
+									if (mob instanceof NeutralMob neutralMob){
+										neutralMob.stopBeingAngry();
+									}
+								}
+							}
+							if (mob.getLastHurtByMob() != null && mob.getLastHurtByMob().is(player)){
+								mob.setLastHurtByMob(null);
+							}
+						});
+
+						BeUndeadApi.setZombieType(player, type);
+						player.removeAllEffects();
+						player.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 80, 0));
+						player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 1200, 0));
+						player.awardStat(Stats.DEATHS);
+						player.resetStat(Stats.CUSTOM.get(Stats.TIME_SINCE_DEATH));
+						player.resetStat(Stats.CUSTOM.get(Stats.TIME_SINCE_REST));
+						player.clearFire();
+						player.setSharedFlagOnFire(false);
+						player.getCombatTracker().recheckStatus();
+						player.setLastDeathLocation(Optional.of(GlobalPos.of(player.level().dimension(), player.blockPosition())));
+
+						BeUndeadApi.checkItemsInNewState(player, !player.isSpectator());
+
+						return false;
 					}
 					else if (respawnTimer) {
 						BeUndeadApi.setZombieRespawnTimer(player, player.level().getGameTime() + config.getRespawnTimer());
@@ -235,27 +209,31 @@ public class BeUndead implements ModInitializer {
 			return true;
 		});
 
-		ServerLivingEntityEvents.AFTER_DAMAGE.register((livingEntity, damageSource, v, v1, b) -> {
-			if (livingEntity instanceof Villager){
+		ServerLivingEntityEvents.AFTER_DEATH.register((livingEntity, damageSource) -> {
+			if (livingEntity instanceof Villager villager){
 				boolean convert = damageSource.is(BeUndead.INFECTION_KILL);
-				if (!convert && damageSource.getEntity() instanceof Player player && BeUndeadApi.getZombieType(player) > 0) {
-					convert = true;
+				if (damageSource.getEntity() instanceof Player player && BeUndeadApi.getZombieType(player) > 0) {
 					player.getFoodData().setFoodLevel(Math.min(20, player.getFoodData().getFoodLevel() + 4));
 					player.getFoodData().setSaturation(Math.min(20, player.getFoodData().getSaturationLevel() + FoodConstants.saturationByModifier(4, 3F)));
-				}
-				if (convert){
-					if ((livingEntity.level().getDifficulty() == Difficulty.NORMAL || livingEntity.level().getDifficulty() == Difficulty.HARD) && livingEntity instanceof Villager villager){
-						if (!(villager.level().getDifficulty() != Difficulty.HARD && villager.getRandom().nextBoolean())) {
-							ZombieVillager zombievillager = (ZombieVillager)villager.convertTo(EntityType.ZOMBIE_VILLAGER, false);
-							if (zombievillager != null) {
-								zombievillager.finalizeSpawn((ServerLevelAccessor) villager.level(), villager.level().getCurrentDifficultyAt(zombievillager.blockPosition()), MobSpawnType.CONVERSION, new Zombie.ZombieGroupData(false, true));
-								zombievillager.setVillagerData(villager.getVillagerData());
-								zombievillager.setGossips((Tag)villager.getGossips().store(NbtOps.INSTANCE));
-								zombievillager.setTradeOffers(villager.getOffers().copy());
-								zombievillager.setVillagerXp(villager.getVillagerXp());
-								if (!villager.isSilent()) {
-									villager.level().levelEvent((Player)null, 1026, villager.blockPosition(), 0);
-								}
+
+					if (!convert){
+						if (livingEntity.level().getDifficulty() == Difficulty.NORMAL || livingEntity.level().getDifficulty() == Difficulty.HARD){
+							if (!(villager.level().getDifficulty() != Difficulty.HARD && villager.getRandom().nextBoolean())) {
+								convert = true;
+							}
+						}
+					}
+
+					if (convert){
+						ZombieVillager zombievillager = (ZombieVillager)villager.convertTo(EntityType.ZOMBIE_VILLAGER, false);
+						if (zombievillager != null) {
+							zombievillager.finalizeSpawn((ServerLevelAccessor) villager.level(), villager.level().getCurrentDifficultyAt(zombievillager.blockPosition()), MobSpawnType.CONVERSION, new Zombie.ZombieGroupData(false, true));
+							zombievillager.setVillagerData(villager.getVillagerData());
+							zombievillager.setGossips((Tag)villager.getGossips().store(NbtOps.INSTANCE));
+							zombievillager.setTradeOffers(villager.getOffers().copy());
+							zombievillager.setVillagerXp(villager.getVillagerXp());
+							if (!villager.isSilent()) {
+								villager.level().levelEvent((Player)null, 1026, villager.blockPosition(), 0);
 							}
 						}
 					}
@@ -298,13 +276,11 @@ public class BeUndead implements ModInitializer {
 			if (damageSource.getEntity() instanceof Player player && BeUndeadApi.getZombieType(player) == 2){
 				livingEntity.addEffect(new MobEffectInstance(MobEffects.HUNGER, 600, 0));
 			}
-
-			if (livingEntity instanceof Villager || (livingEntity instanceof Player player && BeUndeadApi.getZombieType(player) <= 0)){
+			else if (ConfigAccessor.getConfig().isInfectionEnabled() && livingEntity instanceof Villager || (livingEntity instanceof Player player && BeUndeadApi.getZombieType(player) <= 0)){
 				if (damageSource.getEntity() instanceof Zombie || (damageSource.getEntity() instanceof Player playerAttacker && BeUndeadApi.getZombieType(playerAttacker) > 0)){
-
 					if (livingEntity.getRandom().nextBoolean()){
 						Player infecter = damageSource.getEntity() instanceof Player playerAttacker ? playerAttacker : null;
-						((InfectionAccessor)livingEntity).infectBy(infecter, damageSource.getEntity() instanceof ZombifiedPiglin ? 15 : 28, 0);
+						BeUndeadApi.infectBy(livingEntity, infecter, damageSource.getEntity() instanceof ZombifiedPiglin ? 15 : 28);
 					}
 				}
 			}
@@ -354,9 +330,5 @@ public class BeUndead implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STOPPED.register((server) -> {
 			serverInstance = null;
 		});
-
-//		PlayerBlockBreakEvents.BEFORE.register((level, player, blockPos, blockState, blockEntity) -> {
-//			return true;
-//		});
 	}
 }

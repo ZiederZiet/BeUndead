@@ -27,7 +27,7 @@ public abstract class SlotMixin {
         if (container instanceof Inventory inventory && BeUndeadApi.getInvStateOfPlayer(inventory.player) < 2){
             int slot = getContainerSlot();
             int invState = BeUndeadApi.getInvStateOfPlayer(inventory.player);
-            if (Minecraft.getInstance().screen instanceof CreativeModeInventoryScreen){
+            if (Minecraft.getInstance().screen instanceof CreativeModeInventoryScreen creativeModeInventoryScreen && creativeModeInventoryScreen.isInventoryOpen()){
                 if ((!(invState > 0 && slot > 35) && slot != 40) && (slot < 45 && slot > 8)){
                     info.setReturnValue(false);
                 }
@@ -64,7 +64,7 @@ public abstract class SlotMixin {
         if (container instanceof Inventory inventory && BeUndeadApi.getInvStateOfPlayer(inventory.player) < 2){
             int slot = getContainerSlot();
             int invState = BeUndeadApi.getInvStateOfPlayer(inventory.player);
-            if (Minecraft.getInstance().screen instanceof CreativeModeInventoryScreen){
+            if (Minecraft.getInstance().screen instanceof CreativeModeInventoryScreen creativeModeInventoryScreen && creativeModeInventoryScreen.isInventoryOpen()){
                 if ((!(invState > 0 && slot > 35) && slot != 40) && (slot < 45 && slot > 8)){
                     info.setReturnValue(false);
                 }

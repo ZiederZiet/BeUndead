@@ -22,5 +22,5 @@
   "commands.zombie.conversion_start.fail": "%s is already a player",
   "commands.zombie.infection.cure.players": "Cured player(s)'s infection(s)",
   "commands.zombie.infection.get.players": "%s players are infected",
-  "commands.zombie.infection.get.amount": "%s has an infection of %s"
+  "commands.zombie.infection.get.amount": "%s has an infection of %s in and %s out"
 }

@@ -35,22 +35,10 @@ public abstract class LivingEntityMixin {
     public void tick(CallbackInfo info){
         LivingEntity livingEntity = (LivingEntity)(Object)this;
 
-        boolean human = livingEntity instanceof Villager;
         if (livingEntity instanceof Player player){
             int type = BeUndeadApi.getZombieType(player);
 
             if (type > 0){
-                if (ConfigAccessor.getConfig().getZombieNightVision()){
-                    MobEffectInstance currentEffect = player.getEffect(MobEffects.NIGHT_VISION);
-                    if (currentEffect == null || currentEffect.getDuration() < 61){
-                        player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 200, 0, false, false));
-                    }
-                }
-
-                if (livingEntity instanceof InfectionAccessor infectionAccessor){
-                    infectionAccessor.tick(livingEntity);
-                }
-
                 long conversionTime = BeUndeadApi.getZombieConversionTime(player);
                 if (conversionTime >= 0){
                     if (conversionTime == 1){
@@ -85,44 +73,10 @@ public abstract class LivingEntityMixin {
                     }
                 }
             }
-            else {
-                human = true;
-            }
         }
 
-        if (human){
-            if (livingEntity.level().getRandom().nextInt(81) == 0) {
-                double zombieRange = 16D;
-
-                AABB box = new AABB(
-                        livingEntity.getX() - zombieRange,
-                        livingEntity.getEyeY() - zombieRange / 2D,
-                        livingEntity.getZ() - zombieRange,
-                        livingEntity.getX() + zombieRange,
-                        livingEntity.getEyeY() + zombieRange / 2D,
-                        livingEntity.getZ() + zombieRange);
-
-                int zombieAroundCount = livingEntity.level().getEntitiesOfClass(Zombie.class, box)
-                        .size();
-
-                int zombiePiglinAroundCount = livingEntity.level().getEntitiesOfClass(ZombifiedPiglin.class, box)
-                        .size();
-
-                zombieAroundCount += livingEntity.level().getEntitiesOfClass(Player.class, box, player1 -> BeUndeadApi.getZombieType(player1) > 0)
-                        .size();
-
-                int finalZombieAroundCount = Math.round(zombieAroundCount - zombiePiglinAroundCount / 2F);
-
-                if (livingEntity.hasEffect(BeUndead.INFECTED_EFFECT_HOLDER)){
-                    ((InfectionAccessor)livingEntity).infectBy(null, finalZombieAroundCount, 0);
-                }
-                else {
-                    ((InfectionAccessor)livingEntity).infectBy(null, finalZombieAroundCount, 20);
-                }
-            }
-            if (livingEntity instanceof InfectionAccessor infectionAccessor){
-                infectionAccessor.tick(livingEntity);
-            }
+        if (livingEntity instanceof InfectionAccessor){
+            BeUndeadApi.infectTick(livingEntity);
         }
     }
 

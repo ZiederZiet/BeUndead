@@ -4,6 +4,7 @@ import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
 import io.github.ziederziet.beundead.common.InfectionAccessor;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -16,17 +17,31 @@ import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Mixin(Villager.class)
 public class VillagerMixin implements InfectionAccessor {
 
-    private UUID infecter = null;
-    private int infected = 0;
-    private int infectDieTicks = 0;
+    private HashMap<UUID, Integer> infecters = new HashMap<>();
+    private int inInfection = 0;
+    private int outInfection = 0;
+    private int infectionKillTicks = 0;
+
+    @Inject(at = @At("TAIL"), method = "addAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V")
+    public void addAdditionalSaveData(CompoundTag pCompound, CallbackInfo info) {
+        BeUndeadApi.infectionAddAdditionalSaveData(pCompound, this, infecters);
+    }
+
+    @Inject(at = @At("TAIL"), method = "readAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V")
+    public void readAdditionalSaveData(CompoundTag pCompound, CallbackInfo info) {
+        BeUndeadApi.infectionReadAdditionalSaveData(pCompound, this, infecters);
+    }
 
     @Inject(at = @At("HEAD"), method = "mobInteract(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;", cancellable = true)
     public void mobInteract(Player pPlayer, InteractionHand pHand, CallbackInfoReturnable<InteractionResult> info){
@@ -37,71 +52,75 @@ public class VillagerMixin implements InfectionAccessor {
     }
 
     @Override
-    public void infectBy(Player playerInfecter, int infect, int max){
-        if (max <= 0){
-            if (this.infected < 30 && this.infected + infect >= 30){
-                if (playerInfecter != null){
-                    this.infecter = playerInfecter.getUUID();
-                }
+    public int infectBy(Player infecter, int amount) {
+        if (infecter != null){
+            UUID infectorUUID = infecter.getUUID();
+            int prevAmount = 0;
+            if (infecters.containsKey(infectorUUID)){
+                prevAmount = infecters.get(infectorUUID);
             }
-            this.infected += infect;
+
+            infecters.put(infectorUUID, prevAmount + amount);
         }
-        else {
-            this.infected = Math.max(this.infected, Math.min(max, this.infected + infect));
+
+        inInfection = Math.min(inInfection + amount, BeUndeadApi.MAX_IN_INFECTION);
+
+        if (inInfection >= BeUndeadApi.IN_INFECTION_INSTANT_OUT_AMOUNT){
+            BeUndeadApi.showInfection((LivingEntity)(Object)this);
         }
+
+        return inInfection;
     }
 
     @Override
-    public void removeInfection(Player player){
-        this.infected = 0;
-        this.infectDieTicks = 0;
-        player.removeEffect(BeUndead.INFECTED_EFFECT_HOLDER);
+    public void removeInfection(Player player) {
+        inInfection = 0;
+        outInfection = 0;
+        infectionKillTicks = 0;
+        infecters.clear();
     }
 
     @Override
-    public void tick(LivingEntity livingEntity){
-        if (livingEntity instanceof Villager || (livingEntity instanceof Player player && BeUndeadApi.getZombieType(player) <= 0)){
-            if (this.infected > 30){
-                if (!livingEntity.hasEffect(BeUndead.INFECTED_EFFECT_HOLDER)){
-                    livingEntity.addEffect(new MobEffectInstance(BeUndead.INFECTED_EFFECT_HOLDER, -1, 0));
-                }
+    public void setInInfection(int amount) {
+        inInfection = amount;
+    }
 
-                if (!(livingEntity instanceof Player player && player.isCreative()) && !livingEntity.isSpectator()){
-                    double dieTickRate = 0.2D + this.infected / 120D;
-                    if (livingEntity.getRandom().nextDouble() < dieTickRate){
-                        this.infectDieTicks++;
-                    }
-                    if (this.infectDieTicks > 1440){
-                        ServerPlayer player = null;
-                        if (infecter != null){
-                            List<ServerPlayer> list = ((ServerLevel)livingEntity.level()).getServer().getPlayerList().getPlayers();
-                            for (int i = 0; i < list.size(); i++) {
-                                if (list.get(i).getUUID().getMostSignificantBits() == this.infecter.getMostSignificantBits() &&
-                                        list.get(i).getUUID().getLeastSignificantBits() == this.infecter.getLeastSignificantBits()){
-                                    player = list.get(i);
-                                }
-                            }
-                        }
-                        DamageSource damageSources = new DamageSource(livingEntity.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(BeUndead.INFECTION_KILL), player);
-                        livingEntity.hurt(damageSources, Float.MAX_VALUE);
-                    }
-                }
+    @Override
+    public void setOutInfection(int amount) {
+        outInfection = amount;
+    }
+
+    @Override
+    public int getInInfection() {
+        return inInfection;
+    }
+
+    @Override
+    public int getOutInfection() {
+        return outInfection;
+    }
+
+    @Override
+    public void setInfectionKillTicks(int ticks) {
+        infectionKillTicks = ticks;
+    }
+
+    @Override
+    public int getInfectionKillTicks() {
+        return infectionKillTicks;
+    }
+
+    @Override
+    public UUID getMainInfecterUUID() {
+        UUID highestInfecter = null;
+        int highestValue = -1;
+        for (Map.Entry<UUID, Integer> entry : infecters.entrySet()){
+            if (entry.getValue() > highestValue){
+                highestInfecter = entry.getKey();
+                highestValue = entry.getValue();
             }
         }
-        else {
-            if (livingEntity.hasEffect(BeUndead.INFECTED_EFFECT_HOLDER)){
-                livingEntity.removeEffect(BeUndead.INFECTED_EFFECT_HOLDER);
-            }
-        }
-    }
 
-    @Override
-    public boolean isInfected(){
-        return infected >= 30;
-    }
-
-    @Override
-    public int getInfected(){
-        return infected;
+        return highestInfecter;
     }
 }

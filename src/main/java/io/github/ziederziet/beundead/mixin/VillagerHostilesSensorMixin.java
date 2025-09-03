@@ -14,7 +14,6 @@ public class VillagerHostilesSensorMixin {
     @Inject(at = @At("HEAD"), method = "isHostile(Lnet/minecraft/world/entity/LivingEntity;)Z", cancellable = true)
     private void isHostile(LivingEntity pEntity, CallbackInfoReturnable<Boolean> info) {
         if (pEntity instanceof Player player && BeUndeadApi.getZombieType(player) > 0){
-            info.cancel();
             info.setReturnValue(true);
         }
     }
@@ -24,7 +23,6 @@ public class VillagerHostilesSensorMixin {
         if (pTarget instanceof Player){
             float $$2 = 8.0F;
             info.setReturnValue(pTarget.distanceToSqr(pAttacker) <= (double)($$2 * $$2));
-            info.cancel();
         }
     }
 }

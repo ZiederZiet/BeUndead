@@ -1,5 +1,6 @@
 package io.github.ziederziet.beundead;
 
+import io.github.ziederziet.beundead.api.BeUndeadApi;
 import io.github.ziederziet.beundead.common.InfectionAccessor;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
@@ -13,6 +14,6 @@ public class InfectedMobEffect extends MobEffect {
     @Override
     public void onEffectAdded(LivingEntity pLivingEntity, int pAmplifier) {
         super.onEffectAdded(pLivingEntity, pAmplifier);
-        ((InfectionAccessor)pLivingEntity).infectBy(null, 30, 30);
+        BeUndeadApi.addedInfectionEffect(pLivingEntity);
     }
 }

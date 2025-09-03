@@ -5,6 +5,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
 import io.github.ziederziet.beundead.common.InfectionAccessor;
 import net.minecraft.commands.CommandBuildContext;
@@ -86,14 +87,14 @@ public class ZombieCommand extends BaseCommand {
                             }
                             if (players.size() > 1){
                                 int amount = (int) players.stream().filter(serverPlayer -> {
-                                    return ((InfectionAccessor)serverPlayer).isInfected();
+                                    return serverPlayer.hasEffect(BeUndead.INFECTED_EFFECT_HOLDER);
                                 }).count();
                                 sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.infection.get.players", new Object[] {amount}), false);
                                 return amount;
                             }
                             else {
                                 ServerPlayer serverPlayer = players.iterator().next();
-                                int amount = ((InfectionAccessor)serverPlayer).getInfected();
+                                int amount = ((InfectionAccessor)serverPlayer).getInInfection() + ((InfectionAccessor)serverPlayer).getOutInfection();
                                 sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.infection.get.amount", new Object[] {serverPlayer.getName(), amount}), false);
                                 return amount;
                             }

@@ -1,5 +1,6 @@
 package io.github.ziederziet.beundead.api;
 
+import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.common.ClientInfo;
 import io.github.ziederziet.beundead.common.InfectionAccessor;
 import io.github.ziederziet.beundead.common.UndeadAccessor;
@@ -10,6 +11,11 @@ import io.github.ziederziet.beundead.networking.UndeadDataPacket;
 import io.github.ziederziet.beundead.theyre_coming.TheyreComingAccessor;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -17,6 +23,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -26,11 +33,19 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.joml.Vector3f;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 public class BeUndeadApi {
     public static final Vector3f[] ZOMBIE_COLORS = new Vector3f[] { new Vector3f(0.8F, 1.0F, 0.85F), new Vector3f(0.7F, 0.8F, 0.8F), new Vector3f(0.80F, 0.72F, 0.49F) };
     public static final Vector3f[] ZOMBIE_COLOR_OFFSETS = new Vector3f[] { new Vector3f(0.0F, 0.1F, 0.0F), new Vector3f(-0.1F, 0.1F, 0.1F), new Vector3f(0.03F, 0.05F, 0.0F) };
+    public static final int IN_INFECTION_TO_OUTER_THRESHOLD = 60;
+    public static final int MAX_IN_INFECTION = 800;
+    public static final int IN_INFECTION_INSTANT_OUT_AMOUNT = 178;
+    public static final int OUT_INFECTION_SHOW = 650;
+    public static final int INFECTION_KILL_TICKS = 2000;
 
     public static int getZombieType(Player player) {
         return ((UndeadAccessor)player).getType();
@@ -320,5 +335,112 @@ public class BeUndeadApi {
                 }
             }
         }
+    }
+
+
+
+
+
+    public static void infectBy(LivingEntity infected, Player by, int amount){
+        if (ConfigAccessor.getConfig().isInfectionEnabled()){
+            ((InfectionAccessor)infected).infectBy(by, amount);
+        }
+    }
+
+    public static void infectTick(LivingEntity infected){
+        if (ConfigAccessor.getConfig().isInfectionEnabled()){
+            InfectionAccessor accessor = (InfectionAccessor)infected;
+            int inInfection = accessor.getInInfection() - IN_INFECTION_TO_OUTER_THRESHOLD;
+            if (inInfection >= 0){
+                float chance = 0.2F + Math.min((float) inInfection / MAX_IN_INFECTION, 1) * 0.8F;
+                int out = accessor.getOutInfection();
+                if (infected.getRandom().nextFloat() < chance){
+                    out += 1;
+                    accessor.setOutInfection(out);
+                }
+
+                if (out > OUT_INFECTION_SHOW){
+                    if (!infected.hasEffect(BeUndead.INFECTED_EFFECT_HOLDER)){
+                        showInfection(infected);
+                    }
+
+                    if (ConfigAccessor.getConfig().getForceTurnWhenInfected() && infected.getRandom().nextBoolean()){
+                        int infKill = accessor.getInfectionKillTicks() + 1;
+                        accessor.setInfectionKillTicks(infKill);
+
+                        if (infKill >= INFECTION_KILL_TICKS){
+                            UUID mainInfecter = accessor.getMainInfecterUUID();
+                            Player mainInfecterPlayer = null;
+                            if (mainInfecter != null){
+                                mainInfecterPlayer = infected.level().getPlayerByUUID(mainInfecter);
+                            }
+
+                            Registry<DamageType> registry = infected.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
+                            Optional<Holder.Reference<DamageType>> oDamageType = registry.getHolder(BeUndead.INFECTION_KILL);
+
+                            if (oDamageType.isPresent()){
+                                infected.hurt(new DamageSource(oDamageType.get(), mainInfecterPlayer), Float.MAX_VALUE);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public static void infectionReadAdditionalSaveData(CompoundTag tag, InfectionAccessor infectionAccessor, HashMap<UUID, Integer> map){
+        map.clear();
+
+        if (ConfigAccessor.getConfig().isInfectionEnabled()){
+            infectionAccessor.setInInfection(tag.getInt("InfectionIn"));
+            infectionAccessor.setOutInfection(tag.getInt("InfectionOut"));
+            infectionAccessor.setInfectionKillTicks(tag.getInt("InfectionKillTicks"));
+
+            if (tag.contains("InfectionList")){
+                ListTag mapListTag = (ListTag) tag.get("InfectionList");
+
+                for (int i = mapListTag.size() - 1; i >= 0; i--) {
+                    CompoundTag compoundTag = (CompoundTag) mapListTag.get(i);
+
+                    int amount = compoundTag.getInt("Amount");
+                    UUID uuid = compoundTag.getUUID("UUID");
+
+                    map.put(uuid, amount);
+                }
+            }
+        }
+        else {
+            ((LivingEntity)infectionAccessor).removeEffect(BeUndead.INFECTED_EFFECT_HOLDER);
+        }
+    }
+
+    public static void infectionAddAdditionalSaveData(CompoundTag tag, InfectionAccessor infectionAccessor, HashMap<UUID, Integer> map){
+        if (ConfigAccessor.getConfig().isInfectionEnabled()){
+            tag.putInt("InfectionIn", infectionAccessor.getInInfection());
+            tag.putInt("InfectionOut", infectionAccessor.getOutInfection());
+            tag.putInt("InfectionKillTicks", infectionAccessor.getInfectionKillTicks());
+
+            ListTag mapListTag = new ListTag();
+
+            for (Map.Entry<UUID, Integer> entry : map.entrySet()){
+                CompoundTag compoundTag = new CompoundTag();
+
+                compoundTag.putUUID("UUID", entry.getKey());
+                compoundTag.putInt("Amount", entry.getValue());
+
+                mapListTag.add(compoundTag);
+            }
+        }
+    }
+
+    public static void addedInfectionEffect(LivingEntity livingEntity){
+        if (livingEntity instanceof InfectionAccessor infectionAccessor){
+            infectionAccessor.setInInfection(Math.max(infectionAccessor.getInInfection(), IN_INFECTION_TO_OUTER_THRESHOLD));
+            infectionAccessor.setOutInfection(Math.max(infectionAccessor.getOutInfection(), OUT_INFECTION_SHOW));
+        }
+    }
+
+    public static void showInfection(LivingEntity livingEntity){
+        livingEntity.addEffect(new MobEffectInstance(BeUndead.INFECTED_EFFECT_HOLDER, -1, 0));
     }
 }
