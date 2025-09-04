@@ -6,22 +6,21 @@ import io.github.ziederziet.beundead.common.InfectionAccessor;
 import io.github.ziederziet.beundead.config.ConfigAccessor;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.monster.Monster;
-import net.minecraft.world.entity.monster.Zombie;
-import net.minecraft.world.entity.monster.ZombifiedPiglin;
 import net.minecraft.world.entity.npc.AbstractVillager;
-import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -143,8 +142,36 @@ public abstract class LivingEntityMixin {
     @Inject(at = @At("HEAD"), method = "eat(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/food/FoodProperties;)Lnet/minecraft/world/item/ItemStack;")
     public void eat(Level level, ItemStack itemStack, FoodProperties foodProperties, CallbackInfoReturnable<ItemStack> info){
         if ((LivingEntity)(Object)this instanceof Player player && BeUndeadApi.getZombieType(player) > 0 && itemStack.is(BeUndead.UNDEAD_CURES)){
-            if (player.hasEffect(MobEffects.WEAKNESS)){
-                BeUndeadApi.startConverting(player, 0, player);
+            int cureRequirements = ConfigAccessor.getConfig().getCureRequirements();
+            if (cureRequirements > 0 && cureRequirements != 3){
+                if (cureRequirements < 2 || player.hasEffect(MobEffects.WEAKNESS)){
+                    if ((cureRequirements < 4 && itemStack.is(BeUndead.UNDEAD_CURES)) || (cureRequirements > 3 && itemStack.is(Items.ENCHANTED_GOLDEN_APPLE))) {
+                        BeUndeadApi.startConverting(player, 0, player);
+                    }
+                }
+            }
+        }
+    }
+
+    @Inject(at = @At("HEAD"), method = "checkTotemDeathProtection")
+    private void checkTotemDeathProtection(DamageSource damageSource, CallbackInfoReturnable<Boolean> info){
+        if ((LivingEntity)(Object)this instanceof Player player && BeUndeadApi.getZombieType(player) > 0){
+            if (ConfigAccessor.getConfig().getCureRequirements() == 3 && player.hasEffect(MobEffects.WEAKNESS)){
+                if (!damageSource.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
+                    boolean totem = false;
+
+                    for (InteractionHand interactionHand : InteractionHand.values()) {
+                        ItemStack itemStack2 = player.getItemInHand(interactionHand);
+                        if (itemStack2.is(Items.TOTEM_OF_UNDYING)) {
+                            totem = true;
+                            break;
+                        }
+                    }
+
+                    if (totem){
+                        BeUndeadApi.setZombieType(player, 0);
+                    }
+                }
             }
         }
     }

@@ -1,6 +1,5 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;

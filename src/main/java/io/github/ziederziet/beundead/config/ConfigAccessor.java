@@ -29,6 +29,8 @@ public interface ConfigAccessor {
     boolean isInfectionEnabled();
     boolean getOnlyTurnWhenInfected();
     boolean getForceTurnWhenInfected();
+    boolean isZombieSprintingEnabled();
+    int getCureRequirements();
     // Timer in seconds
     long getRespawnTimer();
     long getRespawnTimerToZombie();

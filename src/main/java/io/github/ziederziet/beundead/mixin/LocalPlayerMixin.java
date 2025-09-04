@@ -2,6 +2,7 @@ package io.github.ziederziet.beundead.mixin;
 
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.config.ConfigAccessor;
 import net.minecraft.client.player.Input;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -19,7 +20,7 @@ public class LocalPlayerMixin {
 
     @Inject(at = @At("HEAD"), method = "canStartSprinting()Z", cancellable = true)
     private void canStartSprinting(CallbackInfoReturnable<Boolean> info) {
-        if (BeUndeadApi.getZombieType((Player) (Object)this) > 0){
+        if (BeUndeadApi.getZombieType((Player) (Object)this) > 0 && !ConfigAccessor.getConfig().isZombieSprintingEnabled()){
             info.setReturnValue(false);
             info.cancel();
         }

@@ -121,7 +121,7 @@ public class BeUndead implements ModInitializer {
 				boolean husks = config.areHusksEnabled();
 				boolean drowned = config.areDrownedEnabled();
 
-				boolean respawnTimer = true;//player.getServer().isDedicatedServer();
+				boolean respawnTimer = player.getServer().isDedicatedServer();
 
 				int type = BeUndeadApi.getZombieType(player);
 				if (type == 0){

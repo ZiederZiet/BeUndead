@@ -18,6 +18,8 @@ public class ModConfig implements ConfigData, ConfigAccessor {
     public boolean zombieCanCrit = true;
     public int zombieMaxViewDistance = 4;
     public double zombieWalkSpeed = 1D;
+    public boolean zombieSprintEnabled = false;
+    public CureRequirements cureRequirements = CureRequirements.WEAKNESS_AND_APPLE;
     public boolean infectionEnabled = false;
     public boolean onlyTurnWhenInfected = false;
     public boolean forceTurnWhenInfected = true;
@@ -92,5 +94,15 @@ public class ModConfig implements ConfigData, ConfigAccessor {
     @Override
     public double getZombieWalkSpeed() {
         return zombieWalkSpeed;
+    }
+
+    @Override
+    public boolean isZombieSprintingEnabled() {
+        return zombieSprintEnabled;
+    }
+
+    @Override
+    public int getCureRequirements() {
+        return cureRequirements.getId();
     }
 }

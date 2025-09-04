@@ -93,8 +93,24 @@ public class ConfigScreen implements ModMenuApi {
                 builder.entryBuilder()
                         .startDoubleField(Component.literal("Zombie Walk Speed"), config.zombieWalkSpeed)
                         .setDefaultValue(1D)
-                        .setTooltip(Component.literal("1 is player default, 0.46 is for zombies"), Component.literal("Keep in mind, zombies can not sprint"))
+                        .setTooltip(Component.literal("1 is player default, 0.46 is for zombies"))
                         .setSaveConsumer(newValue -> config.zombieWalkSpeed = newValue)
+                        .build()
+        );
+
+        general.addEntry(
+                builder.entryBuilder()
+                        .startBooleanToggle(Component.literal("Zombie Can Sprint"), config.zombieSprintEnabled)
+                        .setDefaultValue(false)
+                        .setSaveConsumer(newValue -> config.zombieSprintEnabled = newValue)
+                        .build()
+        );
+
+        general.addEntry(
+                builder.entryBuilder()
+                        .startEnumSelector(Component.literal("Cure Requirements"), CureRequirements.class, config.cureRequirements)
+                        .setDefaultValue(CureRequirements.WEAKNESS_AND_APPLE)
+                        .setSaveConsumer(newValue -> config.cureRequirements = newValue)
                         .build()
         );
 
