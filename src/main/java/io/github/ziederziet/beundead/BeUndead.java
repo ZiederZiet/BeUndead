@@ -19,10 +19,7 @@ import net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
-import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
@@ -44,26 +41,21 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
-import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.animal.IronGolem;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.monster.ZombieVillager;
-import net.minecraft.world.entity.monster.ZombifiedPiglin;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodConstants;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -83,15 +75,15 @@ public class BeUndead implements ModInitializer {
 	public static final String MODID = "beundead";
 
 	public static final ResourceKey<MobEffect> INFECTED_EFFECT_KEY =
-			ResourceKey.create(Registries.MOB_EFFECT, ResourceLocation.fromNamespaceAndPath(MODID, "infected"));
+			ResourceKey.create(Registries.MOB_EFFECT, new ResourceLocation(MODID, "infected"));
 
 	public static final MobEffect INFECTED_EFFECT =  new InfectedMobEffect(MobEffectCategory.NEUTRAL, 1784089);
 	public static Holder<MobEffect> INFECTED_EFFECT_HOLDER;
 
-	public static final ResourceKey<DamageType> INFECTION_KILL = ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "infection_kill"));
+	public static final ResourceKey<DamageType> INFECTION_KILL = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(BeUndead.MODID, "infection_kill"));
 
-	public static final TagKey<Item> UNDEAD_CURES = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "undead_cures"));
-	public static final TagKey<Item> UNDEAD_EATABLES = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "undead_eatables"));
+	public static final TagKey<Item> UNDEAD_CURES = TagKey.create(Registries.ITEM, new ResourceLocation(BeUndead.MODID, "undead_cures"));
+	public static final TagKey<Item> UNDEAD_EATABLES = TagKey.create(Registries.ITEM, new ResourceLocation(BeUndead.MODID, "undead_eatables"));
 
 	static {
 		ZOMBIE_COLORS = new Vector3f[] { new Vector3f(0.8F, 1.0F, 0.85F), new Vector3f(0.80F, 0.72F, 0.49F), new Vector3f(0.7F, 0.8F, 0.8F) };
@@ -145,7 +137,7 @@ public class BeUndead implements ModInitializer {
 							if (!player.level().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)) {
 								for(int i = 0; i < player.getInventory().getContainerSize(); ++i) {
 									ItemStack itemstack = player.getInventory().getItem(i);
-									if (!itemstack.isEmpty() && EnchantmentHelper.has(itemstack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP)) {
+									if (!itemstack.isEmpty() && EnchantmentHelper.hasVanishingCurse(itemstack)) {
 										player.getInventory().removeItemNoUpdate(i);
 									}
 								}
@@ -154,7 +146,7 @@ public class BeUndead implements ModInitializer {
 
 						if (player.level() instanceof ServerLevel serverlevel) {
 							if (!player.wasExperienceConsumed()) {
-								ExperienceOrb.award(serverlevel, player.position(), player.getExperienceReward(serverlevel, player));
+								ExperienceOrb.award(serverlevel, player.position(), player.getExperienceReward());
 								player.totalExperience = 0;
 								player.experienceLevel = 0;
 								player.experienceProgress = 0;

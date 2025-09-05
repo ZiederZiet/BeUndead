@@ -14,8 +14,7 @@ import net.minecraft.world.entity.LivingEntity;
 
 public class ZombieChestModel<T extends LivingEntity> extends EntityModel<T> {
 
-    // This layer location should be baked with EntityRendererProvider.Context in the entity renderer and passed into this model's constructor
-    public static final ModelLayerLocation ZOMBIE_CHEST_LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "zombie_chest"), "main");
+    public static final ModelLayerLocation ZOMBIE_CHEST_LAYER_LOCATION = new ModelLayerLocation(new ResourceLocation(BeUndead.MODID, "zombie_chest"), "main");
     private final ModelPart bb_main;
 
     public ZombieChestModel(ModelPart root) {
@@ -36,8 +35,7 @@ public class ZombieChestModel<T extends LivingEntity> extends EntityModel<T> {
     }
 
     @Override
-    public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int i, int i1, int i2) {
-        //System.out.println("IHFIKUOSDGHUJSDHKJSDHGJSDBGKJSDBG");
-        bb_main.render(poseStack, vertexConsumer, i, i1, i2);
+    public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int i, int j, float f, float g, float h, float k) {
+        bb_main.render(poseStack, vertexConsumer, i, j, f, g, h, k);
     }
 }

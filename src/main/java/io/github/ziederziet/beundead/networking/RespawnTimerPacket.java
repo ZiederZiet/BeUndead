@@ -11,7 +11,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
 public class RespawnTimerPacket implements CustomPacketPayload {
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "respawn_timer");
+    public static final ResourceLocation ID = new ResourceLocation(BeUndead.MODID, "respawn_timer");
     public static final CustomPacketPayload.Type<RespawnTimerPacket> TYPE = new CustomPacketPayload.Type<>(ID);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, RespawnTimerPacket> CODEC = StreamCodec.of((object, object2) -> object2.encode(object), RespawnTimerPacket::new);

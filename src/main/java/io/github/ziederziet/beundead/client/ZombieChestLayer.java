@@ -20,7 +20,7 @@ import net.minecraft.resources.ResourceLocation;
 
 public class ZombieChestLayer extends RenderLayer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> {
     private final ZombieChestModel<AbstractClientPlayer> model;
-    private static final ResourceLocation CHEST_LOCATION = ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "textures/entity/player/zombie_chest.png");
+    private static final ResourceLocation CHEST_LOCATION = new ResourceLocation(BeUndead.MODID, "textures/entity/player/zombie_chest.png");
     public ZombieChestLayer(RenderLayerParent pRenderer, EntityModelSet pModelSet) {
         super(pRenderer);
         model = new ZombieChestModel<AbstractClientPlayer>(pModelSet.bakeLayer(ZombieChestModel.ZOMBIE_CHEST_LAYER_LOCATION));
@@ -30,7 +30,7 @@ public class ZombieChestLayer extends RenderLayer<AbstractClientPlayer, PlayerMo
     public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int packedLight, AbstractClientPlayer abstractClientPlayer, float v, float v1, float v2, float v3, float v4, float v5) {
         if (BeUndeadApi.hasZombieChest(abstractClientPlayer)){
             VertexConsumer vertexConsumer = multiBufferSource.getBuffer(RenderType.entitySolid(CHEST_LOCATION));
-            model.renderToBuffer(poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY);
+            model.renderToBuffer(poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY, v, v1, v2, v3);
         }
     }
 }

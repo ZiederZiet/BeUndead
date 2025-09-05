@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 
 public class UndeadDataPacket implements CustomPacketPayload {
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "undead_data");
+    public static final ResourceLocation ID = new ResourceLocation(BeUndead.MODID, "undead_data");
     public static final CustomPacketPayload.Type<UndeadDataPacket> TYPE = new CustomPacketPayload.Type<>(ID);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, UndeadDataPacket> CODEC = StreamCodec.of((object, object2) -> object2.encode(object), UndeadDataPacket::new);

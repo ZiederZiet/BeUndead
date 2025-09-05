@@ -65,13 +65,13 @@ public abstract class LivingEntityMixin {
                             Item item = itemstack.getItem();
                             itemstack.setDamageValue(itemstack.getDamageValue() + player.getRandom().nextInt(2));
                             if (itemstack.getDamageValue() >= itemstack.getMaxDamage()) {
-                                player.onEquippedItemBroken(item, EquipmentSlot.HEAD);
+                                player.broadcastBreakEvent(EquipmentSlot.HEAD);
                                 player.setItemSlot(EquipmentSlot.HEAD, ItemStack.EMPTY);
                             }
                         }
                     }
                     else {
-                        player.igniteForSeconds(8.0F);
+                        player.igniteForSeconds(8);
                     }
                 }
             }
@@ -117,9 +117,9 @@ public abstract class LivingEntityMixin {
         }
     }
 
-    @Inject(at = @At("HEAD"), method = "dropExperience(Lnet/minecraft/world/entity/Entity;)V", cancellable = true)
-    protected void dropExperience(Entity pEntity, CallbackInfo info) {
-        if (pEntity instanceof Player player && !player.level().isClientSide() && BeUndeadApi.getZombieType(player) > 0){
+    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;dropExperience()V"), method = "dropAllDeathLoot", cancellable = true)
+    protected void dropExperience(DamageSource damageSource, CallbackInfo info) {
+        if (damageSource.getEntity() instanceof Player player && !player.level().isClientSide() && BeUndeadApi.getZombieType(player) > 0){
             info.cancel();
             LivingEntity thisEntity = (LivingEntity) (Object) this;
             if (!(thisEntity instanceof Monster)){
@@ -128,7 +128,7 @@ public abstract class LivingEntityMixin {
                     player.giveExperiencePoints(reward);
                 }
                 else if (thisEntity.shouldDropExperience() && thisEntity.level().getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)){
-                    int reward = thisEntity.getExperienceReward((ServerLevel) player.level(), pEntity);
+                    int reward = thisEntity.getExperienceReward();
                     player.giveExperiencePoints(reward);
                 }
             }
@@ -160,8 +160,8 @@ public abstract class LivingEntityMixin {
         }
     }
 
-    @Inject(at = @At("HEAD"), method = "eat(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/food/FoodProperties;)Lnet/minecraft/world/item/ItemStack;")
-    public void eat(Level level, ItemStack itemStack, FoodProperties foodProperties, CallbackInfoReturnable<ItemStack> info){
+    @Inject(at = @At("HEAD"), method = "eat")
+    public void eat(Level level, ItemStack itemStack, CallbackInfoReturnable<ItemStack> cir){
         if ((LivingEntity)(Object)this instanceof Player player && BeUndeadApi.getZombieType(player) > 0 && itemStack.is(BeUndead.UNDEAD_CURES)){
             int cureRequirements = ConfigAccessor.getConfig().getCureRequirements();
             if (cureRequirements > 0 && cureRequirements != 3){

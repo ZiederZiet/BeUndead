@@ -3,7 +3,6 @@ package io.github.ziederziet.beundead.mixin;
 import com.mojang.blaze3d.systems.RenderSystem;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
 import net.minecraft.client.AttackIndicatorStatus;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
@@ -19,21 +18,22 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Gui.class)
 public abstract class GuiMixin {
-    private static final ResourceLocation HOTBAR_SELECTION_SPRITE = ResourceLocation.withDefaultNamespace("hud/hotbar_selection");
-    private static final ResourceLocation HOTBAR_OFFHAND_LEFT_SPRITE = ResourceLocation.withDefaultNamespace("hud/hotbar_offhand_left");
-    private static final ResourceLocation HOTBAR_OFFHAND_RIGHT_SPRITE = ResourceLocation.withDefaultNamespace("hud/hotbar_offhand_right");
-    private static final ResourceLocation HOTBAR_ATTACK_INDICATOR_BACKGROUND_SPRITE = ResourceLocation.withDefaultNamespace("hud/hotbar_attack_indicator_background");
-    private static final ResourceLocation HOTBAR_ATTACK_INDICATOR_PROGRESS_SPRITE = ResourceLocation.withDefaultNamespace("hud/hotbar_attack_indicator_progress");
+    @Shadow protected abstract void renderSlot(GuiGraphics guiGraphics, int i, int j, float f, Player player, ItemStack itemStack, int k);
 
-    private static final ResourceLocation ZOMBIE_EXPERIENCE_BAR_PROGRESS_SPRITE = ResourceLocation.withDefaultNamespace("hud/zombie_experience_bar_progress");
-    private static final ResourceLocation EXPERIENCE_BAR_BACKGROUND_SPRITE = ResourceLocation.withDefaultNamespace("hud/experience_bar_background");
+    private static final ResourceLocation HOTBAR_SELECTION_SPRITE = new ResourceLocation("hud/hotbar_selection");
+    private static final ResourceLocation HOTBAR_OFFHAND_LEFT_SPRITE = new ResourceLocation("hud/hotbar_offhand_left");
+    private static final ResourceLocation HOTBAR_OFFHAND_RIGHT_SPRITE = new ResourceLocation("hud/hotbar_offhand_right");
+    private static final ResourceLocation HOTBAR_ATTACK_INDICATOR_BACKGROUND_SPRITE = new ResourceLocation("hud/hotbar_attack_indicator_background");
+    private static final ResourceLocation HOTBAR_ATTACK_INDICATOR_PROGRESS_SPRITE = new ResourceLocation("hud/hotbar_attack_indicator_progress");
+
+    private static final ResourceLocation ZOMBIE_EXPERIENCE_BAR_PROGRESS_SPRITE = new ResourceLocation("hud/zombie_experience_bar_progress");
+    private static final ResourceLocation EXPERIENCE_BAR_BACKGROUND_SPRITE = new ResourceLocation("hud/experience_bar_background");
 
 
-    @Shadow
-    protected abstract void renderSlot(GuiGraphics pGuiGraphics, int pX, int pY, DeltaTracker pDeltaTracker, Player pPlayer, ItemStack pStack, int pSeed);
+
 
     @Inject(at = @At("HEAD"), method = "renderItemHotbar", cancellable = true)
-    private void renderItemHotbar(GuiGraphics pGuiGraphics, DeltaTracker pDeltaTracker, CallbackInfo info) {
+    private void renderItemHotbar(GuiGraphics pGuiGraphics, float partialTick, CallbackInfo info) {
         if (Minecraft.getInstance().getCameraEntity() instanceof Player player && BeUndeadApi.getZombieType(player) > 0 && BeUndeadApi.getInvStateOfPlayer(player) == 0) {
             info.cancel();
             ItemStack offhandItemstack = player.getOffhandItem();
@@ -67,14 +67,14 @@ public abstract class GuiMixin {
             i2 = 4;
             j2 = i - 90 + 2 + additionXSlot;
             k2 = pGuiGraphics.guiHeight() - 16 - 3;
-            this.renderSlot(pGuiGraphics, j2, k2, pDeltaTracker, player, (ItemStack)player.getInventory().items.get(i2), l++);
+            this.renderSlot(pGuiGraphics, j2, k2, partialTick, player, (ItemStack)player.getInventory().items.get(i2), l++);
 
             if (!offhandItemstack.isEmpty()) {
                 i2 = pGuiGraphics.guiHeight() - 16 - 3;
                 if (humanoidarm == HumanoidArm.LEFT) {
-                    this.renderSlot(pGuiGraphics, i - 91 + additionXSlot - 26, i2, pDeltaTracker, player, offhandItemstack, l);
+                    this.renderSlot(pGuiGraphics, i - 91 + additionXSlot - 26, i2, partialTick, player, offhandItemstack, l);
                 } else {
-                    this.renderSlot(pGuiGraphics, i + 91 + additionXSlot + 10, i2, pDeltaTracker, player, offhandItemstack, l);
+                    this.renderSlot(pGuiGraphics, i + 91 + additionXSlot + 10, i2, partialTick, player, offhandItemstack, l);
                 }
             }
 
@@ -123,7 +123,7 @@ public abstract class GuiMixin {
     }
 
     @Inject(at = @At("HEAD"), method = "renderExperienceLevel", cancellable = true)
-    private void renderExperienceLevel(GuiGraphics p_335340_, DeltaTracker p_344840_, CallbackInfo info){
+    private void renderExperienceLevel(GuiGraphics p_335340_, float partialTick, CallbackInfo info){
         if (BeUndeadApi.getZombieType(Minecraft.getInstance().player) > 0){
             int i = Minecraft.getInstance().player.experienceLevel;
             if (this.isExperienceBarVisible() && i > 0) {

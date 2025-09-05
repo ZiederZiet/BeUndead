@@ -37,7 +37,7 @@ public class ItemMixin {
                     BeUndeadApi.setZombieChest(player, true);
                     player.getItemInHand(usedHand).consume(1, player);
                 }
-                level.playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.ARMOR_EQUIP_GENERIC, SoundSource.PLAYERS, 1.0F, 1.0F);
+                level.playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.ARMOR_EQUIP_GENERIC.value(), SoundSource.PLAYERS, 1.0F, 1.0F);
                 info.setReturnValue(InteractionResultHolder.consume(player.getItemInHand(usedHand)));
             } else {
                 ItemStack itemstack = player.getItemInHand(usedHand);
