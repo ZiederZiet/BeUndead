@@ -272,20 +272,6 @@ public class BeUndead implements ModInitializer {
 			}
 		});
 
-		ServerLivingEntityEvents.AFTER_DAMAGE.register((livingEntity, damageSource, v, v1, b) -> {
-			if (damageSource.getEntity() instanceof Player player && BeUndeadApi.getZombieType(player) == 2){
-				livingEntity.addEffect(new MobEffectInstance(MobEffects.HUNGER, 600, 0));
-			}
-			else if (ConfigAccessor.getConfig().isInfectionEnabled() && livingEntity instanceof Villager || (livingEntity instanceof Player player && BeUndeadApi.getZombieType(player) <= 0)){
-				if (damageSource.getEntity() instanceof Zombie || (damageSource.getEntity() instanceof Player playerAttacker && BeUndeadApi.getZombieType(playerAttacker) > 0)){
-					if (livingEntity.getRandom().nextBoolean()){
-						Player infecter = damageSource.getEntity() instanceof Player playerAttacker ? playerAttacker : null;
-						BeUndeadApi.infectBy(livingEntity, infecter, damageSource.getEntity() instanceof ZombifiedPiglin ? 15 : 28);
-					}
-				}
-			}
-		});
-
 		ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
 			BeUndeadApi.setZombieType(newPlayer, BeUndeadApi.getZombieType(oldPlayer), false);
 			if (oldPlayer.level().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY) || alive){

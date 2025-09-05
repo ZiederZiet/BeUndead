@@ -13,7 +13,10 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.monster.ZombifiedPiglin;
 import net.minecraft.world.entity.npc.AbstractVillager;
+import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
@@ -93,6 +96,24 @@ public abstract class LivingEntityMixin {
         if ((livingEntity instanceof Player player && BeUndeadApi.getZombieType(player) > 0) && (pEffectInstance.is(MobEffects.REGENERATION) || pEffectInstance.is(MobEffects.POISON) || pEffectInstance.is(MobEffects.HUNGER))){
             info.setReturnValue(false);
             info.cancel();
+        }
+    }
+
+    @Inject(at = @At("TAIL"), method = "hurt")
+    private void hurt(DamageSource damageSource, float f, CallbackInfoReturnable<Boolean> info){
+        if (info.getReturnValue()){
+            LivingEntity livingEntity = (LivingEntity)(Object)this;
+            if (damageSource.getEntity() instanceof Player player && BeUndeadApi.getZombieType(player) == 2){
+                livingEntity.addEffect(new MobEffectInstance(MobEffects.HUNGER, 600, 0));
+            }
+            else if (ConfigAccessor.getConfig().isInfectionEnabled() && livingEntity instanceof Villager || (livingEntity instanceof Player player && BeUndeadApi.getZombieType(player) <= 0)){
+                if (damageSource.getEntity() instanceof Zombie || (damageSource.getEntity() instanceof Player playerAttacker && BeUndeadApi.getZombieType(playerAttacker) > 0)){
+                    if (livingEntity.getRandom().nextBoolean()){
+                        Player infecter = damageSource.getEntity() instanceof Player playerAttacker ? playerAttacker : null;
+                        BeUndeadApi.infectBy(livingEntity, infecter, damageSource.getEntity() instanceof ZombifiedPiglin ? 15 : 28);
+                    }
+                }
+            }
         }
     }
 
