@@ -61,8 +61,9 @@ public abstract class LivingEntityMixin {
                     ItemStack itemstack = player.getItemBySlot(EquipmentSlot.HEAD);
                     if (!itemstack.isEmpty()) {
                         if (itemstack.isDamageableItem()) {
-                            itemstack.hurtAndBreak(player.getRandom().nextInt(2), player, EquipmentSlot.HEAD);
-                            Item item = itemstack.getItem();
+                            itemstack.hurtAndBreak(player.getRandom().nextInt(2), player, player1 -> {
+                                player1.broadcastBreakEvent(EquipmentSlot.HEAD);
+                            });
                             itemstack.setDamageValue(itemstack.getDamageValue() + player.getRandom().nextInt(2));
                             if (itemstack.getDamageValue() >= itemstack.getMaxDamage()) {
                                 player.broadcastBreakEvent(EquipmentSlot.HEAD);
@@ -71,7 +72,7 @@ public abstract class LivingEntityMixin {
                         }
                     }
                     else {
-                        player.igniteForSeconds(8);
+                        player.setSecondsOnFire(8);
                     }
                 }
             }
@@ -93,7 +94,7 @@ public abstract class LivingEntityMixin {
     @Inject(at = @At("HEAD"), method = "canBeAffected(Lnet/minecraft/world/effect/MobEffectInstance;)Z", cancellable = true)
     public void canBeAffected(MobEffectInstance pEffectInstance, CallbackInfoReturnable<Boolean> info) {
         LivingEntity livingEntity = (LivingEntity) (Object)this;
-        if ((livingEntity instanceof Player player && BeUndeadApi.getZombieType(player) > 0) && (pEffectInstance.is(MobEffects.REGENERATION) || pEffectInstance.is(MobEffects.POISON) || pEffectInstance.is(MobEffects.HUNGER))){
+        if ((livingEntity instanceof Player player && BeUndeadApi.getZombieType(player) > 0) && (pEffectInstance.getEffect() == MobEffects.REGENERATION || pEffectInstance.getEffect() == MobEffects.POISON || pEffectInstance.getEffect() == MobEffects.HUNGER)){
             info.setReturnValue(false);
             info.cancel();
         }

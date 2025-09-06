@@ -2,18 +2,16 @@ package io.github.ziederziet.beundead.networking;
 
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.common.ClientInfo;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.FabricPacket;
+import net.fabricmc.fabric.api.networking.v1.PacketSender;
+import net.fabricmc.fabric.api.networking.v1.PacketType;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
-public class ZombieSettingsPacket implements CustomPacketPayload {
+public class ZombieSettingsPacket implements FabricPacket {
     public static final ResourceLocation ID = new ResourceLocation(BeUndead.MODID, "zombie_settings");
-    public static final Type<ZombieSettingsPacket> TYPE = new Type<>(ID);
-
-    public static final StreamCodec<RegistryFriendlyByteBuf, ZombieSettingsPacket> CODEC = StreamCodec.of((object, object2) -> object2.encode(object), ZombieSettingsPacket::new);
+    public static final PacketType<ZombieSettingsPacket> TYPE = PacketType.create(ID, ZombieSettingsPacket::new);
 
     int invState;
     boolean canChestExtension;
@@ -39,16 +37,7 @@ public class ZombieSettingsPacket implements CustomPacketPayload {
         zombieWalkingSpeed = buffer.readDouble();
     }
 
-    public void encode(FriendlyByteBuf buffer){
-        buffer.writeInt(invState);
-        buffer.writeBoolean(canChestExtension);
-        buffer.writeBoolean(nightVision);
-        buffer.writeBoolean(jumpOnTheirOwn);
-        buffer.writeInt(zombieMaxViewDistance);
-        buffer.writeDouble(zombieWalkingSpeed);
-    }
-
-    public void handle(ClientPlayNetworking.Context context){
+    public void handle(LocalPlayer localPlayer, PacketSender packetSender){
         ClientInfo.zombieInvState = invState;
         ClientInfo.canChestExtension = canChestExtension;
         ClientInfo.zombieNightVision = nightVision;
@@ -58,7 +47,17 @@ public class ZombieSettingsPacket implements CustomPacketPayload {
     }
 
     @Override
-    public Type<? extends CustomPacketPayload> type() {
+    public void write(FriendlyByteBuf friendlyByteBuf) {
+        friendlyByteBuf.writeInt(invState);
+        friendlyByteBuf.writeBoolean(canChestExtension);
+        friendlyByteBuf.writeBoolean(nightVision);
+        friendlyByteBuf.writeBoolean(jumpOnTheirOwn);
+        friendlyByteBuf.writeInt(zombieMaxViewDistance);
+        friendlyByteBuf.writeDouble(zombieWalkingSpeed);
+    }
+
+    @Override
+    public PacketType<?> getType() {
         return TYPE;
     }
 }

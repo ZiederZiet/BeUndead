@@ -97,7 +97,7 @@ public class BeUndeadApi {
             case 2 -> SoundEvents.HUSK_AMBIENT;
             default -> SoundEvents.ZOMBIE_AMBIENT;
         };
-        player.makeSound(soundEvents);
+        player.playSound(soundEvents);
     }
 
     public static void playStepSound(Player player){
@@ -106,7 +106,7 @@ public class BeUndeadApi {
             case 2 -> SoundEvents.HUSK_STEP;
             default -> SoundEvents.ZOMBIE_STEP;
         };
-        player.makeSound(soundEvents);
+        player.playSound(soundEvents);
     }
 
     public static double getWalkingSpeed(Player player){
@@ -360,7 +360,7 @@ public class BeUndeadApi {
                 }
 
                 if (out > OUT_INFECTION_SHOW){
-                    if (!infected.hasEffect(BeUndead.INFECTED_EFFECT_HOLDER)){
+                    if (!infected.hasEffect(BeUndead.INFECTED_EFFECT)){
                         showInfection(infected);
                     }
 
@@ -410,7 +410,7 @@ public class BeUndeadApi {
             }
         }
         else {
-            ((LivingEntity)infectionAccessor).removeEffect(BeUndead.INFECTED_EFFECT_HOLDER);
+            ((LivingEntity)infectionAccessor).removeEffect(BeUndead.INFECTED_EFFECT);
         }
     }
 
@@ -441,6 +441,6 @@ public class BeUndeadApi {
     }
 
     public static void showInfection(LivingEntity livingEntity){
-        livingEntity.addEffect(new MobEffectInstance(BeUndead.INFECTED_EFFECT_HOLDER, -1, 0));
+        livingEntity.addEffect(new MobEffectInstance(BeUndead.INFECTED_EFFECT, -1, 0));
     }
 }

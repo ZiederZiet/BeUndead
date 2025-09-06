@@ -12,8 +12,8 @@ public class InfectedMobEffect extends MobEffect {
     }
 
     @Override
-    public void onEffectAdded(LivingEntity pLivingEntity, int pAmplifier) {
-        super.onEffectAdded(pLivingEntity, pAmplifier);
-        BeUndeadApi.addedInfectionEffect(pLivingEntity);
+    public void onEffectStarted(LivingEntity livingEntity, int i) {
+        super.onEffectStarted(livingEntity, i);
+        BeUndeadApi.addedInfectionEffect(livingEntity);
     }
 }

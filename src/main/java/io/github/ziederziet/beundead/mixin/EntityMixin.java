@@ -46,7 +46,9 @@ public class EntityMixin {
                     return;
                 }
                 if ((cureRequirements < 4 && player.getItemInHand(pHand).is(BeUndead.UNDEAD_CURES)) || (cureRequirements > 3 && player.getItemInHand(pHand).is(Items.ENCHANTED_GOLDEN_APPLE))) {
-                    player.getItemInHand(pHand).consume(1, revived);
+                    if (!player.getAbilities().instabuild){
+                        player.getItemInHand(pHand).shrink(1);
+                    }
                     BeUndeadApi.startConverting(revived, 0, player);
                     info.setReturnValue(InteractionResult.SUCCESS);
                 }

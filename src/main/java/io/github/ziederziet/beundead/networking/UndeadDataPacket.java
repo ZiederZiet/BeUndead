@@ -2,19 +2,18 @@ package io.github.ziederziet.beundead.networking;
 
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.common.UndeadAccessor;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.FabricPacket;
+import net.fabricmc.fabric.api.networking.v1.PacketSender;
+import net.fabricmc.fabric.api.networking.v1.PacketType;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 
-public class UndeadDataPacket implements CustomPacketPayload {
+public class UndeadDataPacket implements FabricPacket {
     public static final ResourceLocation ID = new ResourceLocation(BeUndead.MODID, "undead_data");
-    public static final CustomPacketPayload.Type<UndeadDataPacket> TYPE = new CustomPacketPayload.Type<>(ID);
-
-    public static final StreamCodec<RegistryFriendlyByteBuf, UndeadDataPacket> CODEC = StreamCodec.of((object, object2) -> object2.encode(object), UndeadDataPacket::new);
+    public static final PacketType<UndeadDataPacket> TYPE = PacketType.create(ID, UndeadDataPacket::new);
 
     int playerId;
     int type;
@@ -35,15 +34,21 @@ public class UndeadDataPacket implements CustomPacketPayload {
         chest = buffer.readBoolean();
     }
 
-    public void encode(FriendlyByteBuf buffer){
-        buffer.writeInt(playerId);
-        buffer.writeInt(type);
-        buffer.writeBoolean(converting);
-        buffer.writeBoolean(chest);
+    @Override
+    public void write(FriendlyByteBuf friendlyByteBuf){
+        friendlyByteBuf.writeInt(playerId);
+        friendlyByteBuf.writeInt(type);
+        friendlyByteBuf.writeBoolean(converting);
+        friendlyByteBuf.writeBoolean(chest);
     }
 
-    public void handle(ClientPlayNetworking.Context context){
-        if (context.client().level.getEntity(playerId) instanceof Player player){
+    @Override
+    public PacketType<?> getType() {
+        return TYPE;
+    }
+
+    public void handle(LocalPlayer localPlayer, PacketSender packetSender){
+        if (localPlayer.level().getEntity(playerId) instanceof Player player){
             UndeadAccessor undeadAccessor = (UndeadAccessor) player;
             undeadAccessor.setType(type);
             undeadAccessor.setConverting(converting);
@@ -54,10 +59,5 @@ public class UndeadDataPacket implements CustomPacketPayload {
     public static UndeadDataPacket getPacket(Player player){
         UndeadAccessor undeadAccessor = (UndeadAccessor) player;
         return new UndeadDataPacket(player.getId(), undeadAccessor.getType(), undeadAccessor.getZombieConversionTime() > 0, undeadAccessor.hasZombieChest());
-    }
-
-    @Override
-    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
-        return TYPE;
     }
 }

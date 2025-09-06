@@ -30,6 +30,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
@@ -206,7 +207,7 @@ public class BeUndead implements ModInitializer {
 				boolean convert = damageSource.is(BeUndead.INFECTION_KILL);
 				if (damageSource.getEntity() instanceof Player player && BeUndeadApi.getZombieType(player) > 0) {
 					player.getFoodData().setFoodLevel(Math.min(20, player.getFoodData().getFoodLevel() + 4));
-					player.getFoodData().setSaturation(Math.min(20, player.getFoodData().getSaturationLevel() + FoodConstants.saturationByModifier(4, 3F)));
+					player.getFoodData().setSaturation(Math.min(20, player.getFoodData().getSaturationLevel() + 4 * 3F * 2.0F));
 
 					if (!convert){
 						if (livingEntity.level().getDifficulty() == Difficulty.NORMAL || livingEntity.level().getDifficulty() == Difficulty.HARD){
@@ -219,10 +220,10 @@ public class BeUndead implements ModInitializer {
 					if (convert){
 						ZombieVillager zombievillager = (ZombieVillager)villager.convertTo(EntityType.ZOMBIE_VILLAGER, false);
 						if (zombievillager != null) {
-							zombievillager.finalizeSpawn((ServerLevelAccessor) villager.level(), villager.level().getCurrentDifficultyAt(zombievillager.blockPosition()), MobSpawnType.CONVERSION, new Zombie.ZombieGroupData(false, true));
+							zombievillager.finalizeSpawn((ServerLevelAccessor) villager.level(), villager.level().getCurrentDifficultyAt(zombievillager.blockPosition()), MobSpawnType.CONVERSION, new Zombie.ZombieGroupData(false, true), (CompoundTag)null);
 							zombievillager.setVillagerData(villager.getVillagerData());
 							zombievillager.setGossips((Tag)villager.getGossips().store(NbtOps.INSTANCE));
-							zombievillager.setTradeOffers(villager.getOffers().copy());
+							zombievillager.setTradeOffers(villager.getOffers().createTag());
 							zombievillager.setVillagerXp(villager.getVillagerXp());
 							if (!villager.isSilent()) {
 								villager.level().levelEvent((Player)null, 1026, villager.blockPosition(), 0);
@@ -240,13 +241,13 @@ public class BeUndead implements ModInitializer {
 					long respawnTimer = BeUndeadApi.getZombieRespawnTimer(player);
 					long timeTo = respawnTimer - player.level().getGameTime();
 					if (timeTo < 2){
-						Button button = ((DeathScreenAccessor)deathScreen).getExitButtons().getFirst();
+						Button button = ((DeathScreenAccessor)deathScreen).getExitButtons().get(0);
 						button.active = true;
 						button.setMessage(Component.translatable("deathScreen.respawn"));
 					} else if (timeTo % 20 == 0){
 						int minutes = (int)Math.floor(timeTo / 20D / 60D);
 						int seconds = (int)Math.floor(timeTo / 20D % 60D);
-						((DeathScreenAccessor)deathScreen).getExitButtons().getFirst().setMessage(Component.translatable("deathScreen.respawn").append(" " + minutes + ":" + (String.valueOf(seconds).length() == 1 ? "0" : "") + seconds));
+						((DeathScreenAccessor)deathScreen).getExitButtons().get(0).setMessage(Component.translatable("deathScreen.respawn").append(" " + minutes + ":" + (String.valueOf(seconds).length() == 1 ? "0" : "") + seconds));
 					}
 				}
 			}

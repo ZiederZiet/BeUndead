@@ -29,8 +29,8 @@ public abstract class PlayerSensorMixin extends Sensor<LivingEntity> {
     @Inject(at = @At("HEAD"), method = "doTick", cancellable = true)
     protected void doTick(ServerLevel pLevel, LivingEntity pEntity, CallbackInfo info) {
         info.cancel();
-        Stream var10000 = pLevel.players().stream().filter(EntitySelector.NO_SPECTATORS).filter((p_26744_) -> {
-            return pEntity.closerThan(p_26744_, 16.0) && p_26744_ instanceof Player player && BeUndeadApi.getZombieType(player) > 0;
+        Stream var10000 = pLevel.players().stream().filter(EntitySelector.NO_SPECTATORS).filter((player) -> {
+            return pEntity.closerThan(player, 16.0) && BeUndeadApi.getZombieType(player) > 0;
         });
         Objects.requireNonNull(pEntity);
         List<Player> $$2 = (List)var10000.sorted(Comparator.comparingDouble(entity -> pEntity.distanceToSqr((Entity) entity))).collect(Collectors.toList());

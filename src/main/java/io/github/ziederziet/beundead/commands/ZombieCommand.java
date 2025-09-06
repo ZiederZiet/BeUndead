@@ -87,7 +87,7 @@ public class ZombieCommand extends BaseCommand {
                             }
                             if (players.size() > 1){
                                 int amount = (int) players.stream().filter(serverPlayer -> {
-                                    return serverPlayer.hasEffect(BeUndead.INFECTED_EFFECT_HOLDER);
+                                    return serverPlayer.hasEffect(BeUndead.INFECTED_EFFECT);
                                 }).count();
                                 sourceStack.getSource().sendSuccess(() -> Component.translatable("commands.zombie.infection.get.players", new Object[] {amount}), false);
                                 return amount;
