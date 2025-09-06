@@ -59,7 +59,7 @@ public class EntityMixin {
     @Inject(at = @At("HEAD"), method = "onClientRemoval")
     public void onClientRemoval(CallbackInfo info){
         if ((Object)this instanceof AbstractClientPlayer abstractClientPlayer){
-            UndeadSkinManager.removeSkin(abstractClientPlayer.getSkin().texture());
+            UndeadSkinManager.removeSkin(abstractClientPlayer.getSkinTextureLocation());
         }
     }
 }

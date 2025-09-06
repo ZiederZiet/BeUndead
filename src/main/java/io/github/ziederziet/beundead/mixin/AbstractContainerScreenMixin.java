@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(AbstractContainerScreen.class)
 public class AbstractContainerScreenMixin {
-    private static final ResourceLocation SLOT_DISABLED_TEXTURE = new ResourceLocation("container/slot_disabled");
+    private static final ResourceLocation SLOT_DISABLED_TEXTURE = new ResourceLocation("textures/gui/sprites/container/slot_disabled.png");
     @Inject(at = @At("TAIL"), method = "renderSlot")
     protected void renderSlot(GuiGraphics pGuiGraphics, Slot pSlot, CallbackInfo info){
         if (pSlot.container instanceof Inventory inventory && BeUndeadApi.getZombieType(inventory.player) > 0) {
@@ -25,12 +25,12 @@ public class AbstractContainerScreenMixin {
                 int slot = pSlot.getContainerSlot();
                 if ((Object)this instanceof CreativeModeInventoryScreen creativeModeInventoryScreen && creativeModeInventoryScreen.isInventoryOpen()){
                     if ((!(invState > 0 && slot > 35) && slot != 40) && (slot < 45 && slot > 8)){
-                        pGuiGraphics.blitSprite(SLOT_DISABLED_TEXTURE, pSlot.x - 1, pSlot.y - 1, 18, 18);
+                        pGuiGraphics.blit(SLOT_DISABLED_TEXTURE, pSlot.x - 1, pSlot.y - 1, 0,0, 18, 18, 18, 18);
                     }
                 }
                 else {
                     if (slot < 36 && (!(invState > 0 && slot < 9) && slot != 4)) {
-                        pGuiGraphics.blitSprite(SLOT_DISABLED_TEXTURE, pSlot.x - 1, pSlot.y - 1, 18, 18);
+                        pGuiGraphics.blit(SLOT_DISABLED_TEXTURE, pSlot.x - 1, pSlot.y - 1, 0, 0, 18, 18, 18, 18);
                     }
                 }
 

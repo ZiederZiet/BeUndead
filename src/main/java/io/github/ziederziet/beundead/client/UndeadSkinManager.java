@@ -1,5 +1,9 @@
 package io.github.ziederziet.beundead.client;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
 import com.mojang.blaze3d.platform.NativeImage;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
 import net.minecraft.client.Minecraft;
@@ -17,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -53,13 +58,13 @@ public class UndeadSkinManager {
             Optional<Resource> optional = minecraft.getResourceManager().getResource(defaultLocation);
 
             BufferedImage skinImage = null;
-
             try {
                 if (optional.isPresent()){
                     skinImage = ImageIO.read(optional.get().open());
                 }
                 else {
-                    URL url = new URL(player.getSkin().textureUrl());
+                    String skinUrlStr = UndeadSkinManager.getSkinUrl(player);
+                    URL url = new URL(skinUrlStr);
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                     connection.setRequestProperty("User-Agent", "Mozilla/5.0");
                     connection.connect();
@@ -88,9 +93,9 @@ public class UndeadSkinManager {
 
                     double light = (r * 0.85 + g + b * 0.7) / 2.55;
 
-                    r = (int) Math.round(Math.max(Math.min(light * BeUndeadApi.ZOMBIE_COLORS[type - 1].x + (BeUndeadApi.ZOMBIE_COLOR_OFFSETS[type - 1].x * 255D), 255D), 0F));
-                    g = (int) Math.round(Math.max(Math.min(light * BeUndeadApi.ZOMBIE_COLORS[type - 1].y + (BeUndeadApi.ZOMBIE_COLOR_OFFSETS[type - 1].y * 255D), 255D), 0F));
-                    b = (int) Math.round(Math.max(Math.min(light * BeUndeadApi.ZOMBIE_COLORS[type - 1].z + (BeUndeadApi.ZOMBIE_COLOR_OFFSETS[type - 1].z * 255D), 255D), 0F));
+                    r = (int) Math.round(Math.min(Math.max(light * BeUndeadApi.ZOMBIE_COLORS[type - 1].x + (BeUndeadApi.ZOMBIE_COLOR_OFFSETS[type - 1].x * 255D), 0D), 255D));
+                    g = (int) Math.round(Math.min(Math.max(light * BeUndeadApi.ZOMBIE_COLORS[type - 1].y + (BeUndeadApi.ZOMBIE_COLOR_OFFSETS[type - 1].y * 255D), 0D), 255D));
+                    b = (int) Math.round(Math.min(Math.max(light * BeUndeadApi.ZOMBIE_COLORS[type - 1].z + (BeUndeadApi.ZOMBIE_COLOR_OFFSETS[type - 1].z * 255D), 0D), 255D));
 
                     nativeImage.setPixelRGBA(x, y, FastColor.ARGB32.color(a, r, g, b));
                 }
@@ -98,7 +103,7 @@ public class UndeadSkinManager {
 
             DynamicTexture dynamicTexture = new DynamicTexture(nativeImage);
 
-            return minecraft.getTextureManager().register("undeadskin/" + location.getPath(), dynamicTexture);
+            return minecraft.getTextureManager().register("undeadskin" + type + "/" + location.getPath(), dynamicTexture);
 
 //            if (optional.isPresent()){
 //                System.out.println("THERE");
@@ -137,5 +142,20 @@ public class UndeadSkinManager {
 
             //return defaultLocation;
         });
+    }
+
+    public static String getSkinUrl(Player player) {
+        GameProfile profile = player.getGameProfile();
+        Property prop = profile.getProperties().get("textures").stream().findFirst().orElse(null);
+        if (prop == null) return null;
+
+        String json = new String(Base64.getDecoder().decode(prop.getValue()));
+        JsonObject obj = JsonParser.parseString(json).getAsJsonObject();
+
+        JsonObject tex = obj.getAsJsonObject("textures");
+        if (tex.has("SKIN")) {
+            return tex.getAsJsonObject("SKIN").get("url").getAsString();
+        }
+        return null;
     }
 }

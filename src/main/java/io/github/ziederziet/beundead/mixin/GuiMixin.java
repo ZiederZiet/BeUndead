@@ -1,6 +1,7 @@
 package io.github.ziederziet.beundead.mixin;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
 import net.minecraft.client.AttackIndicatorStatus;
 import net.minecraft.client.Minecraft;
@@ -27,23 +28,17 @@ public abstract class GuiMixin {
     @Shadow private int screenWidth;
     @Shadow private int screenHeight;
     @Shadow @Final private Minecraft minecraft;
-    private static final ResourceLocation HOTBAR_SELECTION_SPRITE = new ResourceLocation("hud/hotbar_selection");
-    private static final ResourceLocation HOTBAR_OFFHAND_LEFT_SPRITE = new ResourceLocation("hud/hotbar_offhand_left");
-    private static final ResourceLocation HOTBAR_OFFHAND_RIGHT_SPRITE = new ResourceLocation("hud/hotbar_offhand_right");
-    private static final ResourceLocation HOTBAR_ATTACK_INDICATOR_BACKGROUND_SPRITE = new ResourceLocation("hud/hotbar_attack_indicator_background");
-    private static final ResourceLocation HOTBAR_ATTACK_INDICATOR_PROGRESS_SPRITE = new ResourceLocation("hud/hotbar_attack_indicator_progress");
 
-    private static final ResourceLocation ZOMBIE_EXPERIENCE_BAR_PROGRESS_SPRITE = new ResourceLocation("hud/zombie_experience_bar_progress");
-    private static final ResourceLocation EXPERIENCE_BAR_BACKGROUND_SPRITE = new ResourceLocation("hud/experience_bar_background");
-
-
+    private static ResourceLocation ZOMBIE_ICONS = new ResourceLocation(BeUndead.MODID, "textures/gui/undead_icons.png");
+    private static final ResourceLocation WIDGETS_LOCATION = new ResourceLocation("textures/gui/widgets.png");
+    private static final ResourceLocation GUI_ICONS_LOCATION = new ResourceLocation("textures/gui/icons.png");
 
 
     @Inject(at = @At("HEAD"), method = "renderHotbar", cancellable = true)
     private void renderItemHotbar(float partialTick, GuiGraphics guiGraphics, CallbackInfo info) {
         if (Minecraft.getInstance().getCameraEntity() instanceof Player player && BeUndeadApi.getZombieType(player) > 0 && BeUndeadApi.getInvStateOfPlayer(player) == 0) {
             info.cancel();
-            ItemStack offhandItemstack = player.getOffhandItem();
+            ItemStack itemstack = player.getOffhandItem();
             HumanoidArm humanoidarm = player.getMainArm().getOpposite();
             int i = guiGraphics.guiWidth() / 2;
             RenderSystem.enableBlend();
@@ -52,14 +47,13 @@ public abstract class GuiMixin {
 
             int additionXSlot = 80;
 
-            guiGraphics.blitSprite(HOTBAR_OFFHAND_RIGHT_SPRITE, i - 98 + additionXSlot, guiGraphics.guiHeight() - 22, 29, 22);
-            guiGraphics.blitSprite(HOTBAR_SELECTION_SPRITE, i - 91 + additionXSlot - 1, guiGraphics.guiHeight() - 22 - 1, 24, 23);
-
-            if (!offhandItemstack.isEmpty()) {
+            guiGraphics.blit(WIDGETS_LOCATION, i - 98 + additionXSlot, this.screenHeight - 22, 53, 22, 29, 24);
+            guiGraphics.blit(WIDGETS_LOCATION, i - 91 + additionXSlot - 1, this.screenHeight - 22 - 1, 0, 22, 24, 22);
+            if (!itemstack.isEmpty()) {
                 if (humanoidarm == HumanoidArm.LEFT) {
-                    guiGraphics.blitSprite(HOTBAR_OFFHAND_LEFT_SPRITE, i - 91 + additionXSlot - 29, guiGraphics.guiHeight() - 23, 29, 24);
+                    guiGraphics.blit(WIDGETS_LOCATION, i - 91 + additionXSlot - 29, this.screenHeight - 23, 24, 22, 29, 24);
                 } else {
-                    guiGraphics.blitSprite(HOTBAR_OFFHAND_RIGHT_SPRITE, i + 91 + additionXSlot, guiGraphics.guiHeight() - 23, 29, 24);
+                    guiGraphics.blit(WIDGETS_LOCATION, i + 91 + additionXSlot, this.screenHeight - 23, 53, 22, 29, 24);
                 }
             }
 
@@ -67,42 +61,36 @@ public abstract class GuiMixin {
             RenderSystem.disableBlend();
             int l = 1;
             int i2;
-            int j2;
-            int k2;
 
+            this.renderSlot(guiGraphics, i - 90 + 2 + additionXSlot, this.screenHeight - 16 - 3, partialTick, player, (ItemStack)player.getInventory().items.get(4), l++);
 
-            i2 = 4;
-            j2 = i - 90 + 2 + additionXSlot;
-            k2 = guiGraphics.guiHeight() - 16 - 3;
-            this.renderSlot(guiGraphics, j2, k2, partialTick, player, (ItemStack)player.getInventory().items.get(i2), l++);
-
-            if (!offhandItemstack.isEmpty()) {
+            if (!itemstack.isEmpty()) {
                 i2 = guiGraphics.guiHeight() - 16 - 3;
                 if (humanoidarm == HumanoidArm.LEFT) {
-                    this.renderSlot(guiGraphics, i - 91 + additionXSlot - 26, i2, partialTick, player, offhandItemstack, l);
+                    this.renderSlot(guiGraphics, i - 91 + additionXSlot - 26, i2, partialTick, player, itemstack, l);
                 } else {
-                    this.renderSlot(guiGraphics, i + 91 + additionXSlot + 10, i2, partialTick, player, offhandItemstack, l);
+                    this.renderSlot(guiGraphics, i + 91 + additionXSlot + 10, i2, partialTick, player, itemstack, l);
                 }
             }
 
             Minecraft minecraft = Minecraft.getInstance();
-            if (minecraft.options.attackIndicator().get() == AttackIndicatorStatus.HOTBAR) {
-                RenderSystem.enableBlend();
-                float f = player.getAttackStrengthScale(0.0F);
+            RenderSystem.enableBlend();
+            if (this.minecraft.options.attackIndicator().get() == AttackIndicatorStatus.HOTBAR) {
+                float f = this.minecraft.player.getAttackStrengthScale(0.0F);
                 if (f < 1.0F) {
-                    j2 = guiGraphics.guiHeight() - 20;
-                    k2 = i + 91 + 6;
+                    int j2 = this.screenHeight - 20;
+                    int k2 = i + 91 + 6;
                     if (humanoidarm == HumanoidArm.RIGHT) {
                         k2 = i - 91 - 22;
                     }
 
                     int l1 = (int)(f * 19.0F);
-                    guiGraphics.blitSprite(HOTBAR_ATTACK_INDICATOR_BACKGROUND_SPRITE, k2, j2, 18, 18);
-                    guiGraphics.blitSprite(HOTBAR_ATTACK_INDICATOR_PROGRESS_SPRITE, 18, 18, 0, 18 - l1, k2, j2 + 18 - l1, 18, l1);
+                    guiGraphics.blit(GUI_ICONS_LOCATION, k2, j2, 0, 94, 18, 18);
+                    guiGraphics.blit(GUI_ICONS_LOCATION, k2, j2 + 18 - l1, 18, 112 - l1, 18, l1);
                 }
-
-                RenderSystem.disableBlend();
             }
+
+            RenderSystem.disableBlend();
         }
 
     }
@@ -135,11 +123,11 @@ public abstract class GuiMixin {
             this.minecraft.getProfiler().push("expBar");
             int j = this.minecraft.player.getXpNeededForNextLevel();
             if (j > 0) {
-                int l = (int)(this.minecraft.player.experienceProgress * 183.0F);
-                int m = this.screenHeight - 32 + 3;
-                guiGraphics.blitSprite(EXPERIENCE_BAR_BACKGROUND_SPRITE, i, m, 182, 5);
-                if (l > 0) {
-                    guiGraphics.blitSprite(ZOMBIE_EXPERIENCE_BAR_PROGRESS_SPRITE, 182, 5, 0, 0, i, m, l, 5);
+                int k = (int)(this.minecraft.player.experienceProgress * 183.0F);
+                int l = this.screenHeight - 32 + 3;
+                guiGraphics.blit(ZOMBIE_ICONS, i, l, 0, 64, 182, 5);
+                if (k > 0) {
+                    guiGraphics.blit(ZOMBIE_ICONS, i, l, 0, 69, k, 5);
                 }
             }
 

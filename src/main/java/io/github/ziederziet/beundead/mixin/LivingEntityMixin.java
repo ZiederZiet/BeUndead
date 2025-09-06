@@ -24,6 +24,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -97,6 +98,16 @@ public abstract class LivingEntityMixin {
         if ((livingEntity instanceof Player player && BeUndeadApi.getZombieType(player) > 0) && (pEffectInstance.getEffect() == MobEffects.REGENERATION || pEffectInstance.getEffect() == MobEffects.POISON || pEffectInstance.getEffect() == MobEffects.HUNGER)){
             info.setReturnValue(false);
             info.cancel();
+        }
+    }
+
+    @Inject(at = @At("HEAD"), method = "onEffectUpdated")
+    protected void onEffectUpdated(MobEffectInstance mobEffectInstance, boolean bl, Entity entity, CallbackInfo info){
+        if (mobEffectInstance.getEffect() == BeUndead.INFECTED_EFFECT){
+            LivingEntity livingEntity = (LivingEntity)(Object)this;
+            if (!livingEntity.level().isClientSide()){
+                BeUndeadApi.addedInfectionEffect(livingEntity);
+            }
         }
     }
 

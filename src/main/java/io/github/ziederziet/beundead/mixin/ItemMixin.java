@@ -42,7 +42,7 @@ public class ItemMixin {
                 info.setReturnValue(InteractionResultHolder.consume(player.getItemInHand(usedHand)));
             } else {
                 ItemStack itemstack = player.getItemInHand(usedHand);
-                FoodProperties foodproperties = itemstack.getFoodComponent();
+                FoodProperties foodproperties = itemstack.getItem().getFoodProperties();
                 if (foodproperties != null){
                     if (!itemstack.is(BeUndead.UNDEAD_EATABLES)){
                         info.setReturnValue(InteractionResultHolder.fail(itemstack));
