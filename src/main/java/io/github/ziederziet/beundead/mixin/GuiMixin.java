@@ -1,13 +1,13 @@
 package io.github.ziederziet.beundead.mixin;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
 import net.minecraft.client.AttackIndicatorStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.player.Player;
@@ -21,8 +21,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Gui.class)
 public abstract class GuiMixin {
-    @Shadow protected abstract void renderSlot(GuiGraphics guiGraphics, int i, int j, float f, Player player, ItemStack itemStack, int k);
-
     @Shadow public abstract Font getFont();
 
     @Shadow private int screenWidth;
@@ -35,7 +33,7 @@ public abstract class GuiMixin {
 
 
     @Inject(at = @At("HEAD"), method = "renderHotbar", cancellable = true)
-    private void renderItemHotbar(float partialTick, GuiGraphics guiGraphics, CallbackInfo info) {
+    private void renderItemHotbar(float f, PoseStack poseStack, CallbackInfo info) {
         if (Minecraft.getInstance().getCameraEntity() instanceof Player player && BeUndeadApi.getZombieType(player) > 0 && BeUndeadApi.getInvStateOfPlayer(player) == 0) {
             info.cancel();
             ItemStack itemstack = player.getOffhandItem();
@@ -94,28 +92,6 @@ public abstract class GuiMixin {
         }
 
     }
-
-//    @Inject(at = @At("HEAD"), method = "renderExperienceBar", cancellable = true)
-//    private void renderExperienceBar(GuiGraphics guiGraphics, int pX, CallbackInfo info){
-//        if (BeUndeadApi.getZombieType(Minecraft.getInstance().player) > 0){
-//            Minecraft.getInstance().getProfiler().push("expBar");
-//            int i = Minecraft.getInstance().player.getXpNeededForNextLevel();
-//            if (i > 0) {
-//                int k = (int)(Minecraft.getInstance().player.experienceProgress * 183.0F);
-//                int l = guiGraphics.guiHeight() - 32 + 3;
-//                RenderSystem.enableBlend();
-//                guiGraphics.blitSprite(EXPERIENCE_BAR_BACKGROUND_SPRITE, pX, l, 182, 5);
-//                if (k > 0) {
-//                    guiGraphics.blitSprite(ZOMBIE_EXPERIENCE_BAR_PROGRESS_SPRITE, 182, 5, 0, 0, pX, l, k, 5);
-//                }
-//
-//                RenderSystem.disableBlend();
-//            }
-//
-//            Minecraft.getInstance().getProfiler().pop();
-//            info.cancel();
-//        }
-//    }
 
     @Inject(at = @At("HEAD"), method = "renderExperienceBar", cancellable = true)
     private void renderExperienceLevel(GuiGraphics guiGraphics, int i, CallbackInfo info){

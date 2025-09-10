@@ -1,17 +1,11 @@
 package io.github.ziederziet.beundead.mixin;
 
 import com.google.common.collect.Lists;
-import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.DeathScreen;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.network.chat.CommonComponents;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import org.spongepowered.asm.mixin.Mixin;
@@ -31,7 +25,7 @@ public abstract class DeathScreenMixin {
     private void setButtonsActiveOverwrite(boolean pActive, CallbackInfo info) {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player != null && BeUndeadApi.getZombieRespawnTimer(player) > 0){
-            long timeDif = BeUndeadApi.getZombieRespawnTimer(player) - player.level().getGameTime();
+            long timeDif = BeUndeadApi.getZombieRespawnTimer(player) - player.level.getGameTime();
             if (timeDif > 0 && !player.hasPermissions(2)) {
                 Button $$1;
                 for(Iterator var2 = this.exitButtons.iterator(); var2.hasNext();) {
