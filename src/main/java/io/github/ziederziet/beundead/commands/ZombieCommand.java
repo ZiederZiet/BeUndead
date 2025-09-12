@@ -239,19 +239,4 @@ public class ZombieCommand extends BaseCommand {
 
         return Command.SINGLE_SUCCESS;
     }
-//
-//    private static int getPos(CommandSourceStack sourceStack, ServerPlayer player){
-//        if (sourceStack.getPlayer() == player){
-//            sourceStack.sendSuccess(() -> {
-//                return Component.translatable("commands.getpos.self", new Object[]{(int)player.getX(), (int)player.getY(), (int)player.getZ(), player.level().dimension().location().toString()});
-//            }, true);
-//        }
-//        else {
-//            sourceStack.sendSuccess(() -> {
-//                return Component.translatable("commands.getpos", new Object[]{player.getDisplayName(), (int)player.getX(), (int)player.getY(), (int)player.getZ(), player.level().dimension().location().toString()});
-//            }, true);
-//        }
-//
-//        return Command.SINGLE_SUCCESS;
-//    }
 }

@@ -4,9 +4,6 @@ import io.github.ziederziet.beundead.BeUndead;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Config(name = BeUndead.MODID)
 public class ModConfig implements ConfigData, ConfigAccessor {
     public InventoryState zombieInvState = InventoryState.ONE_SLOT;
@@ -18,13 +15,16 @@ public class ModConfig implements ConfigData, ConfigAccessor {
     public boolean zombieCanCrit = true;
     public int zombieMaxViewDistance = 4;
     public double zombieWalkSpeed = 1D;
+    public float zombieBreakSpeed = 0.5F;
     public boolean zombieSprintEnabled = false;
     public CureRequirements cureRequirements = CureRequirements.WEAKNESS_AND_APPLE;
     public boolean infectionEnabled = false;
     public boolean onlyTurnWhenInfected = false;
     public boolean forceTurnWhenInfected = true;
     public long respawnTimerToHuman = 0L;
-    public long respawnTimerToZombie = 3600L;
+    public long respawnTimerToZombie = 0L;
+
+    public boolean undeadMode;
 
     @Override
     public int getZombieInvState() {
@@ -97,6 +97,11 @@ public class ModConfig implements ConfigData, ConfigAccessor {
     }
 
     @Override
+    public float getZombieBreakSpeed() {
+        return zombieBreakSpeed;
+    }
+
+    @Override
     public boolean isZombieSprintingEnabled() {
         return zombieSprintEnabled;
     }
@@ -105,4 +110,30 @@ public class ModConfig implements ConfigData, ConfigAccessor {
     public int getCureRequirements() {
         return cureRequirements.getId();
     }
+
+    @Override
+    public boolean hasUndeadMode() {
+        return undeadMode;
+    }
+
+//    public static ModConfig load(Path path) {
+//        if (Files.exists(path)) {
+//            try {
+//                return GSON.fromJson(Files.readString(path), ModConfig.class);
+//            } catch (IOException e) {
+//                System.out.println("Loading config for Be Undead failed!");
+//                e.printStackTrace();
+//            }
+//        }
+//        return new ModConfig();
+//    }
+//
+//    public void save(Path path) {
+//        try {
+//            Files.createDirectories(path.getParent());
+//            Files.writeString(path, GSON.toJson(this));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
 }

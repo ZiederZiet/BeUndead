@@ -38,7 +38,7 @@ public class PlayerMixin {
     @Inject(at = @At("TAIL"), method = "getDestroySpeed", cancellable = true)
     public void getDestroySpeed(BlockState blockState, CallbackInfoReturnable<Float> info){
         if (BeUndeadApi.getZombieType((Player)(Object)this) > 0){
-            info.setReturnValue(info.getReturnValueF() / 3F);
+            info.setReturnValue(info.getReturnValueF() * ConfigAccessor.getConfig().getZombieBreakSpeed());
         }
     }
 

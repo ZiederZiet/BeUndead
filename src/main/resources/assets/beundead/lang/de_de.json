@@ -1,4 +1,6 @@
 {
+  "selectWorld.gameMode.undead": "Spielmodus: Untot",
+  "selectWorld.gameMode.undead.info": "Entdecke die Welt. Spawne als ein Zombie.",
   "effect.beundead.infected": "Infected",
   "death.attack.infectionKill": "%1$s was infected",
   "death.attack.infectionKill.player": "%1$s was infected by %2$s",

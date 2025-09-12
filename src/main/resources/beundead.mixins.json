@@ -5,6 +5,7 @@
   "mixins": [
     "AvoidEntityGoalMixin",
     "BedBlockMixin",
+    "ContextAwarePredicateAccessor",
     "DoorBlockMixin",
     "EnchantmentHelperMixin",
     "EntityMixin",
@@ -12,6 +13,7 @@
     "InventoryMixin",
     "ItemMixin",
     "KeyboardInputMixin",
+    "KilledTriggerMixin",
     "LivingEntityMixin",
     "NearestAttackableTargetGoalAccessor",
     "NearestAttackableTargetGoalMixin",
@@ -21,6 +23,7 @@
     "PlayerSensorMixin",
     "SensorMixin",
     "ServerGamePacketListenerImplMixin",
+    "ServerPlayerMixin",
     "SleepStatusMixin",
     "SlimeMixin",
     "SlotMixin",
@@ -34,6 +37,7 @@
   "client": [
     "AbstractContainerMenuMixin",
     "AbstractContainerScreenMixin",
+    "CreateWorldScreenMixin",
     "CycleButtonMixin",
     "DeathScreenAccessor",
     "DeathScreenMixin",
@@ -51,7 +55,8 @@
     "PlayerModelMixin",
     "PlayerRendererMixin",
     "SlotMixin",
-    "TargetGoalAccessor"
+    "TargetGoalAccessor",
+    "WorldCreationUiStateMixin"
   ],
   "injectors": {
     "defaultRequire": 1

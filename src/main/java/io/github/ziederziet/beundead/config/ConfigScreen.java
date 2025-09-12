@@ -82,6 +82,14 @@ public class ConfigScreen implements ModMenuApi {
 
         general.addEntry(
                 builder.entryBuilder()
+                        .startFloatField(Component.literal("Zombie Break Speed"), config.zombieBreakSpeed)
+                        .setDefaultValue(0.5F)
+                        .setSaveConsumer(newValue -> config.zombieBreakSpeed = newValue)
+                        .build()
+        );
+
+        general.addEntry(
+                builder.entryBuilder()
                         .startIntField(Component.literal("Zombie Max View Distance"), config.zombieMaxViewDistance)
                         .setDefaultValue(4)
                         .setTooltip(Component.literal("0 = No Limit"), Component.literal("Distance in chunks"))
@@ -154,7 +162,7 @@ public class ConfigScreen implements ModMenuApi {
         respawnTimer.addEntry(
                 builder.entryBuilder()
                         .startLongField(Component.literal("Respawn timer when respawning as zombie"), config.respawnTimerToZombie)
-                        .setDefaultValue(3600L)
+                        .setDefaultValue(0L)
                         .setSaveConsumer(newValue -> config.respawnTimerToZombie = newValue)
                         .build()
         );
@@ -167,7 +175,6 @@ public class ConfigScreen implements ModMenuApi {
             if (server != null){
                 ModNetworking.sendToAllClients(server, ConfigAccessor.getPacket());
             }
-            // TODO SENT TO ALL
         });
 
         return builder.build();

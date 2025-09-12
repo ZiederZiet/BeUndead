@@ -1,4 +1,6 @@
 {
+  "selectWorld.gameMode.undead": "Game Mode: Undead",
+  "selectWorld.gameMode.undead.info": "Explore the world, spawning as an undead zombie.",
   "effect.beundead.infected": "Infected",
   "death.attack.infectionKill": "%1$s würde infiziert",
   "death.attack.infectionKill.player": "%1$s würde von %2$s infiziert",

@@ -35,4 +35,7 @@ public interface ConfigAccessor {
     long getRespawnTimer();
     long getRespawnTimerToZombie();
     double getZombieWalkSpeed(); // 0.46   ZOMBIE
+    float getZombieBreakSpeed();
+
+    boolean hasUndeadMode();
 }

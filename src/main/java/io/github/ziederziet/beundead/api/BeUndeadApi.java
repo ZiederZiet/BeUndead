@@ -54,9 +54,11 @@ public class BeUndeadApi {
     public static void setZombieType(Player player, int type, boolean packet) {
         ((UndeadAccessor)player).setType(type);
 
-        sendUndeadPacket(player);
+        if (packet){
+            sendUndeadPacket(player);
+        }
 
-        BeUndeadApi.setZombieRespawnTimer(player, -1);
+        BeUndeadApi.setZombieRespawnTimer(player, -1, packet);
     }
 
     public static void setZombieType(Player player, int type) {
@@ -143,9 +145,14 @@ public class BeUndeadApi {
         return ((UndeadAccessor)player).getZombieRespawnTimer();
     }
     public static void setZombieRespawnTimer(Player player, long respawnTimer){
+        setZombieRespawnTimer(player, respawnTimer, true);
+    }
+    public static void setZombieRespawnTimer(Player player, long respawnTimer, boolean packet){
         ((UndeadAccessor)player).setZombieRespawnTimer(respawnTimer);
 
-        sendRespawnTimePacket(player);
+        if (packet){
+            sendRespawnTimePacket(player);
+        }
     }
     public static long getZombieConversionTime(Player player){
         return ((UndeadAccessor)player).getZombieConversionTime();

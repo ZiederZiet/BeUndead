@@ -21,7 +21,7 @@ public class UndeadMixin implements UndeadAccessor, InfectionAccessor {
     private long respawnTimer;
     private long conversionTime;
     private int conversionType;
-    private int type;
+    private int type = 0;
 
     private boolean converting;
 
