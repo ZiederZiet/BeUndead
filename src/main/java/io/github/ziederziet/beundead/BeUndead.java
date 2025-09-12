@@ -60,7 +60,7 @@ public class BeUndead implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		//AutoConfig.register(ModConfig.class, JanksonConfigSerializer::new);
+		AutoConfig.register(ModConfig.class, JanksonConfigSerializer::new);
 
 		Registry.register(BuiltInRegistries.MOB_EFFECT,
 				INFECTED_EFFECT_KEY.location(),
