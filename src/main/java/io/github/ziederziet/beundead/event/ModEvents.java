@@ -4,7 +4,7 @@ import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
 import io.github.ziederziet.beundead.client.UndeadSkinManager;
 import io.github.ziederziet.beundead.common.InfectionAccessor;
-import io.github.ziederziet.beundead.config.ConfigAccessor;
+import io.github.ziederziet.beundead.config.ServerConfigAccessor;
 import io.github.ziederziet.beundead.mixin.DeathScreenAccessor;
 import io.github.ziederziet.beundead.networking.ModNetworking;
 import io.github.ziederziet.beundead.networking.UndeadDataPacket;
@@ -53,7 +53,7 @@ public class ModEvents {
         if (livingEntity.level().isClientSide()) return true;
 
         if (livingEntity instanceof Player player) {
-            ConfigAccessor config = ConfigAccessor.getConfig();
+            ServerConfigAccessor config = ServerConfigAccessor.getConfig();
             boolean husks = config.areHusksEnabled();
             boolean drowned = config.areDrownedEnabled();
 
@@ -123,7 +123,7 @@ public class ModEvents {
                     player.getCombatTracker().recheckStatus();
                     player.setLastDeathLocation(Optional.of(GlobalPos.of(player.level().dimension(), player.blockPosition())));
 
-                    BeUndeadApi.checkItemsInNewState(player, !player.isSpectator());
+                    BeUndeadApi.checkNotSupposedItems(player, !player.isSpectator());
 
                     return false;
                 }
@@ -210,7 +210,7 @@ public class ModEvents {
         if (damageSource.getEntity() instanceof Player player && BeUndeadApi.getZombieType(player) == 2){
             livingEntity.addEffect(new MobEffectInstance(MobEffects.HUNGER, 600, 0));
         }
-        else if (ConfigAccessor.getConfig().isInfectionEnabled() && livingEntity instanceof Villager || (livingEntity instanceof Player player && BeUndeadApi.getZombieType(player) <= 0)){
+        else if (ServerConfigAccessor.getConfig().isInfectionEnabled() && livingEntity instanceof Villager || (livingEntity instanceof Player player && BeUndeadApi.getZombieType(player) <= 0)){
             if (damageSource.getEntity() instanceof Zombie || (damageSource.getEntity() instanceof Player playerAttacker && BeUndeadApi.getZombieType(playerAttacker) > 0)){
                 if (livingEntity.getRandom().nextBoolean()){
                     Player infecter = damageSource.getEntity() instanceof Player playerAttacker ? playerAttacker : null;
@@ -232,18 +232,14 @@ public class ModEvents {
     }
 
     public static void JoinServerEvent(ServerGamePacketListenerImpl serverGamePacketListener, PacketSender packetSender, MinecraftServer minecraftServer){
-        ConfigAccessor config = ConfigAccessor.getConfig();
+        ServerPlayer player = serverGamePacketListener.getPlayer();
 
-        if (!config.getZombieCanChestExtension()){
-            if (BeUndeadApi.hasZombieChest(serverGamePacketListener.getPlayer())){
-                serverGamePacketListener.getPlayer().drop(new ItemStack(Items.CHEST), true, false);
-                BeUndeadApi.setZombieChest(serverGamePacketListener.getPlayer(), false, false);
-            }
-        }
+        BeUndeadApi.checkAndDropChestExtension(player);
+        BeUndeadApi.checkNotSupposedItems(player, !player.isSpectator());
 
-        BeUndeadApi.sendUndeadPacket(serverGamePacketListener.getPlayer());
+        BeUndeadApi.sendUndeadPacket(player);
 
-        ModNetworking.sendToClient(ConfigAccessor.getPacket(), (ServerPlayer) serverGamePacketListener.getPlayer());
+        ModNetworking.sendToClient(ServerConfigAccessor.getPacket(), player);
     }
 
     public static Player.BedSleepingProblem AllowSleepingEvent(Player player, BlockPos blockPos){

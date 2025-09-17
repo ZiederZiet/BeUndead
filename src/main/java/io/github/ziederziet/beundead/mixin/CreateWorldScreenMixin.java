@@ -1,10 +1,7 @@
 package io.github.ziederziet.beundead.mixin;
 
 import io.github.ziederziet.beundead.common.WorldCreationUiStateUndeadStateAccessor;
-import io.github.ziederziet.beundead.config.ConfigAccessor;
-import io.github.ziederziet.beundead.config.ModConfig;
-import me.shedaniel.autoconfig.AutoConfig;
-import me.shedaniel.autoconfig.ConfigHolder;
+import io.github.ziederziet.beundead.config.ServerModConfig;
 import net.minecraft.client.gui.screens.worldselection.CreateWorldScreen;
 import net.minecraft.client.gui.screens.worldselection.WorldCreationUiState;
 import org.spongepowered.asm.mixin.Mixin;
@@ -19,12 +16,13 @@ public abstract class CreateWorldScreenMixin {
 
     @Inject(at = @At("HEAD"), method = "onCreate")
     private void onCreate(CallbackInfo info){
-        ConfigHolder<ModConfig> holder = AutoConfig.getConfigHolder(ModConfig.class);
-
-        ModConfig config = holder.getConfig();
+        ServerModConfig config = ServerModConfig.getOrCreate();
 
         config.undeadMode = ((WorldCreationUiStateUndeadStateAccessor)getUiState()).hasUndeadMode();
+    }
 
-        holder.save();
+    @Inject(at = @At("HEAD"), method = "popScreen")
+    public void popScreen(CallbackInfo info){
+        ServerModConfig.clearConfig();
     }
 }

@@ -1,21 +1,21 @@
 package io.github.ziederziet.beundead.config;
 
 import io.github.ziederziet.beundead.networking.ZombieSettingsPacket;
-import me.shedaniel.autoconfig.AutoConfig;
 
-public interface ConfigAccessor {
-    static ConfigAccessor getConfig(){
-        return AutoConfig.getConfigHolder(ModConfig.class).getConfig();
+public interface ServerConfigAccessor {
+    static ServerConfigAccessor getConfig(){
+        return ServerModConfig.get();
     }
 
-    public static ZombieSettingsPacket getPacket(){
-        ConfigAccessor config = getConfig();
+    static ZombieSettingsPacket getPacket(){
+        ServerConfigAccessor config = getConfig();
         return new ZombieSettingsPacket(config.getZombieInvState(),
                 config.getZombieCanChestExtension(),
                 config.getZombieNightVision(),
                 config.getZombieJumpOnTheirOwn(),
                 config.getZombieMaxViewDistance(),
-                config.getZombieWalkSpeed());
+                config.getZombieWalkSpeed(),
+                config.isZombieSprintingEnabled());
     }
 
     int getZombieInvState(); // 0 = one slot | 1 = hotbar | 2 = full inv            CLIENT SIDE
@@ -36,6 +36,7 @@ public interface ConfigAccessor {
     long getRespawnTimerToZombie();
     double getZombieWalkSpeed(); // 0.46   ZOMBIE
     float getZombieBreakSpeed();
+    boolean getZombieOnlyKillExperience();
 
     boolean hasUndeadMode();
 }

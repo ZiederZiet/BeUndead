@@ -7,4 +7,5 @@ public class ClientInfo {
     public static boolean zombieJumpOnTheirOwn;
     public static int zombieMaxViewDistance = 4;
     public static double zombieWalkingSpeed;
+    public static boolean zombieSprintEnabled;
 }

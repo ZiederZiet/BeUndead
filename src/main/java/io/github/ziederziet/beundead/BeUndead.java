@@ -1,13 +1,13 @@
 package io.github.ziederziet.beundead;
 
 import io.github.ziederziet.beundead.commands.ModCommands;
-import io.github.ziederziet.beundead.config.ModConfig;
+import io.github.ziederziet.beundead.config.ClientModConfig;
+import io.github.ziederziet.beundead.config.ServerModConfig;
 import io.github.ziederziet.beundead.event.ModEvents;
 import io.github.ziederziet.beundead.networking.ModNetworking;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
-
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents;
@@ -60,7 +60,8 @@ public class BeUndead implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		AutoConfig.register(ModConfig.class, JanksonConfigSerializer::new);
+		AutoConfig.register(ClientModConfig.class, JanksonConfigSerializer::new);
+		ServerModConfig.register();
 
 		Registry.register(BuiltInRegistries.MOB_EFFECT,
 				INFECTED_EFFECT_KEY.location(),

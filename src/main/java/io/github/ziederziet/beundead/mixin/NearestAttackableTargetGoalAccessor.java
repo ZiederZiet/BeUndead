@@ -1,6 +1,5 @@
 package io.github.ziederziet.beundead.mixin;
 
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import org.spongepowered.asm.mixin.Mixin;

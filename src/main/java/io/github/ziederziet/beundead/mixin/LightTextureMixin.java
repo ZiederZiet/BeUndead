@@ -2,7 +2,6 @@ package io.github.ziederziet.beundead.mixin;
 
 import io.github.ziederziet.beundead.api.BeUndeadApi;
 import io.github.ziederziet.beundead.common.ClientInfo;
-import io.github.ziederziet.beundead.config.ConfigAccessor;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.core.Holder;

@@ -4,15 +4,13 @@ import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.common.ClientInfo;
 import io.github.ziederziet.beundead.common.InfectionAccessor;
 import io.github.ziederziet.beundead.common.UndeadAccessor;
-import io.github.ziederziet.beundead.config.ConfigAccessor;
+import io.github.ziederziet.beundead.config.ServerConfigAccessor;
 import io.github.ziederziet.beundead.networking.ModNetworking;
 import io.github.ziederziet.beundead.networking.RespawnTimerPacket;
 import io.github.ziederziet.beundead.networking.UndeadDataPacket;
 import io.github.ziederziet.beundead.theyre_coming.TheyreComingAccessor;
 import net.minecraft.advancements.CriteriaTriggers;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
+import net.minecraft.core.*;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -31,6 +29,10 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.levelgen.Heightmap;
 import org.joml.Vector3f;
 
 import java.util.HashMap;
@@ -53,6 +55,9 @@ public class BeUndeadApi {
 
     public static void setZombieType(Player player, int type, boolean packet) {
         ((UndeadAccessor)player).setType(type);
+        if (type <= 0){
+            checkAndDropChestExtension(player);
+        }
 
         if (packet){
             sendUndeadPacket(player);
@@ -81,7 +86,7 @@ public class BeUndeadApi {
         return switch (BeUndeadApi.getZombieType(player)) {
             case 3 -> SoundEvents.DROWNED_HURT;
             case 2 -> SoundEvents.HUSK_HURT;
-            default -> SoundEvents.ZOGLIN_HURT;
+            default -> SoundEvents.ZOMBIE_HURT;
         };
     }
 
@@ -89,7 +94,7 @@ public class BeUndeadApi {
         return switch (BeUndeadApi.getZombieType(player)) {
             case 3 -> SoundEvents.DROWNED_DEATH;
             case 2 -> SoundEvents.HUSK_DEATH;
-            default -> SoundEvents.ZOGLIN_DEATH;
+            default -> SoundEvents.ZOMBIE_DEATH;
         };
     }
 
@@ -116,7 +121,7 @@ public class BeUndeadApi {
         if (player.level().isClientSide()){
             return ClientInfo.zombieWalkingSpeed;
         }
-        return ConfigAccessor.getConfig().getZombieWalkSpeed();
+        return ServerConfigAccessor.getConfig().getZombieWalkSpeed();
     }
 
     public static boolean canJump(Player player){
@@ -126,7 +131,7 @@ public class BeUndeadApi {
             return !player.isInWater() && ClientInfo.zombieJumpOnTheirOwn;
         }
         else {
-            return !player.isInWater() && ConfigAccessor.getConfig().getZombieJumpOnTheirOwn();
+            return !player.isInWater() && ServerConfigAccessor.getConfig().getZombieJumpOnTheirOwn();
         }
     }
 
@@ -140,6 +145,10 @@ public class BeUndeadApi {
         ((UndeadAccessor)player).setZombieChest(has);
 
         sendUndeadPacket(player);
+
+        if (!has){
+            checkNotSupposedItems(player, !player.isSpectator());
+        }
     }
     public static long getZombieRespawnTimer(Player player){
         return ((UndeadAccessor)player).getZombieRespawnTimer();
@@ -203,10 +212,14 @@ public class BeUndeadApi {
     }
 
     public static void startConverting(Player player, int toType, Player starter){
-        if (getZombieType(player) > 0 && player.hasEffect(MobEffects.WEAKNESS) && !player.hasEffect(MobEffects.DAMAGE_BOOST)){
-            player.removeEffect(MobEffects.WEAKNESS);
+        if (getZombieType(player) > 0){
+            if (ServerConfigAccessor.getConfig().getCureRequirements() > 1){
+                player.removeEffect(MobEffects.WEAKNESS);
+            }
 
-            ((UndeadAccessor)player).setConversionStarter(starter.getUUID());
+            if (starter != null){
+                ((UndeadAccessor)player).setConversionStarter(starter.getUUID());
+            }
 
             BeUndeadApi.setZombieConversionType(player, toType);
             int conversionTime = player.getRandom().nextInt(2401) + 3600;
@@ -216,25 +229,68 @@ public class BeUndeadApi {
         }
     }
 
-    public static void checkItemsInNewState(Player player, boolean drop){
-        int newInvState = BeUndeadApi.getInvStateOfPlayer(player);
-        if (newInvState < 2){
-            for (int i = 0; i < player.getInventory().items.size(); i++) {
-                if (i > 9){
-                    if (drop){
-                        player.drop(player.getInventory().items.get(i).copy(), true, false);
-                    }
-                    player.getInventory().items.get(i).setCount(0);
+    public static void stopConverting(Player player){
+        if (getZombieType(player) > 0){
+            ((UndeadAccessor)player).setConversionStarter(null);
+
+            BeUndeadApi.setZombieConversionType(player, 0);
+            BeUndeadApi.setZombieConversionTime(player, 0);
+        }
+    }
+
+    public static void checkNotSupposedItems(Player player, boolean drop) {
+        int invState = BeUndeadApi.getInvStateOfPlayer(player);
+
+        if (invState < 2){
+            for (int i = 9; i < player.getInventory().items.size(); i++) {
+                if (drop){
+                    player.drop(player.getInventory().items.get(i), true, false);
                 }
-                else if (i != 4 && newInvState < 1){
-                    if (drop){
-                        player.drop(player.getInventory().items.get(i).copy(), true, false);
+
+                player.getInventory().items.set(i, ItemStack.EMPTY);
+            }
+        }
+        if (invState < 1){
+            player.getInventory().selected = 4;
+
+            checkSideItems(player);
+        }
+    }
+
+    public static void checkSideItems(Player player){
+        boolean emptyFirstSlot = player.getInventory().items.get(4).isEmpty();
+        for (int i = 0; i < 9; i++) {
+            if (i != 4){
+                if (!player.getInventory().items.get(i).isEmpty()){
+                    if (emptyFirstSlot){
+                        player.getInventory().items.set(4, player.getInventory().items.get(i));
+                        player.getInventory().items.set(i, ItemStack.EMPTY);
+                        emptyFirstSlot = false;
+                    } else {
+                        player.drop(player.getInventory().items.get(i), true, false);
+                        player.getInventory().items.set(i, ItemStack.EMPTY);
                     }
-                    player.getInventory().items.get(i).setCount(0);
                 }
             }
         }
+    }
 
+    public static void checkAndDropChestExtension(Player player){
+        if (BeUndeadApi.hasZombieChest(player)){
+            if (!ServerConfigAccessor.getConfig().getZombieCanChestExtension() || BeUndeadApi.getZombieType(player) <= 0){
+                BeUndeadApi.setZombieChest(player, false);
+                player.drop(new ItemStack(Items.CHEST, 1), true, false);
+            }
+        }
+    }
+
+    public static void checkNotSupposedItemsAndDropChestExtensionForAllPlayers(){
+        if (BeUndead.getServer() != null){
+            BeUndead.getServer().getPlayerList().getPlayers().forEach(serverPlayer -> {
+                checkAndDropChestExtension(serverPlayer);
+                checkNotSupposedItems(serverPlayer, !serverPlayer.isSpectator());
+            });
+        }
     }
 
     public static int getInvStateOfPlayer(Player player){
@@ -247,7 +303,7 @@ public class BeUndeadApi {
             return Math.min(ClientInfo.zombieInvState + (hasChest && ClientInfo.canChestExtension ? 1 : 0), 2);
         }
         else{
-            ConfigAccessor config = ConfigAccessor.getConfig();
+            ServerConfigAccessor config = ServerConfigAccessor.getConfig();
             return Math.min(config.getZombieInvState() + (hasChest && config.getZombieCanChestExtension() ? 1 : 0), 2);
         }
     }
@@ -326,36 +382,45 @@ public class BeUndeadApi {
         return false;
     }
 
-    public static void checkSideItems(Player player) {
-        boolean emptyFirstSlot = player.getInventory().items.get(4).isEmpty();
-        for (int i = 0; i < 9; i++) {
-            if (i != 4){
-                if (!player.getInventory().items.get(i).isEmpty()){
-                    if (emptyFirstSlot){
-                        player.getInventory().items.set(4, player.getInventory().items.get(i));
-                        player.getInventory().items.set(i, ItemStack.EMPTY);
-                        emptyFirstSlot = false;
-                    } else {
-                        player.drop(player.getInventory().items.get(i), true);
-                        player.getInventory().items.set(i, ItemStack.EMPTY);
+    public static BlockPos getOverworldRespawnPosForUndead(ServerLevel serverLevel, int i, int j) {
+        boolean bl = serverLevel.dimensionType().hasCeiling();
+        LevelChunk levelChunk = serverLevel.getChunk(SectionPos.blockToSectionCoord(i), SectionPos.blockToSectionCoord(j));
+        int k = bl ? serverLevel.getChunkSource().getGenerator().getSpawnHeight(serverLevel) : levelChunk.getHeight(Heightmap.Types.MOTION_BLOCKING, i & 15, j & 15);
+        if (k < serverLevel.getMinBuildHeight()) {
+            return null;
+        } else {
+            int l = levelChunk.getHeight(Heightmap.Types.WORLD_SURFACE, i & 15, j & 15);
+            if (l <= k && l > levelChunk.getHeight(Heightmap.Types.OCEAN_FLOOR, i & 15, j & 15)) {
+                return null;
+            } else {
+                BlockPos.MutableBlockPos mutableBlockPos = new BlockPos.MutableBlockPos();
+
+                for(int m = k + 1; m >= serverLevel.getMinBuildHeight(); --m) {
+                    mutableBlockPos.set(i, m, j);
+                    BlockState blockState = serverLevel.getBlockState(mutableBlockPos);
+                    if (!blockState.getFluidState().isEmpty()) {
+                        break;
+                    }
+
+                    if (m < k && Block.isFaceFull(blockState.getCollisionShape(serverLevel, mutableBlockPos), Direction.UP)) {
+                        return mutableBlockPos.above().immutable();
                     }
                 }
+
+                return null;
             }
         }
     }
 
 
-
-
-
     public static void infectBy(LivingEntity infected, Player by, int amount){
-        if (ConfigAccessor.getConfig().isInfectionEnabled()){
+        if (ServerConfigAccessor.getConfig().isInfectionEnabled()){
             ((InfectionAccessor)infected).infectBy(by, amount);
         }
     }
 
     public static void infectTick(LivingEntity infected){
-        if (ConfigAccessor.getConfig().isInfectionEnabled()){
+        if (ServerConfigAccessor.getConfig().isInfectionEnabled()){
             InfectionAccessor accessor = (InfectionAccessor)infected;
             int inInfection = accessor.getInInfection() - IN_INFECTION_TO_OUTER_THRESHOLD;
             if (inInfection >= 0){
@@ -371,7 +436,7 @@ public class BeUndeadApi {
                         showInfection(infected);
                     }
 
-                    if (ConfigAccessor.getConfig().getForceTurnWhenInfected() && infected.getRandom().nextBoolean()){
+                    if (ServerConfigAccessor.getConfig().getForceTurnWhenInfected() && infected.getRandom().nextBoolean()){
                         int infKill = accessor.getInfectionKillTicks() + 1;
                         accessor.setInfectionKillTicks(infKill);
 
@@ -398,7 +463,7 @@ public class BeUndeadApi {
     public static void infectionReadAdditionalSaveData(CompoundTag tag, InfectionAccessor infectionAccessor, HashMap<UUID, Integer> map){
         map.clear();
 
-        if (ConfigAccessor.getConfig().isInfectionEnabled()){
+        if (ServerConfigAccessor.getConfig() != null && ServerConfigAccessor.getConfig().isInfectionEnabled()){
             infectionAccessor.setInInfection(tag.getInt("InfectionIn"));
             infectionAccessor.setOutInfection(tag.getInt("InfectionOut"));
             infectionAccessor.setInfectionKillTicks(tag.getInt("InfectionKillTicks"));
@@ -422,7 +487,7 @@ public class BeUndeadApi {
     }
 
     public static void infectionAddAdditionalSaveData(CompoundTag tag, InfectionAccessor infectionAccessor, HashMap<UUID, Integer> map){
-        if (ConfigAccessor.getConfig().isInfectionEnabled()){
+        if (ServerConfigAccessor.getConfig() == null || ServerConfigAccessor.getConfig().isInfectionEnabled()){
             tag.putInt("InfectionIn", infectionAccessor.getInInfection());
             tag.putInt("InfectionOut", infectionAccessor.getOutInfection());
             tag.putInt("InfectionKillTicks", infectionAccessor.getInfectionKillTicks());

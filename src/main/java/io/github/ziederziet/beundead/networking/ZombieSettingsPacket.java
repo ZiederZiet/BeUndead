@@ -21,13 +21,15 @@ public class ZombieSettingsPacket implements CustomPacketPayload {
     boolean jumpOnTheirOwn;
     int zombieMaxViewDistance;
     double zombieWalkingSpeed;
-    public ZombieSettingsPacket(int invState, boolean canChestExtension, boolean nightVision, boolean jumpOnTheirOwn, int zombieMaxViewDistance, double zombieWalkingSpeed){
+    boolean zombieSprintEnabled;
+    public ZombieSettingsPacket(int invState, boolean canChestExtension, boolean nightVision, boolean jumpOnTheirOwn, int zombieMaxViewDistance, double zombieWalkingSpeed, boolean zombieSprintEnabled){
         this.invState = invState;
         this.canChestExtension = canChestExtension;
         this.nightVision = nightVision;
         this.jumpOnTheirOwn = jumpOnTheirOwn;
         this.zombieMaxViewDistance = zombieMaxViewDistance;
         this.zombieWalkingSpeed = zombieWalkingSpeed;
+        this.zombieSprintEnabled = zombieSprintEnabled;
     }
 
     public ZombieSettingsPacket(FriendlyByteBuf buffer){
@@ -37,6 +39,7 @@ public class ZombieSettingsPacket implements CustomPacketPayload {
         jumpOnTheirOwn = buffer.readBoolean();
         zombieMaxViewDistance = buffer.readInt();
         zombieWalkingSpeed = buffer.readDouble();
+        zombieSprintEnabled = buffer.readBoolean();
     }
 
     public void encode(FriendlyByteBuf buffer){
@@ -46,6 +49,7 @@ public class ZombieSettingsPacket implements CustomPacketPayload {
         buffer.writeBoolean(jumpOnTheirOwn);
         buffer.writeInt(zombieMaxViewDistance);
         buffer.writeDouble(zombieWalkingSpeed);
+        buffer.writeBoolean(zombieSprintEnabled);
     }
 
     public void handle(ClientPlayNetworking.Context context){
@@ -55,6 +59,7 @@ public class ZombieSettingsPacket implements CustomPacketPayload {
         ClientInfo.zombieJumpOnTheirOwn = jumpOnTheirOwn;
         ClientInfo.zombieMaxViewDistance = zombieMaxViewDistance;
         ClientInfo.zombieWalkingSpeed = zombieWalkingSpeed;
+        ClientInfo.zombieSprintEnabled = zombieSprintEnabled;
     }
 
     @Override

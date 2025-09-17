@@ -3,7 +3,7 @@ package io.github.ziederziet.beundead.mixin;
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
 import io.github.ziederziet.beundead.common.ClientInfo;
-import io.github.ziederziet.beundead.config.ConfigAccessor;
+import io.github.ziederziet.beundead.config.ServerConfigAccessor;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -29,7 +29,7 @@ public class ItemMixin {
                         return;
                     }
                 }
-                else if (!ConfigAccessor.getConfig().getZombieCanChestExtension()) {
+                else if (!ServerConfigAccessor.getConfig().getZombieCanChestExtension()) {
                     return;
                 }
                 info.cancel();
@@ -37,7 +37,9 @@ public class ItemMixin {
                     BeUndeadApi.setZombieChest(player, true);
                     player.getItemInHand(usedHand).consume(1, player);
                 }
-                level.playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.ARMOR_EQUIP_GENERIC, SoundSource.PLAYERS, 1.0F, 1.0F);
+                else {
+                    player.playSound(SoundEvents.ARMOR_EQUIP_GENERIC.value());
+                }
                 info.setReturnValue(InteractionResultHolder.consume(player.getItemInHand(usedHand)));
             } else {
                 ItemStack itemstack = player.getItemInHand(usedHand);

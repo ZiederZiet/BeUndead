@@ -23,9 +23,6 @@ public abstract class KilledTriggerMixin extends SimpleCriterionTrigger {
     @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/advancements/critereon/KilledTrigger;trigger(Lnet/minecraft/server/level/ServerPlayer;Ljava/util/function/Predicate;)V"), method = "trigger")
     public void trigger(KilledTrigger instance, ServerPlayer player, Predicate<SimpleCriterionTrigger.SimpleInstance> predicate, ServerPlayer serverPlayer, Entity entity, DamageSource damageSource){
         LootContext lootContext = EntityPredicate.createContext(serverPlayer, entity);
-//        predicate = predicate.or(simpleInstance -> {
-//            return lootContext.hasParam();
-//        });
         this.trigger(serverPlayer, (triggerObject) -> {
             KilledTrigger.TriggerInstance triggerInstance = (((KilledTrigger.TriggerInstance)triggerObject));
             if (triggerInstance.matches(serverPlayer, lootContext, damageSource)){
