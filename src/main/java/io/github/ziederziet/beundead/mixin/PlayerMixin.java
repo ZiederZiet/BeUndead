@@ -3,6 +3,7 @@ package io.github.ziederziet.beundead.mixin;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
 import io.github.ziederziet.beundead.config.ClientConfigAccessor;
 import io.github.ziederziet.beundead.config.ServerConfigAccessor;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
@@ -49,7 +50,7 @@ public class PlayerMixin {
 
     @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;onClimbable()Z"), method = "attack")
     public boolean noCritRedirect(Player instance){
-        if (BeUndeadApi.getZombieType(instance) > 0 && !ServerConfigAccessor.getConfig().getZombieCanCrit()){
+        if (instance instanceof ServerPlayer serverPlayer && BeUndeadApi.getZombieType(serverPlayer) > 0 && !ServerConfigAccessor.getConfig().getZombieCanCrit()){
             return true;
         }
 

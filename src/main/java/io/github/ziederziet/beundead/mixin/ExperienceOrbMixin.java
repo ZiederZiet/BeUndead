@@ -2,6 +2,7 @@ package io.github.ziederziet.beundead.mixin;
 
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.config.ServerConfigAccessor;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
@@ -26,15 +27,19 @@ public abstract class ExperienceOrbMixin {
 
     @Inject(at = @At("TAIL"), method = "scanForEntities")
     protected void scanForEntities(CallbackInfo info) {
-        if (this.followingPlayer != null && BeUndeadApi.getZombieType(this.followingPlayer) > 0){
-            this.followingPlayer = null;
+        if (ServerConfigAccessor.getConfig().getZombieOnlyKillExperience()){
+            if (this.followingPlayer != null && BeUndeadApi.getZombieType(this.followingPlayer) > 0){
+                this.followingPlayer = null;
+            }
         }
     }
 
     @Inject(at = @At("HEAD"), method = "playerTouch(Lnet/minecraft/world/entity/player/Player;)V", cancellable = true)
     public void playerTouch(Player pEntity, CallbackInfo info){
-        if (BeUndeadApi.getZombieType(pEntity) > 0){
-            info.cancel();
+        if (ServerConfigAccessor.getConfig().getZombieOnlyKillExperience()){
+            if (BeUndeadApi.getZombieType(pEntity) > 0){
+                info.cancel();
+            }
         }
     }
 }

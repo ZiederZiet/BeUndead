@@ -6,6 +6,7 @@
     "AbstractFurnaceBlockEntityMixin",
     "AvoidEntityGoalMixin",
     "BedBlockMixin",
+    "BlockMixin",
     "ContextAwarePredicateAccessor",
     "DoorBlockMixin",
     "EnchantmentHelperMixin",

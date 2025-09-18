@@ -32,14 +32,6 @@ public class EntityMixin {
         }
     }
 
-//    @Inject(at = @At("HEAD"), method = "isSprinting()Z", cancellable = true)
-//    public void isSprinting(CallbackInfoReturnable<Boolean> info) {
-//        if ((Object)this instanceof Player player && BeUndeadApi.getZombieType(player) > 0) {
-//            info.setReturnValue(false);
-//            info.cancel();
-//        }
-//    }
-
     @Inject(at = @At("HEAD"), method = "interact(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;", cancellable = true)
     public void interact(Player player, InteractionHand pHand, CallbackInfoReturnable<InteractionResult> info){
         if (!player.level().isClientSide() && (Object)this instanceof Player thisPlayer && BeUndeadApi.getZombieType(thisPlayer) > 0){

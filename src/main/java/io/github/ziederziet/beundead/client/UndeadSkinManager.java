@@ -99,43 +99,6 @@ public class UndeadSkinManager {
             DynamicTexture dynamicTexture = new DynamicTexture(nativeImage);
 
             return minecraft.getTextureManager().register("undeadskin/" + location.getPath(), dynamicTexture);
-
-//            if (optional.isPresent()){
-//                System.out.println("THERE");
-//
-//                Resource resource = optional.get();
-//
-//                try {
-//                    NativeImage image = NativeImage.read(resource.open());
-//
-//                    for (int y = 0; y < image.getHeight(); y++) {
-//                        for (int x = 0; x < image.getWidth(); x++) {
-//                            int rgba = image.getPixelRGBA(x, y);
-//
-//                            int a = FastColor.ARGB32.alpha(rgba);
-//                            int r = FastColor.ARGB32.red(rgba);
-//                            int g = FastColor.ARGB32.green(rgba);
-//                            int b = FastColor.ARGB32.blue(rgba);
-//
-//                            double light = (r * 0.85 + g + b * 0.7) / 2.55;
-//
-//                            r = (int) Math.round(Math.clamp(light * ZOMBIE_COLORS[type - 1].x + (ZOMBIE_COLOR_OFFSETS[type - 1].x * 255D), 0D, 255D));
-//                            g = (int) Math.round(Math.clamp(light * ZOMBIE_COLORS[type - 1].y + (ZOMBIE_COLOR_OFFSETS[type - 1].y * 255D), 0D, 255D));
-//                            b = (int) Math.round(Math.clamp(light * ZOMBIE_COLORS[type - 1].z + (ZOMBIE_COLOR_OFFSETS[type - 1].z * 255D), 0D, 255D));
-//
-//                            image.setPixelRGBA(x, y, FastColor.ARGB32.color(a, r, g, b));
-//                        }
-//                    }
-//
-//                    DynamicTexture dynamicTexture = new DynamicTexture(image);
-//
-//                    return minecraft.getTextureManager().register("modskin/" + uuid.toString(), dynamicTexture);
-//                } catch (IOException e) {
-//                    throw new RuntimeException(e);
-//                }
-//            }
-
-            //return defaultLocation;
         });
     }
 }

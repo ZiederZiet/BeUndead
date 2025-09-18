@@ -1,0 +1,8 @@
+{
+  "selectWorld.gameMode.undead": "Mode de jeu: Mort-vivant",
+  "selectWorld.gameMode.undead.info": "Explorez le monde en apparaissant comme un zombie mort-vivant.",
+  "selectWorld.beUndeadConfig": "Be Undead Configuration",
+  "effect.beundead.infected": "Infecté",
+  "death.attack.infectionKill": "%1$s a été infecté",
+  "death.attack.infectionKill.player": "%1$s a été infecté par %2$s"
+}

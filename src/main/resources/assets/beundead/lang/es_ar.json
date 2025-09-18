@@ -1,0 +1,8 @@
+{
+  "selectWorld.gameMode.undead": "Modo de juego: No muertos",
+  "selectWorld.gameMode.undead.info": "Explora el mundo y apareciste como un zombi no muerto.",
+  "selectWorld.beUndeadConfig": "Be Undead Configuración",
+  "effect.beundead.infected": "Infectado",
+  "death.attack.infectionKill": "%1$s estaba infectado",
+  "death.attack.infectionKill.player": "%1$s jfue infectada por %2$s"
+}
