@@ -3,8 +3,11 @@ package io.github.ziederziet.beundead.commands;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.BeUndead;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
+import io.github.ziederziet.beundead.common.UndeadType;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -25,15 +28,15 @@ public class UndeadCommand extends BaseCommand {
                 .then(Commands.literal("type")
                         .then(Commands.literal("set")
                                 .then(Commands.argument("targets", EntityArgument.players())
-                                        .then(Commands.literal("human")
-                                                .executes(commandContext -> typeSet(commandContext.getSource(), EntityArgument.getPlayers(commandContext, "targets"), 0)))
-                                        .then(Commands.literal("zombie")
-                                                .executes(commandContext -> typeSet(commandContext.getSource(), EntityArgument.getPlayers(commandContext, "targets"), 1)))
-                                        .then(Commands.literal("husk")
-                                                .executes(commandContext -> typeSet(commandContext.getSource(), EntityArgument.getPlayers(commandContext, "targets"), 2)))
-                                        .then(Commands.literal("drowned")
-                                                .executes(commandContext -> typeSet(commandContext.getSource(), EntityArgument.getPlayers(commandContext, "targets"), 3)))))
-
+                                        .then(Commands.argument("type", StringArgumentType.string())
+                                                .suggests((commandContext, suggestionsBuilder) -> {
+                                                    suggestionsBuilder = suggestionsBuilder.suggest("human");
+                                                    for (String types : BeUndead.UNDEAD_DATA.undeadKeys()){
+                                                        suggestionsBuilder = suggestionsBuilder.suggest(types);
+                                                    }
+                                                    return suggestionsBuilder.buildFuture();
+                                                })
+                                                .executes(commandContext -> typeSet(commandContext.getSource(), EntityArgument.getPlayers(commandContext, "targets"), StringArgumentType.getString(commandContext, "type"))))))
                         .then(Commands.literal("get")
                                 .then(Commands.argument("target", EntityArgument.player())
                                         .executes(commandContext -> typeGet(commandContext.getSource(), EntityArgument.getPlayer(commandContext, "target"))))))
@@ -58,36 +61,38 @@ public class UndeadCommand extends BaseCommand {
                                         .executes(commandContext -> getChest(commandContext.getSource(), EntityArgument.getPlayer(commandContext, "target")))))));
     }
 
-    public static int typeSet(CommandSourceStack sourceStack, Collection<ServerPlayer> players, int type){
-        for (ServerPlayer serverPlayer : players){
-            BeUndeadApi.setZombieType(serverPlayer, type);
-        }
+    public static int typeSet(CommandSourceStack sourceStack, Collection<ServerPlayer> players, String typeName){
+        UndeadType type = BeUndeadHelper.getServerUndeadType(typeName);
+        if (type != null || typeName.equals("human")){
+            for (ServerPlayer serverPlayer : players){
+                BeUndeadHelper.setUndeadType(serverPlayer, typeName.equals("human") ? "" : typeName);
+            }
 
-        String typeName = typeToString(type);
-
-        if (players.size() == 1){
-            sourceStack.sendSuccess(() -> Component.translatable("commands.undead.type.set.single", new Object[]{players.iterator().next().getName(), typeName}), true);
+            if (players.size() == 1){
+                sourceStack.sendSuccess(() -> Component.translatable("commands.undead.type.set.single", new Object[]{players.iterator().next().getName(), type != null ? type.name() : "Human"}), true);
+            }
+            else {
+                sourceStack.sendSuccess(() -> Component.translatable("commands.undead.type.set.multiple", new Object[]{players.size(), type != null ? type.name() : "Human"}), true);
+            }
         }
         else {
-            sourceStack.sendSuccess(() -> Component.translatable("commands.undead.type.set.multiple", new Object[]{players.size(), typeName}), true);
+            sourceStack.sendFailure(Component.translatable("commands.undead.type.fail", new Object[]{typeName}));
         }
 
         return players.size();
     }
 
     public static int typeGet(CommandSourceStack sourceStack, ServerPlayer player){
-        int type = BeUndeadApi.getZombieType(player);
+        String type = BeUndeadHelper.getUndeadTypeName(player);
 
-        String typeName = typeToString(type);
+        sourceStack.sendSuccess(() -> Component.translatable("commands.undead.type.get", new Object[]{player.getName(), type}), false);
 
-        sourceStack.sendSuccess(() -> Component.translatable("commands.undead.type.get", new Object[]{player.getName(), typeName}), false);
-
-        return type;
+        return Command.SINGLE_SUCCESS;
     }
 
     public static int cure(CommandSourceStack sourceStack, Collection<ServerPlayer> players){
         for (ServerPlayer serverPlayer : players){
-            BeUndeadApi.startConverting(serverPlayer, 0, null);
+            BeUndeadHelper.startConverting(serverPlayer, null);
         }
 
         if (players.size() == 1){
@@ -102,7 +107,7 @@ public class UndeadCommand extends BaseCommand {
 
     public static int stopCure(CommandSourceStack sourceStack, Collection<ServerPlayer> players){
         for (ServerPlayer serverPlayer : players){
-            BeUndeadApi.stopConverting(serverPlayer);
+            BeUndeadHelper.stopConverting(serverPlayer);
         }
 
         if (players.size() == 1){
@@ -117,7 +122,7 @@ public class UndeadCommand extends BaseCommand {
 
     public static int setChest(CommandSourceStack sourceStack, Collection<ServerPlayer> players, boolean on){
         for (ServerPlayer serverPlayer : players){
-            BeUndeadApi.setZombieChest(serverPlayer, on);
+            BeUndeadHelper.setZombieChest(serverPlayer, on);
         }
 
         if (players.size() == 1){
@@ -131,7 +136,7 @@ public class UndeadCommand extends BaseCommand {
     }
 
     public static int getChest(CommandSourceStack sourceStack, ServerPlayer player){
-        boolean has = BeUndeadApi.hasZombieChest(player);
+        boolean has = BeUndeadHelper.hasZombieChest(player);
 
         if (has){
             sourceStack.sendSuccess(() -> Component.translatable("commands.undead.chestextension.get.has", new Object[]{player.getName()}), false);
@@ -140,17 +145,6 @@ public class UndeadCommand extends BaseCommand {
             sourceStack.sendSuccess(() -> Component.translatable("commands.undead.chestextension.get.has_not", new Object[]{player.getName()}), false);
         }
 
-
-
         return has ? Command.SINGLE_SUCCESS : 0;
-    }
-
-    private static String typeToString(int type){
-        return switch (type){
-            case 1 -> "Zombie";
-            case 2 -> "Husk";
-            case 3 -> "Drowned";
-            default -> "Human";
-        };
     }
 }

@@ -4,7 +4,7 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import io.github.ziederziet.beundead.config.CureRequirements;
 import io.github.ziederziet.beundead.config.InventoryState;
 import io.github.ziederziet.beundead.config.ServerConfigAccessor;
@@ -18,7 +18,6 @@ import net.minecraft.server.MinecraftServer;
 
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class ConfigCommand extends BaseCommand {
     public ConfigCommand(String name, int permission) {
@@ -33,7 +32,7 @@ public class ConfigCommand extends BaseCommand {
     public void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context) {
         dispatcher.register(((LiteralArgumentBuilder<CommandSourceStack>) (getBaseBuilder()))
                 .then(zombieInvStateConfig("zombieInvState"))
-                .then(booleanConfig("zombieCanChestExtension", (config, aBool) -> { config.zombieCanChestExtension = aBool; BeUndeadApi.checkNotSupposedItemsAndDropChestExtensionForAllPlayers(); }, (config) -> config.zombieCanChestExtension))
+                .then(booleanConfig("zombieCanChestExtension", (config, aBool) -> { config.zombieCanChestExtension = aBool; BeUndeadHelper.checkNotSupposedItemsAndDropChestExtensionForAllPlayers(); }, (config) -> config.zombieCanChestExtension))
                 .then(cureRequirementsConfig("cureRequirements"))
                 .then(booleanConfig("husksEnabled", (config, aBool) -> config.husksEnabled = aBool, (config) -> config.husksEnabled))
                 .then(booleanConfig("drownedEnabled", (config, aBool) -> config.drownedEnabled = aBool, (config) -> config.drownedEnabled))
@@ -158,7 +157,7 @@ public class ConfigCommand extends BaseCommand {
 
                 changed(commandContext.getSource().getServer());
 
-                BeUndeadApi.checkNotSupposedItemsAndDropChestExtensionForAllPlayers();
+                BeUndeadHelper.checkNotSupposedItemsAndDropChestExtensionForAllPlayers();
 
                 return Command.SINGLE_SUCCESS;
             }));

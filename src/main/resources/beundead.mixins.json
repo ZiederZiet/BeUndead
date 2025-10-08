@@ -18,7 +18,6 @@
     "KeyboardInputMixin",
     "KilledTriggerMixin",
     "LivingEntityMixin",
-    "NearestAttackableTargetGoalAccessor",
     "NearestAttackableTargetGoalMixin",
     "NearestVisibleLivingEntitiesMixin",
     "PhantomSpawnerMixin",
@@ -31,7 +30,6 @@
     "SleepStatusMixin",
     "SlimeMixin",
     "SlotMixin",
-    "TargetGoalAccessor",
     "TargetingConditionsAccessor",
     "UndeadMixin",
     "VillagerHostilesSensorMixin",
@@ -60,7 +58,6 @@
     "PlayerModelMixin",
     "PlayerRendererMixin",
     "SlotMixin",
-    "TargetGoalAccessor",
     "WorldCreationUiStateMixin"
   ],
   "injectors": {

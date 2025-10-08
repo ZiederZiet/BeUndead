@@ -17,11 +17,11 @@ public class UndeadDataPacket implements CustomPacketPayload {
     public static final StreamCodec<RegistryFriendlyByteBuf, UndeadDataPacket> CODEC = StreamCodec.of((object, object2) -> object2.encode(object), UndeadDataPacket::new);
 
     int playerId;
-    int type;
+    String type;
     boolean converting;
     boolean chest;
 
-    public UndeadDataPacket(int playerId, int type, boolean converting, boolean chest){
+    public UndeadDataPacket(int playerId, String type, boolean converting, boolean chest){
         this.playerId = playerId;
         this.type = type;
         this.converting = converting;
@@ -30,14 +30,14 @@ public class UndeadDataPacket implements CustomPacketPayload {
 
     public UndeadDataPacket(FriendlyByteBuf buffer){
         playerId = buffer.readInt();
-        type = buffer.readInt();
+        type = buffer.readUtf();
         converting = buffer.readBoolean();
         chest = buffer.readBoolean();
     }
 
     public void encode(FriendlyByteBuf buffer){
         buffer.writeInt(playerId);
-        buffer.writeInt(type);
+        buffer.writeUtf(type);
         buffer.writeBoolean(converting);
         buffer.writeBoolean(chest);
     }

@@ -1,0 +1,21 @@
+{
+  "name": "Husk",
+  "r": 0.8,
+  "g": 0.8,
+  "b": 0.7,
+  "rOffset": 0.1,
+  "gOffset": 0.1,
+  "bOffset": -0.1,
+  "canSwimInWater": false,
+  "breathUnderwater": false,
+  "burnsInSun": false,
+  "fireImmune": false,
+  "freezeImmune": false,
+  "mobEffects": [
+    "minecraft:hunger"
+  ],
+  "stepSound": "minecraft:entity.husk.step",
+  "hurtSound": "minecraft:entity.husk.hurt",
+  "deathSound": "minecraft:entity.husk.death",
+  "ambientSound": "minecraft:entity.husk.ambient"
+}

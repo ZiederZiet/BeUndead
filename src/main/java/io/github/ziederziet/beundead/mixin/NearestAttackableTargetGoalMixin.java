@@ -2,6 +2,7 @@ package io.github.ziederziet.beundead.mixin;
 
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
@@ -26,9 +27,9 @@ public class NearestAttackableTargetGoalMixin {
             Predicate<LivingEntity> selector = ((TargetingConditionsAccessor)this.targetConditions).getSelector();
             Predicate<LivingEntity> addedSelector;
             if (pMob instanceof IronGolem){
-                addedSelector = livingEntity -> livingEntity instanceof Player player && BeUndeadApi.getZombieType(player) > 0;
+                addedSelector = livingEntity -> livingEntity instanceof Player player && !BeUndeadHelper.isHuman(player);
             } else {
-                addedSelector = livingEntity -> !(livingEntity instanceof Player player) || BeUndeadApi.getZombieType(player) == 0;
+                addedSelector = livingEntity -> !(livingEntity instanceof Player player) || BeUndeadHelper.isHuman(player);
             }
             if (selector == null){
                 selector = addedSelector;

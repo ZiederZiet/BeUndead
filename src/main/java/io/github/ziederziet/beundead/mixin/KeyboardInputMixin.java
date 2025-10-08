@@ -1,6 +1,6 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.KeyboardInput;
 import net.minecraft.client.player.LocalPlayer;
@@ -15,7 +15,7 @@ public class KeyboardInputMixin {
     public void tick(boolean pIsSneaking, float pSneakingSpeedMultiplier, CallbackInfo info){
         if (Minecraft.getInstance().player != null){
             LocalPlayer player = Minecraft.getInstance().player;
-            if (!BeUndeadApi.canJump(player) && !player.getAbilities().flying && !(player.getAbilities().mayfly && !player.onGround())){
+            if (!BeUndeadHelper.canJump(player) && !player.getAbilities().flying && !(player.getAbilities().mayfly && !player.onGround())){
                 ((KeyboardInput)(Object)this).jumping = false;
             }
         }

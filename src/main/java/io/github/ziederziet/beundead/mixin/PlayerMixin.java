@@ -1,6 +1,7 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
+import io.github.ziederziet.beundead.common.ClientInfo;
 import io.github.ziederziet.beundead.config.ClientConfigAccessor;
 import io.github.ziederziet.beundead.config.ServerConfigAccessor;
 import net.minecraft.server.level.ServerPlayer;
@@ -15,7 +16,6 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-
 @Mixin(Player.class)
 public class PlayerMixin {
     public int ambientSoundTime;
@@ -24,10 +24,10 @@ public class PlayerMixin {
     public void tick(CallbackInfo info){
         if (ClientConfigAccessor.getConfig().hasZombieSoundsPlayers()){
             Player player = (Player)(Object)this;
-            if (BeUndeadApi.getZombieType(player) > 0){
+            if (!BeUndeadHelper.isHuman(player)){
                 if (player.isAlive() && player.getRandom().nextInt(1500) < this.ambientSoundTime++) {
                     this.ambientSoundTime = -160;
-                    BeUndeadApi.playAmbientSound(player);
+                    BeUndeadHelper.playAmbientSound(player);
                 }
             }
         }
@@ -36,21 +36,21 @@ public class PlayerMixin {
     @Inject(at = @At("TAIL"), method = "getSpeed()F", cancellable = true)
     public void getSpeed(CallbackInfoReturnable<Float> info){
         Player player = (Player)(Object)this;
-        if (BeUndeadApi.getZombieType(player) > 0){
-            info.setReturnValue((float) (info.getReturnValueF() * BeUndeadApi.getWalkingSpeed(player)));
+        if (!BeUndeadHelper.isHuman(player)){
+            info.setReturnValue((float) (info.getReturnValueF() * BeUndeadHelper.getWalkingSpeed(player)));
         }
     }
 
     @Inject(at = @At("TAIL"), method = "getDestroySpeed", cancellable = true)
     public void getDestroySpeed(BlockState blockState, CallbackInfoReturnable<Float> info){
-        if (BeUndeadApi.getZombieType((Player)(Object)this) > 0){
-            info.setReturnValue(info.getReturnValueF() * ServerConfigAccessor.getConfig().getZombieBreakSpeed());
+        if (!BeUndeadHelper.isHuman((Player)(Object)this)){
+            info.setReturnValue(info.getReturnValueF() * (((Player)(Object)this).level().isClientSide() ? ClientInfo.zombieBreakingSpeed : ServerConfigAccessor.getConfig().getZombieBreakSpeed()));
         }
     }
 
     @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;onClimbable()Z"), method = "attack")
     public boolean noCritRedirect(Player instance){
-        if (instance instanceof ServerPlayer serverPlayer && BeUndeadApi.getZombieType(serverPlayer) > 0 && !ServerConfigAccessor.getConfig().getZombieCanCrit()){
+        if (instance instanceof ServerPlayer serverPlayer && !BeUndeadHelper.isHuman(serverPlayer) && !ServerConfigAccessor.getConfig().getZombieCanCrit()){
             return true;
         }
 
@@ -61,9 +61,11 @@ public class PlayerMixin {
     protected void getHurtSound(DamageSource pDamageSource, CallbackInfoReturnable<SoundEvent> info) {
         if (ClientConfigAccessor.getConfig().hasZombieSoundsPlayers()){
             Player player = (Player)(Object)this;
-            if (BeUndeadApi.getZombieType(player) > 0){
-                SoundEvent hurtSound = BeUndeadApi.getHurtSound(player);
-                info.setReturnValue(hurtSound);
+            if (!BeUndeadHelper.isHuman(player)){
+                SoundEvent hurtSound = BeUndeadHelper.getHurtSound(player);
+                if (hurtSound != null){
+                    info.setReturnValue(hurtSound);
+                }
             }
         }
 
@@ -73,9 +75,11 @@ public class PlayerMixin {
     protected void getDeathSound(CallbackInfoReturnable<SoundEvent> info) {
         if (ClientConfigAccessor.getConfig().hasZombieSoundsPlayers()){
             Player player = (Player)(Object)this;
-            if (BeUndeadApi.getZombieType(player) > 0){
-                SoundEvent deathSound = BeUndeadApi.getDeathSound(player);
-                info.setReturnValue(deathSound);
+            if (!BeUndeadHelper.isHuman(player)){
+                SoundEvent deathSound = BeUndeadHelper.getDeathSound(player);
+                if (deathSound != null){
+                    info.setReturnValue(deathSound);
+                }
             }
         }
     }

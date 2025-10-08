@@ -16,6 +16,7 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -23,16 +24,15 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.packs.PackType;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.item.Item;
-import org.joml.Vector3f;
 
 public class BeUndead implements ModInitializer {
-	public static final Vector3f[] ZOMBIE_COLORS;
-	public static final Vector3f[] ZOMBIE_COLOR_OFFSETS;
+	public static final UndeadTypeDataManager UNDEAD_DATA = new UndeadTypeDataManager();
 
 	private static MinecraftServer serverInstance;
 
@@ -48,11 +48,6 @@ public class BeUndead implements ModInitializer {
 
 	public static final TagKey<Item> UNDEAD_CURES = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "undead_cures"));
 	public static final TagKey<Item> UNDEAD_EATABLES = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "undead_eatables"));
-
-	static {
-		ZOMBIE_COLORS = new Vector3f[] { new Vector3f(0.8F, 1.0F, 0.85F), new Vector3f(0.80F, 0.72F, 0.49F), new Vector3f(0.7F, 0.8F, 0.8F) };
-		ZOMBIE_COLOR_OFFSETS = new Vector3f[] { new Vector3f(0.0F, 0.1F, 0.0F), new Vector3f(0.03F, 0.05F, 0.0F), new Vector3f(-0.1F, 0.1F, 0.1F) };
-	}
 
 	public static MinecraftServer getServer(){
 		return serverInstance;
@@ -98,5 +93,10 @@ public class BeUndead implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STOPPED.register((server) -> {
 			serverInstance = null;
 		});
+
+		ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(UNDEAD_DATA);
+
+//		ResourceManagerHelper.get(PackType.CLIENT_RESOURCES)
+//				.registerReloadListener(CUSTOM_DATA);
 	}
 }

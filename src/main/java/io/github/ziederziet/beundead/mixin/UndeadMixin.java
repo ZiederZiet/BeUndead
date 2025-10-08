@@ -1,6 +1,7 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.BeUndeadConstants;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import io.github.ziederziet.beundead.common.InfectionAccessor;
 import io.github.ziederziet.beundead.common.UndeadAccessor;
 import net.minecraft.nbt.CompoundTag;
@@ -21,7 +22,7 @@ public class UndeadMixin implements UndeadAccessor, InfectionAccessor {
     private long respawnTimer;
     private long conversionTime;
     private int conversionType;
-    private int type = 0;
+    private String type = "";
 
     private boolean converting;
 
@@ -64,16 +65,6 @@ public class UndeadMixin implements UndeadAccessor, InfectionAccessor {
     }
 
     @Override
-    public int getZombieConversionType() {
-        return conversionType;
-    }
-
-    @Override
-    public void setZombieConversionType(int conversionType) {
-        this.conversionType = conversionType;
-    }
-
-    @Override
     public boolean getConverting() {
         return converting;
     }
@@ -84,12 +75,12 @@ public class UndeadMixin implements UndeadAccessor, InfectionAccessor {
     }
 
     @Override
-    public int getType() {
+    public String getType() {
         return type;
     }
 
     @Override
-    public void setType(int type) {
+    public void setType(String type) {
         this.type = type;
     }
 
@@ -97,19 +88,19 @@ public class UndeadMixin implements UndeadAccessor, InfectionAccessor {
     public void tick(CallbackInfo info){
 //        if (respawnTimer > 0){
 //            respawnTimer--;
-//            BeUndeadApi.sendRespawnTimePacket((Player)(Object)this);
+//            BeUndeadHelper.sendRespawnTimePacket((Player)(Object)this);
 //        }
         if (conversionTime > 0){
             conversionTime--;
             if (conversionTime == 0){
-                BeUndeadApi.sendUndeadPacket((Player)(Object)this);
+                BeUndeadHelper.sendUndeadPacket((Player)(Object)this);
             }
         }
     }
 
     @Inject(at = @At("TAIL"), method = "readAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V")
     public void readAdditionalSaveData(CompoundTag pCompound, CallbackInfo info) {
-        int zombietype = pCompound.getInt("ZombieType");
+        this.type = pCompound.getString("UndeadType");
         boolean zombiechest = pCompound.getBoolean("ZombieChest");
         if (pCompound.contains("RespawnTimer")){
             respawnTimer = pCompound.getLong("RespawnTimer");
@@ -125,19 +116,18 @@ public class UndeadMixin implements UndeadAccessor, InfectionAccessor {
             conversionTime = -1;
             conversionType = 0;
         }
-        this.type = zombietype;
         this.zombieChest = zombiechest;
 
         if (pCompound.contains("ConversionStarter")){
             conversionStarter = pCompound.getUUID("ConversionStarter");
         }
 
-        BeUndeadApi.infectionReadAdditionalSaveData(pCompound, this, infecters);
+        BeUndeadHelper.infectionReadAdditionalSaveData(pCompound, this, infecters);
     }
 
     @Inject(at = @At("TAIL"), method = "addAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V")
     public void addAdditionalSaveData(CompoundTag pCompound, CallbackInfo info) {
-        pCompound.putInt("ZombieType", type);
+        pCompound.putString("UndeadType", type);
         pCompound.putBoolean("ZombieChest", zombieChest);
         if (respawnTimer > 0){
             pCompound.putLong("RespawnTimer", respawnTimer);
@@ -151,7 +141,7 @@ public class UndeadMixin implements UndeadAccessor, InfectionAccessor {
             pCompound.putUUID("ConversionStarter", conversionStarter);
         }
 
-        BeUndeadApi.infectionAddAdditionalSaveData(pCompound, this, infecters);
+        BeUndeadHelper.infectionAddAdditionalSaveData(pCompound, this, infecters);
     }
 
     @Override
@@ -176,10 +166,10 @@ public class UndeadMixin implements UndeadAccessor, InfectionAccessor {
             infecters.put(infectorUUID, prevAmount + amount);
         }
 
-        inInfection = Math.min(inInfection + amount, BeUndeadApi.MAX_IN_INFECTION);
+        inInfection = Math.min(inInfection + amount, BeUndeadConstants.MAX_IN_INFECTION);
 
-        if (inInfection >= BeUndeadApi.IN_INFECTION_INSTANT_OUT_AMOUNT){
-            BeUndeadApi.showInfection((LivingEntity)(Object)this);
+        if (inInfection >= BeUndeadConstants.IN_INFECTION_INSTANT_OUT_AMOUNT){
+            BeUndeadHelper.showInfection((LivingEntity)(Object)this);
         }
 
         return inInfection;

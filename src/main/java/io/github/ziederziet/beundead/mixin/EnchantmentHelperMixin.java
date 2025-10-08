@@ -1,7 +1,6 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.BeUndead;
-import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -17,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class EnchantmentHelperMixin {
     @Inject(at = @At("TAIL"), method = "modifyDamage(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/damagesource/DamageSource;F)F", cancellable = true)
     private static void modifyDamage(ServerLevel pLevel, ItemStack pTool, Entity pEntity, DamageSource pDamageSource, float pDamage, CallbackInfoReturnable<Float> info){
-        if (pEntity instanceof Player playerAttacked && BeUndeadApi.getZombieType(playerAttacked) > 0){
+        if (pEntity instanceof Player playerAttacked && !BeUndeadHelper.isHuman(playerAttacked)){
             pTool.getEnchantments().keySet().forEach(enchantmentHolder -> {
                 if (enchantmentHolder.getRegisteredName().equals("minecraft:smite")){
                     float damageOutcome = info.getReturnValueF();
