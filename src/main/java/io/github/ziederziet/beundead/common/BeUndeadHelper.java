@@ -1,6 +1,7 @@
 package io.github.ziederziet.beundead.common;
 
 import io.github.ziederziet.beundead.BeUndead;
+import io.github.ziederziet.beundead.api.BeUndeadApi;
 import io.github.ziederziet.beundead.config.ServerConfigAccessor;
 import io.github.ziederziet.beundead.networking.ModNetworking;
 import io.github.ziederziet.beundead.networking.RespawnTimerPacket;
@@ -69,6 +70,16 @@ public class BeUndeadHelper {
 
     public static void setUndeadType(Player player, String type, boolean packet) {
         ((UndeadAccessor)player).setType(type);
+
+        if (player instanceof ServerPlayer serverPlayer){
+            if (type.isBlank()){
+                BeUndeadApi.PLAYER_REVIVED_EVENT.invoker().onPlayerRevived(serverPlayer);
+            }
+            else {
+                BeUndeadApi.PLAYER_TURNED_UNDEAD_EVENT.invoker().onPlayerTurnedUndead(serverPlayer, type);
+            }
+        }
+
         if (type.isBlank()){
             checkAndDropChestExtension(player);
         }

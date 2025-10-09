@@ -24,7 +24,7 @@ public class ServerPlayerMixin {
     private BlockPos redirectGetOverworldRespawnPos(ServerLevel level, int i, int j) {
         ServerPlayer serverPlayer = (ServerPlayer)(Object)this;
 
-        if (!BeUndeadHelper.isHuman(serverPlayer)){
+        if (!BeUndeadHelper.isHuman(serverPlayer) && BeUndeadHelper.getUndeadType(serverPlayer).burnsInTheSun()){
             return BeUndeadHelper.getOverworldRespawnPosForUndead(level, i, j);
         }
         else {
