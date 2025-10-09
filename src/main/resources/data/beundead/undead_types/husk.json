@@ -11,6 +11,8 @@
   "burnsInSun": false,
   "fireImmune": false,
   "freezeImmune": false,
+  "moistness": -1.0,
+  "heat": 0.0,
   "mobEffects": [
     "minecraft:hunger"
   ],

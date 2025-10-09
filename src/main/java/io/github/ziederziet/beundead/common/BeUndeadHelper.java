@@ -308,16 +308,14 @@ public class BeUndeadHelper {
         }
     }
 
-    // MOVEMENT UP -> HUSK
-    // MOVEMENT DOWN -> DROWNED
-    public static int getTypeMovementOnDeath(DamageSource damageSource, LivingEntity entity){
+    public static int getMoistMovementOnDeath(DamageSource damageSource, LivingEntity entity){
         if (damageSource.is(DamageTypes.DROWN) || damageSource.is(DamageTypes.TRIDENT)){
-            return -1;
-        } else if (damageSource.is(DamageTypes.WITHER)) {
             return 1;
+        } else if (damageSource.is(DamageTypes.WITHER)) {
+            return -1;
         } else {
             if (entity.isInWater()){
-                return -1;
+                return 1;
             } else {
                 boolean hasDesert = true;
                 for (int x = -1; x < 2; x++) {
@@ -329,41 +327,20 @@ public class BeUndeadHelper {
                     }
                 }
                 if (hasDesert){
-                    return 1;
+                    return -1;
                 }
             }
         }
         return 0;
     }
 
-    // MOVEMENT UP -> HUSK
-    // MOVEMENT DOWN -> DROWNED
-    public static String moveType(String type, int movement, boolean husks, boolean drowned){
-        while (movement < 0 && !type.equals("drowned")){
-            movement++;
-            if (type.equals("husk")){
-                type = "zombie";
-            } else if (type.equals("zombie") && drowned){
-                type = "drowned";
-                break;
-            }
-            else {
-                break;
-            }
+    public static int getHeatMovementOnDeath(DamageSource damageSource, LivingEntity entity){
+        if (damageSource.is(DamageTypes.LAVA) || entity.level().dimensionType().ultraWarm()){
+            return 1;
+        } else if (damageSource.is(DamageTypes.FREEZE)) {
+            return -1;
         }
-        while (movement > 0 && !type.equals("husk")){
-            movement--;
-            if (type.equals("drowned")){
-                type = "zombie";
-            } else if (type.equals("zombie") && husks){
-                type = "husk";
-                break;
-            }
-            else {
-                break;
-            }
-        }
-        return type;
+        return 0;
     }
 
     public static boolean isSunBurnTick(Player player) {

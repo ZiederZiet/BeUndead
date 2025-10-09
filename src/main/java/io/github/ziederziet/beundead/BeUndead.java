@@ -1,6 +1,8 @@
 package io.github.ziederziet.beundead;
 
 import io.github.ziederziet.beundead.commands.ModCommands;
+import io.github.ziederziet.beundead.common.InfectedMobEffect;
+import io.github.ziederziet.beundead.common.UndeadTypeDataManager;
 import io.github.ziederziet.beundead.config.ClientModConfig;
 import io.github.ziederziet.beundead.config.ServerModConfig;
 import io.github.ziederziet.beundead.event.ModEvents;

@@ -11,6 +11,8 @@
   "burnsInSun": true,
   "fireImmune": false,
   "freezeImmune": false,
+  "moistness": 0.0,
+  "heat": 0.0,
   "mobEffects": [
   ],
   "stepSound": "minecraft:entity.zombie.step",

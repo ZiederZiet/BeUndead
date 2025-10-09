@@ -29,6 +29,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
+    @Inject(at = @At("HEAD"), method = "canFreeze", cancellable = true)
+    public void canFreeze(CallbackInfoReturnable<Boolean> info){
+        if ((Object)this instanceof Player player && !BeUndeadHelper.isHuman(player) && BeUndeadHelper.getUndeadType(player).freezeImmune()){
+            info.setReturnValue(false);
+        }
+    }
 
     @Inject(at = @At("TAIL"), method = "tick")
     public void tick(CallbackInfo info){

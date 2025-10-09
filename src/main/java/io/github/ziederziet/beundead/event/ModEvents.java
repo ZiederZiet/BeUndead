@@ -66,7 +66,7 @@ public class ModEvents {
                 }
 
                 if (turnZombie){
-                    String type = BeUndeadHelper.moveType("zombie", BeUndeadHelper.getTypeMovementOnDeath(damageSource, player), husks, drowned);
+                    String type = BeUndead.UNDEAD_DATA.moveType("zombie", BeUndeadHelper.getMoistMovementOnDeath(damageSource, player), BeUndeadHelper.getHeatMovementOnDeath(damageSource, player), husks, drowned, damageSource);
 
                     player.setHealth(20F);
                     player.getFoodData().setFoodLevel(20);
@@ -129,7 +129,7 @@ public class ModEvents {
                 }
             }
             else {
-                BeUndeadHelper.setUndeadType(player, BeUndeadHelper.moveType(BeUndeadHelper.getUndeadTypeName(player), BeUndeadHelper.getTypeMovementOnDeath(damageSource, player), husks, drowned));
+                BeUndeadHelper.setUndeadType(player, BeUndead.UNDEAD_DATA.moveType(BeUndeadHelper.getUndeadTypeName(player), BeUndeadHelper.getMoistMovementOnDeath(damageSource, player), BeUndeadHelper.getHeatMovementOnDeath(damageSource, player), husks, drowned, damageSource));
 
                 if (respawnTimer) {
                     BeUndeadHelper.setZombieRespawnTimer(player, player.level().getGameTime() + config.getRespawnTimerToZombie());
