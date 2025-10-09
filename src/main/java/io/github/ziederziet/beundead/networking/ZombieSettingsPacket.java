@@ -2,12 +2,20 @@ package io.github.ziederziet.beundead.networking;
 
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.common.ClientInfo;
+import io.github.ziederziet.beundead.common.ClientUndeadType;
+import io.github.ziederziet.beundead.common.AbstractServerUndeadType;
+import io.github.ziederziet.beundead.common.UndeadType;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ZombieSettingsPacket implements CustomPacketPayload {
     public static final ResourceLocation ID = new ResourceLocation(BeUndead.MODID, "zombie_settings");
@@ -21,13 +29,20 @@ public class ZombieSettingsPacket implements CustomPacketPayload {
     boolean jumpOnTheirOwn;
     int zombieMaxViewDistance;
     double zombieWalkingSpeed;
-    public ZombieSettingsPacket(int invState, boolean canChestExtension, boolean nightVision, boolean jumpOnTheirOwn, int zombieMaxViewDistance, double zombieWalkingSpeed){
+    float zombieBreakingSpeed;
+    boolean zombieSprintEnabled;
+    Map<String, UndeadType> undeadTypes = new HashMap<>();
+
+    public ZombieSettingsPacket(int invState, boolean canChestExtension, boolean nightVision, boolean jumpOnTheirOwn, int zombieMaxViewDistance, double zombieWalkingSpeed, float zombieBreakingSpeed, boolean zombieSprintEnabled, Map<String, UndeadType> undeadTypes){
         this.invState = invState;
         this.canChestExtension = canChestExtension;
         this.nightVision = nightVision;
         this.jumpOnTheirOwn = jumpOnTheirOwn;
         this.zombieMaxViewDistance = zombieMaxViewDistance;
         this.zombieWalkingSpeed = zombieWalkingSpeed;
+        this.zombieBreakingSpeed = zombieBreakingSpeed;
+        this.zombieSprintEnabled = zombieSprintEnabled;
+        this.undeadTypes = undeadTypes;
     }
 
     public ZombieSettingsPacket(FriendlyByteBuf buffer){
@@ -37,6 +52,32 @@ public class ZombieSettingsPacket implements CustomPacketPayload {
         jumpOnTheirOwn = buffer.readBoolean();
         zombieMaxViewDistance = buffer.readInt();
         zombieWalkingSpeed = buffer.readDouble();
+        zombieBreakingSpeed = buffer.readFloat();
+        zombieSprintEnabled = buffer.readBoolean();
+
+        int mapSize = buffer.readInt();
+        for (int i = 0; i < mapSize; i++) {
+            String typeName = buffer.readUtf();
+            String typeNameName = buffer.readUtf();
+            float r = buffer.readFloat();
+            float g = buffer.readFloat();
+            float b = buffer.readFloat();
+            float rOffset = buffer.readFloat();
+            float gOffset = buffer.readFloat();
+            float bOffset = buffer.readFloat();
+            boolean canSwimInWater = buffer.readBoolean();
+            boolean breathUnderwater = buffer.readBoolean();
+            boolean burnsInTheSun = buffer.readBoolean();
+            boolean fireImmune = buffer.readBoolean();
+            boolean freezeImmune = buffer.readBoolean();
+
+            SoundEvent stepSound = BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation(buffer.readUtf()));
+            SoundEvent hurtSound = BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation(buffer.readUtf()));
+            SoundEvent deathSound = BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation(buffer.readUtf()));
+            SoundEvent ambientSound = BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation(buffer.readUtf()));
+
+            undeadTypes.put(typeName, new ClientUndeadType(typeNameName, r, g, b, rOffset, gOffset, bOffset, canSwimInWater, breathUnderwater, burnsInTheSun, fireImmune, freezeImmune, stepSound, hurtSound, deathSound, ambientSound));
+        }
     }
 
     public void encode(FriendlyByteBuf buffer){
@@ -46,6 +87,53 @@ public class ZombieSettingsPacket implements CustomPacketPayload {
         buffer.writeBoolean(jumpOnTheirOwn);
         buffer.writeInt(zombieMaxViewDistance);
         buffer.writeDouble(zombieWalkingSpeed);
+        buffer.writeFloat(zombieBreakingSpeed);
+        buffer.writeBoolean(zombieSprintEnabled);
+
+        buffer.writeInt(undeadTypes.size());
+
+        undeadTypes.forEach((typeName, undeadType) -> {
+            buffer.writeUtf(typeName);
+            buffer.writeUtf(undeadType.name());
+            buffer.writeFloat(undeadType.r());
+            buffer.writeFloat(undeadType.g());
+            buffer.writeFloat(undeadType.b());
+            buffer.writeFloat(undeadType.rOffset());
+            buffer.writeFloat(undeadType.gOffset());
+            buffer.writeFloat(undeadType.bOffset());
+            buffer.writeBoolean(undeadType.canSwimInWater());
+            buffer.writeBoolean(undeadType.breathUnderwater());
+            buffer.writeBoolean(undeadType.burnsInTheSun());
+            buffer.writeBoolean(undeadType.fireImmune());
+            buffer.writeBoolean(undeadType.freezeImmune());
+
+            if (undeadType instanceof AbstractServerUndeadType serverUndeadType){
+                if (serverUndeadType.stepSound() != null){
+                    buffer.writeUtf(serverUndeadType.stepSound());
+                }
+                else{
+                    buffer.writeUtf("");
+                }
+                if (serverUndeadType.hurtSound() != null){
+                    buffer.writeUtf(serverUndeadType.hurtSound());
+                }
+                else{
+                    buffer.writeUtf("");
+                }
+                if (serverUndeadType.deathSound() != null){
+                    buffer.writeUtf(serverUndeadType.deathSound());
+                }
+                else{
+                    buffer.writeUtf("");
+                }
+                if (serverUndeadType.ambientSound() != null){
+                    buffer.writeUtf(serverUndeadType.ambientSound());
+                }
+                else{
+                    buffer.writeUtf("");
+                }
+            }
+        });
     }
 
     public void handle(ClientPlayNetworking.Context context){
@@ -55,6 +143,9 @@ public class ZombieSettingsPacket implements CustomPacketPayload {
         ClientInfo.zombieJumpOnTheirOwn = jumpOnTheirOwn;
         ClientInfo.zombieMaxViewDistance = zombieMaxViewDistance;
         ClientInfo.zombieWalkingSpeed = zombieWalkingSpeed;
+        ClientInfo.zombieBreakingSpeed = zombieBreakingSpeed;
+        ClientInfo.zombieSprintEnabled = zombieSprintEnabled;
+        ClientInfo.undeadTypes = undeadTypes;
     }
 
     @Override

@@ -1,7 +1,6 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.api.BeUndeadApi;
-import net.minecraft.client.Minecraft;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
@@ -18,8 +17,8 @@ public class AbstractContainerScreenMixin {
     private static final ResourceLocation SLOT_DISABLED_TEXTURE = new ResourceLocation("container/slot_disabled");
     @Inject(at = @At("TAIL"), method = "renderSlot")
     protected void renderSlot(GuiGraphics pGuiGraphics, Slot pSlot, CallbackInfo info){
-        if (pSlot.container instanceof Inventory inventory && BeUndeadApi.getZombieType(inventory.player) > 0) {
-            int invState = BeUndeadApi.getInvStateOfPlayer(inventory.player);
+        if (pSlot.container instanceof Inventory inventory && !BeUndeadHelper.isHuman(inventory.player)) {
+            int invState = BeUndeadHelper.getInvStateOfPlayer(inventory.player);
             if (invState < 2)
             {
                 int slot = pSlot.getContainerSlot();

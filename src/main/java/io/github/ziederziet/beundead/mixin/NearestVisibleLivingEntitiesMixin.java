@@ -1,6 +1,6 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities;
@@ -12,7 +12,6 @@ import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
@@ -28,7 +27,7 @@ public class NearestVisibleLivingEntitiesMixin {
     @Inject(method = "<init>(Lnet/minecraft/world/entity/LivingEntity;Ljava/util/List;)V", at = @At("TAIL"))
     private void onInit(LivingEntity livingEntity, List<LivingEntity> list, CallbackInfo ci) {
         Object2BooleanOpenHashMap<LivingEntity> object2BooleanOpenHashMap = new Object2BooleanOpenHashMap(list.size());
-        Predicate<LivingEntity> predicate = (livingEntity2) -> Sensor.isEntityTargetable(livingEntity, livingEntity2) || (livingEntity2 instanceof Player player && BeUndeadApi.getZombieType(player) > 0);
+        Predicate<LivingEntity> predicate = (livingEntity2) -> Sensor.isEntityTargetable(livingEntity, livingEntity2) || (livingEntity2 instanceof Player player && !BeUndeadHelper.isHuman(player));
         this.lineOfSightTest = (livingEntityx) -> object2BooleanOpenHashMap.computeIfAbsent(livingEntityx, predicate);
     }
 }

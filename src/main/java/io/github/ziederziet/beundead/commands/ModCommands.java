@@ -9,7 +9,8 @@ public class ModCommands {
 
     public static void registerCommands(){
         CommandRegistrationCallback.EVENT.register((commandDispatcher, commandBuildContext, commandSelection) -> {
-            commands.add(new ZombieCommand("zombie", 2));
+            commands.add(new UndeadCommand("undead", 2));
+            commands.add(new ConfigCommand("beundeadconfig", 2));
 
             commands.forEach(command -> {
                 command.register(commandDispatcher, commandBuildContext);

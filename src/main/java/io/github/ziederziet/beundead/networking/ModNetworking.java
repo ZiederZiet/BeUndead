@@ -41,7 +41,6 @@ public class ModNetworking {
     }
 
     public static void registerS2C() {
-        //PayloadTypeRegistry.playS2C().register(UndeadDataPacket.TYPE, UndeadDataPacket.)
         PayloadTypeRegistry.playS2C().register(ZombieSettingsPacket.TYPE, ZombieSettingsPacket.CODEC);
         PayloadTypeRegistry.playS2C().register(UndeadDataPacket.TYPE, UndeadDataPacket.CODEC);
         PayloadTypeRegistry.playS2C().register(RespawnTimerPacket.TYPE, RespawnTimerPacket.CODEC);

@@ -1,12 +1,11 @@
 package io.github.ziederziet.beundead.mixin;
 
 import io.github.ziederziet.beundead.BeUndead;
-import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import io.github.ziederziet.beundead.common.ClientInfo;
-import io.github.ziederziet.beundead.config.ConfigAccessor;
+import io.github.ziederziet.beundead.config.ServerConfigAccessor;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
@@ -22,22 +21,24 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class ItemMixin {
     @Inject(at = @At("HEAD"), method = "use(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResultHolder;", cancellable = true)
     public void use(Level level, Player player, InteractionHand usedHand, CallbackInfoReturnable<InteractionResultHolder<ItemStack>> info){
-        if (BeUndeadApi.getZombieType(player) > 0){
-            if (!BeUndeadApi.hasZombieChest(player) && player.getItemInHand(usedHand).is(Items.CHEST)){
+        if (!BeUndeadHelper.isHuman(player)){
+            if (!BeUndeadHelper.hasZombieChest(player) && player.getItemInHand(usedHand).is(Items.CHEST)){
                 if (level.isClientSide()){
                     if (!ClientInfo.canChestExtension){
                         return;
                     }
                 }
-                else if (!ConfigAccessor.getConfig().getZombieCanChestExtension()) {
+                else if (!ServerConfigAccessor.getConfig().getZombieCanChestExtension()) {
                     return;
                 }
                 info.cancel();
                 if (!level.isClientSide()){
-                    BeUndeadApi.setZombieChest(player, true);
+                    BeUndeadHelper.setZombieChest(player, true);
                     player.getItemInHand(usedHand).consume(1, player);
                 }
-                level.playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.ARMOR_EQUIP_GENERIC.value(), SoundSource.PLAYERS, 1.0F, 1.0F);
+                else {
+                    player.playSound(SoundEvents.ARMOR_EQUIP_GENERIC.value());
+                }
                 info.setReturnValue(InteractionResultHolder.consume(player.getItemInHand(usedHand)));
             } else {
                 ItemStack itemstack = player.getItemInHand(usedHand);
