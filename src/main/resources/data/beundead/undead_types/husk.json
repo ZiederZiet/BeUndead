@@ -8,7 +8,7 @@
   "bOffset": -0.1,
   "canSwimInWater": false,
   "breathUnderwater": false,
-  "burnsInSun": false,
+  "burnsInTheSun": false,
   "fireImmune": false,
   "freezeImmune": false,
   "moistness": -1.0,
