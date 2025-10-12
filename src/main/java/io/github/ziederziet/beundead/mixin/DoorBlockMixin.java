@@ -1,6 +1,6 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -18,8 +18,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class DoorBlockMixin {
     @Inject(at = @At("HEAD"), method = "use", cancellable = true)
     protected void useWithoutItem(BlockState blockState, Level level, BlockPos blockPos, Player player, InteractionHand interactionHand, BlockHitResult blockHitResult, CallbackInfoReturnable<InteractionResult> info){
-        if (BeUndeadApi.getZombieType(player) > 0){
+        if (!BeUndeadHelper.isHuman(player)){
             info.setReturnValue(InteractionResult.PASS);
+            info.cancel();
         }
     }
 }

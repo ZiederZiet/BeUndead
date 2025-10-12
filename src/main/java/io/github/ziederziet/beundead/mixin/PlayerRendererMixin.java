@@ -1,9 +1,9 @@
 package io.github.ziederziet.beundead.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import io.github.ziederziet.beundead.api.BeUndeadApi;
 import io.github.ziederziet.beundead.client.UndeadSkinManager;
 import io.github.ziederziet.beundead.client.ZombieChestLayer;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -33,18 +33,16 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer {
 
     @Inject(at = @At("HEAD"), method = "getTextureLocation(Lnet/minecraft/client/player/AbstractClientPlayer;)Lnet/minecraft/resources/ResourceLocation;", cancellable = true, order = 100)
     public void getTextureLocation(AbstractClientPlayer entity, CallbackInfoReturnable<ResourceLocation> info) {
-        int type = BeUndeadApi.getZombieType(entity);
-        if (type > 0){
-            info.setReturnValue(UndeadSkinManager.getOrCreateSkin(entity.getSkinTextureLocation(), type, entity));
+        if (!BeUndeadHelper.isHuman(entity)){
+            info.setReturnValue(UndeadSkinManager.getOrCreateSkin(entity.getSkinTextureLocation(), BeUndeadHelper.getUndeadTypeName(entity), entity));
         }
     }
 
     @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/AbstractClientPlayer;getSkinTextureLocation()Lnet/minecraft/resources/ResourceLocation;"), method = "renderHand", order = 100)
     private ResourceLocation texture(AbstractClientPlayer instance, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, AbstractClientPlayer abstractClientPlayer, ModelPart modelPart, ModelPart modelPart2){
-        int type = BeUndeadApi.getZombieType(abstractClientPlayer);
         ResourceLocation location = abstractClientPlayer.getSkinTextureLocation();
-        if (type > 0){
-            return UndeadSkinManager.getOrCreateSkin(location, type, abstractClientPlayer);
+        if (!BeUndeadHelper.isHuman(instance)){
+            return UndeadSkinManager.getOrCreateSkin(location, BeUndeadHelper.getUndeadTypeName(instance), abstractClientPlayer);
         }
         return location;
     }

@@ -40,10 +40,6 @@ public class ModNetworking {
     }
 
     public static void registerS2C() {
-        //PayloadTypeRegistry.playS2C().register(UndeadDataPacket.TYPE, UndeadDataPacket.)
-//        PayloadTypeRegistry.playS2C().register(ZombieSettingsPacket.TYPE, ZombieSettingsPacket.CODEC);
-//        PayloadTypeRegistry.playS2C().register(UndeadDataPacket.TYPE, UndeadDataPacket.CODEC);
-//        PayloadTypeRegistry.playS2C().register(RespawnTimerPacket.TYPE, RespawnTimerPacket.CODEC);
         ClientPlayNetworking.registerGlobalReceiver(ZombieSettingsPacket.TYPE, ZombieSettingsPacket::handle);
         ClientPlayNetworking.registerGlobalReceiver(UndeadDataPacket.TYPE, UndeadDataPacket::handle);
         ClientPlayNetworking.registerGlobalReceiver(RespawnTimerPacket.TYPE, RespawnTimerPacket::handle);
