@@ -1,7 +1,6 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.api.BeUndeadApi;
-import net.minecraft.world.entity.Entity;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
 import net.minecraft.world.entity.monster.Evoker;
@@ -28,7 +27,7 @@ public class AvoidEntityGoalMixin {
     public List redirectGetEntitiesToNotAvoidUndead(Level instance, Class aClass, AABB aabb, Predicate<Player> predicate){
         if (mob instanceof Evoker && aClass == Player.class){
 
-            return instance.getEntitiesOfClass(aClass, aabb, predicate.and(player -> BeUndeadApi.getZombieType(player) <= 0));
+            return instance.getEntitiesOfClass(aClass, aabb, predicate.and(player -> BeUndeadHelper.isHuman(player)));
         }
 
         return instance.getEntitiesOfClass(aClass, aabb, predicate);

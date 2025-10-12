@@ -7,7 +7,6 @@ import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.PacketType;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 
@@ -16,11 +15,11 @@ public class UndeadDataPacket implements FabricPacket {
     public static final PacketType<UndeadDataPacket> TYPE = PacketType.create(ID, UndeadDataPacket::new);
 
     int playerId;
-    int type;
+    String type;
     boolean converting;
     boolean chest;
 
-    public UndeadDataPacket(int playerId, int type, boolean converting, boolean chest){
+    public UndeadDataPacket(int playerId, String type, boolean converting, boolean chest){
         this.playerId = playerId;
         this.type = type;
         this.converting = converting;
@@ -29,7 +28,7 @@ public class UndeadDataPacket implements FabricPacket {
 
     public UndeadDataPacket(FriendlyByteBuf buffer){
         playerId = buffer.readInt();
-        type = buffer.readInt();
+        type = buffer.readUtf();
         converting = buffer.readBoolean();
         chest = buffer.readBoolean();
     }
@@ -37,7 +36,7 @@ public class UndeadDataPacket implements FabricPacket {
     @Override
     public void write(FriendlyByteBuf friendlyByteBuf){
         friendlyByteBuf.writeInt(playerId);
-        friendlyByteBuf.writeInt(type);
+        friendlyByteBuf.writeUtf(type);
         friendlyByteBuf.writeBoolean(converting);
         friendlyByteBuf.writeBoolean(chest);
     }

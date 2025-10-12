@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
 import io.github.ziederziet.beundead.client.UndeadSkinManager;
 import io.github.ziederziet.beundead.client.ZombieChestLayer;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -33,19 +34,17 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer {
     }
 
     @Inject(at = @At("HEAD"), method = "getTextureLocation(Lnet/minecraft/client/player/AbstractClientPlayer;)Lnet/minecraft/resources/ResourceLocation;", cancellable = true, order = 100)
-    public void getTextureLocation(AbstractClientPlayer entity, CallbackInfoReturnable<ResourceLocation> info) {
-        int type = BeUndeadApi.getZombieType(entity);
-        if (type > 0){
-            info.setReturnValue(UndeadSkinManager.getOrCreateSkin(entity.getSkin().texture(), type, entity));
+    public void getTextureLocation(AbstractClientPlayer player, CallbackInfoReturnable<ResourceLocation> info) {
+        if (!BeUndeadHelper.isHuman(player)){
+            info.setReturnValue(UndeadSkinManager.getOrCreateSkin(player.getSkin().texture(), BeUndeadHelper.getUndeadTypeName(player), player));
         }
     }
 
     @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/resources/PlayerSkin;texture()Lnet/minecraft/resources/ResourceLocation;"), method = "renderHand", order = 100)
-    private ResourceLocation texture(PlayerSkin instance, PoseStack pPoseStack, MultiBufferSource pBuffer, int pCombinedLight, AbstractClientPlayer pPlayer, ModelPart pRendererArm, ModelPart pRendererArmwear){
-        int type = BeUndeadApi.getZombieType(pPlayer);
-        ResourceLocation location = pPlayer.getSkin().texture();
-        if (type > 0){
-            return UndeadSkinManager.getOrCreateSkin(location, type, pPlayer);
+    private ResourceLocation texture(PlayerSkin instance, PoseStack pPoseStack, MultiBufferSource pBuffer, int pCombinedLight, AbstractClientPlayer player, ModelPart pRendererArm, ModelPart pRendererArmwear){
+        ResourceLocation location = player.getSkin().texture();
+        if (!BeUndeadHelper.isHuman(player)){
+            return UndeadSkinManager.getOrCreateSkin(location, BeUndeadHelper.getUndeadTypeName(player), player);
         }
         return location;
     }

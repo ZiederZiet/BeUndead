@@ -1,11 +1,9 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import io.github.ziederziet.beundead.common.ClientInfo;
-import io.github.ziederziet.beundead.config.ConfigAccessor;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.core.Holder;
 import net.minecraft.world.effect.MobEffect;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -15,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public class LightTextureMixin {
     @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;hasEffect(Lnet/minecraft/world/effect/MobEffect;)Z"), method = "updateLightTexture")
     public boolean updateLightTexture(LocalPlayer instance, MobEffect mobEffect){
-        if (BeUndeadApi.getZombieType(instance) > 0 && ClientInfo.zombieNightVision){
+        if (!BeUndeadHelper.isHuman(instance) && ClientInfo.zombieNightVision){
             return true;
         }
 

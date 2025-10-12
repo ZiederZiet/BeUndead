@@ -1,31 +1,23 @@
 package io.github.ziederziet.beundead.config;
 
-import com.terraformersmc.modmenu.api.ConfigScreenFactory;
-import com.terraformersmc.modmenu.api.ModMenuApi;
-import io.github.ziederziet.beundead.BeUndead;
-import io.github.ziederziet.beundead.networking.ModNetworking;
-import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.MinecraftServer;
 
-import java.util.ArrayList;
-
-public class ConfigScreen implements ModMenuApi {
+public class ServerConfigScreen {
     public static Screen create(Screen parent) {
         ConfigBuilder builder = ConfigBuilder.create()
                 .setParentScreen(parent)
-                .setTitle(Component.literal("Clicked Config"));
+                .setTitle(Component.literal("Server Be Undead Config"));
 
         ConfigCategory general = builder.getOrCreateCategory(Component.literal("General"));
 
-        ModConfig config = AutoConfig.getConfigHolder(ModConfig.class).getConfig();
+        ServerModConfig config = ServerModConfig.getOrCreate();
 
         general.addEntry(
                 builder.entryBuilder()
-                        .startEnumSelector(Component.literal("Default Inventory State"), InventoryState.class, config.zombieInvState)
+                        .startEnumSelector(Component.literal("Default Zombie Inventory State"), InventoryState.class, config.zombieInvState)
                         .setDefaultValue(InventoryState.ONE_SLOT)
                         .setSaveConsumer(newValue -> config.zombieInvState = newValue)
                         .build()
@@ -36,6 +28,14 @@ public class ConfigScreen implements ModMenuApi {
                         .startBooleanToggle(Component.literal("Zombies Can Add Inventory Chest Extension"), config.zombieCanChestExtension)
                         .setDefaultValue(true)
                         .setSaveConsumer(newValue -> config.zombieCanChestExtension = newValue)
+                        .build()
+        );
+
+        general.addEntry(
+                builder.entryBuilder()
+                        .startEnumSelector(Component.literal("Cure Requirements"), CureRequirements.class, config.cureRequirements)
+                        .setDefaultValue(CureRequirements.WEAKNESS_AND_APPLE)
+                        .setSaveConsumer(newValue -> config.cureRequirements = newValue)
                         .build()
         );
 
@@ -52,6 +52,14 @@ public class ConfigScreen implements ModMenuApi {
                         .startBooleanToggle(Component.literal("Drowned Enabled"), config.drownedEnabled)
                         .setDefaultValue(true)
                         .setSaveConsumer(newValue -> config.drownedEnabled = newValue)
+                        .build()
+        );
+
+        general.addEntry(
+                builder.entryBuilder()
+                        .startFloatField(Component.literal("Zombie Break Speed"), config.zombieBreakSpeed)
+                        .setDefaultValue(0.5F)
+                        .setSaveConsumer(newValue -> config.zombieBreakSpeed = newValue)
                         .build()
         );
 
@@ -82,6 +90,14 @@ public class ConfigScreen implements ModMenuApi {
 
         general.addEntry(
                 builder.entryBuilder()
+                        .startBooleanToggle(Component.literal("Zombie Only Gain Kill Experience"), config.zombieOnlyKillExperience)
+                        .setDefaultValue(true)
+                        .setSaveConsumer(newValue -> config.zombieOnlyKillExperience = newValue)
+                        .build()
+        );
+
+        general.addEntry(
+                builder.entryBuilder()
                         .startIntField(Component.literal("Zombie Max View Distance"), config.zombieMaxViewDistance)
                         .setDefaultValue(4)
                         .setTooltip(Component.literal("0 = No Limit"), Component.literal("Distance in chunks"))
@@ -103,14 +119,6 @@ public class ConfigScreen implements ModMenuApi {
                         .startBooleanToggle(Component.literal("Zombie Can Sprint"), config.zombieSprintEnabled)
                         .setDefaultValue(false)
                         .setSaveConsumer(newValue -> config.zombieSprintEnabled = newValue)
-                        .build()
-        );
-
-        general.addEntry(
-                builder.entryBuilder()
-                        .startEnumSelector(Component.literal("Cure Requirements"), CureRequirements.class, config.cureRequirements)
-                        .setDefaultValue(CureRequirements.WEAKNESS_AND_APPLE)
-                        .setSaveConsumer(newValue -> config.cureRequirements = newValue)
                         .build()
         );
 
@@ -154,27 +162,13 @@ public class ConfigScreen implements ModMenuApi {
         respawnTimer.addEntry(
                 builder.entryBuilder()
                         .startLongField(Component.literal("Respawn timer when respawning as zombie"), config.respawnTimerToZombie)
-                        .setDefaultValue(3600L)
+                        .setDefaultValue(0L)
                         .setSaveConsumer(newValue -> config.respawnTimerToZombie = newValue)
                         .build()
         );
 
-        builder.setGlobalized(true);
-
-        builder.setSavingRunnable(() -> {
-            AutoConfig.getConfigHolder(ModConfig.class).save();
-            MinecraftServer server = BeUndead.getServer();
-            if (server != null){
-                ModNetworking.sendToAllClients(server, ConfigAccessor.getPacket());
-            }
-            // TODO SENT TO ALL
-        });
+        builder.setGlobalized(false);
 
         return builder.build();
-    }
-
-    @Override
-    public ConfigScreenFactory<?> getModConfigScreenFactory() {
-        return ConfigScreen::create;
     }
 }

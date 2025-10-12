@@ -1,7 +1,7 @@
 package io.github.ziederziet.beundead.mixin;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import net.minecraft.client.AttackIndicatorStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -41,7 +41,7 @@ public abstract class GuiMixin {
 
     @Inject(at = @At("HEAD"), method = "renderHotbar", cancellable = true)
     private void renderItemHotbar(float partialTick, GuiGraphics guiGraphics, CallbackInfo info) {
-        if (Minecraft.getInstance().getCameraEntity() instanceof Player player && BeUndeadApi.getZombieType(player) > 0 && BeUndeadApi.getInvStateOfPlayer(player) == 0) {
+        if (Minecraft.getInstance().getCameraEntity() instanceof Player player && !BeUndeadHelper.isHuman(player) && BeUndeadHelper.getInvStateOfPlayer(player) == 0) {
             info.cancel();
             ItemStack offhandItemstack = player.getOffhandItem();
             HumanoidArm humanoidarm = player.getMainArm().getOpposite();
@@ -131,7 +131,7 @@ public abstract class GuiMixin {
 
     @Inject(at = @At("HEAD"), method = "renderExperienceBar", cancellable = true)
     private void renderExperienceLevel(GuiGraphics guiGraphics, int i, CallbackInfo info){
-        if (BeUndeadApi.getZombieType(Minecraft.getInstance().player) > 0){
+        if (!BeUndeadHelper.isHuman(Minecraft.getInstance().player)){
             this.minecraft.getProfiler().push("expBar");
             int j = this.minecraft.player.getXpNeededForNextLevel();
             if (j > 0) {
