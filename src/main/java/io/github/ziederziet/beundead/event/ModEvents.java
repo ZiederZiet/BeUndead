@@ -1,16 +1,261 @@
 package io.github.ziederziet.beundead.event;
 
-//@Mod.EventBusSubscriber(modid = BeUndead.MODID)
+import io.github.ziederziet.beundead.BeUndead;
+import io.github.ziederziet.beundead.client.UndeadSkinManager;
+import io.github.ziederziet.beundead.common.*;
+import io.github.ziederziet.beundead.config.ServerConfigAccessor;
+import io.github.ziederziet.beundead.mixin.DeathScreenAccessor;
+import io.github.ziederziet.beundead.networking.ModNetworking;
+import io.github.ziederziet.beundead.networking.UndeadDataPacket;
+import net.fabricmc.fabric.api.networking.v1.PacketSender;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.DeathScreen;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.stats.Stats;
+import net.minecraft.world.Difficulty;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.animal.IronGolem;
+import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.monster.ZombieVillager;
+import net.minecraft.world.entity.monster.ZombifiedPiglin;
+import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+
+import java.util.List;
+import java.util.Optional;
+
 public class ModEvents {
-//    @SubscribeEvent
-//    public static void onMobEffectEventAdded(MobEffectEvent.Added event){
-//        if (event.getEntity() instanceof InfectionAccessor infectionAccessor){
-//            infectionAccessor.infectBy(null, 30, 30);
-//        }
-//    }
-//
-//
-//
-//
-//
+    public static boolean AllowDeathEvent(LivingEntity livingEntity, DamageSource damageSource, float v){
+        if (livingEntity.getLevel().isClientSide()) return true;
+
+        if (livingEntity instanceof Player player) {
+            ServerConfigAccessor config = ServerConfigAccessor.getConfig();
+            boolean husks = config.areHusksEnabled();
+            boolean drowned = config.areDrownedEnabled();
+
+            boolean respawnTimer = player.getServer().isDedicatedServer();
+
+            if (BeUndeadHelper.isHuman(player)){
+
+                boolean turnZombie = true;
+
+                if (config.getOnlyTurnWhenInfected()){
+                    turnZombie = damageSource.is(BeUndead.INFECTION_KILL) || damageSource.getEntity() instanceof Zombie || ((InfectionAccessor)player).getOutInfection() >= BeUndeadConstants.OUT_INFECTION_SHOW;
+                }
+
+                if (turnZombie){
+                    String type = BeUndead.UNDEAD_DATA.moveType("zombie", BeUndeadHelper.getMoistMovementOnDeath(damageSource, player), BeUndeadHelper.getHeatMovementOnDeath(damageSource, player), husks, drowned, damageSource);
+
+                    player.setHealth(20F);
+                    player.getFoodData().setFoodLevel(20);
+                    player.getFoodData().setSaturation(20F);
+
+                    ((ServerLevel)player.getLevel()).getServer().sendSystemMessage(player.getCombatTracker().getDeathMessage());
+
+                    if (!player.isSpectator()){
+                        if (!player.getLevel().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)) {
+                            for(int i = 0; i < player.getInventory().getContainerSize(); ++i) {
+                                ItemStack itemstack = player.getInventory().getItem(i);
+                                if (!itemstack.isEmpty() && EnchantmentHelper.hasVanishingCurse(itemstack)) {
+                                    player.getInventory().removeItemNoUpdate(i);
+                                }
+                            }
+                        }
+                    }
+
+                    if (player.getLevel() instanceof ServerLevel serverlevel) {
+                        if (!player.wasExperienceConsumed()) {
+                            ExperienceOrb.award(serverlevel, player.position(), player.getExperienceReward());
+                            player.totalExperience = 0;
+                            player.experienceLevel = 0;
+                            player.experienceProgress = 0;
+                        }
+                    }
+
+                    player.getLevel().getEntitiesOfClass(Mob.class, new AABB(player.blockPosition()).inflate(64D, 32D, 64D)).forEach(mob -> {
+                        if (mob.getTarget() != null && mob.getTarget().is(player)){
+                            if (!(mob instanceof IronGolem)){
+                                mob.setTarget(null);
+                                if (mob instanceof NeutralMob neutralMob){
+                                    neutralMob.stopBeingAngry();
+                                }
+                            }
+                        }
+                        if (mob.getLastHurtByMob() != null && mob.getLastHurtByMob().is(player)){
+                            mob.setLastHurtByMob(null);
+                        }
+                    });
+
+                    BeUndeadHelper.setUndeadType(player, type);
+                    player.removeAllEffects();
+                    player.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 80, 0));
+                    player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 1200, 0));
+                    player.awardStat(Stats.DEATHS);
+                    player.resetStat(Stats.CUSTOM.get(Stats.TIME_SINCE_DEATH));
+                    player.resetStat(Stats.CUSTOM.get(Stats.TIME_SINCE_REST));
+                    player.clearFire();
+                    player.setSharedFlagOnFire(false);
+                    player.getCombatTracker().recheckStatus();
+                    player.setLastDeathLocation(Optional.of(GlobalPos.of(player.getLevel().dimension(), player.blockPosition())));
+
+                    BeUndeadHelper.checkNotSupposedItems(player, !player.isSpectator());
+
+                    return false;
+                }
+                else if (respawnTimer) {
+                    BeUndeadHelper.setZombieRespawnTimer(player, player.getLevel().getGameTime() + config.getRespawnTimer());
+                }
+            }
+            else {
+                BeUndeadHelper.setUndeadType(player, BeUndead.UNDEAD_DATA.moveType(BeUndeadHelper.getUndeadTypeName(player), BeUndeadHelper.getMoistMovementOnDeath(damageSource, player), BeUndeadHelper.getHeatMovementOnDeath(damageSource, player), husks, drowned, damageSource));
+
+                if (respawnTimer) {
+                    BeUndeadHelper.setZombieRespawnTimer(player, player.getLevel().getGameTime() + config.getRespawnTimerToZombie());
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public static void AfterDeathEvent(LivingEntity livingEntity, DamageSource damageSource){
+        if (livingEntity instanceof Villager villager){
+            boolean convert = damageSource.is(BeUndead.INFECTION_KILL);
+            if (damageSource.getEntity() instanceof Player player && !BeUndeadHelper.isHuman(player)) {
+                player.getFoodData().setFoodLevel(Math.min(20, player.getFoodData().getFoodLevel() + 4));
+                player.getFoodData().setSaturation(Math.min(20, player.getFoodData().getSaturationLevel() + 4 * 3F * 2.0F));
+
+                if (!convert){
+                    if (livingEntity.getLevel().getDifficulty() == Difficulty.NORMAL || livingEntity.getLevel().getDifficulty() == Difficulty.HARD){
+                        if (!(villager.getLevel().getDifficulty() != Difficulty.HARD && villager.getRandom().nextBoolean())) {
+                            convert = true;
+                        }
+                    }
+                }
+
+                if (convert){
+                    ZombieVillager zombievillager = (ZombieVillager)villager.convertTo(EntityType.ZOMBIE_VILLAGER, false);
+                    if (zombievillager != null) {
+                        zombievillager.finalizeSpawn((ServerLevelAccessor) villager.getLevel(), villager.getLevel().getCurrentDifficultyAt(zombievillager.blockPosition()), MobSpawnType.CONVERSION, new Zombie.ZombieGroupData(false, true), (CompoundTag)null);
+                        zombievillager.setVillagerData(villager.getVillagerData());
+                        //zombievillager.setGossips((Tag)villager.getGossips().store(NbtOps.INSTANCE)); TODO
+                        zombievillager.setTradeOffers(villager.getOffers().createTag());
+                        zombievillager.setVillagerXp(villager.getVillagerXp());
+                        if (!villager.isSilent()) {
+                            villager.getLevel().levelEvent((Player)null, 1026, villager.blockPosition(), 0);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public static void StartClientTick(Minecraft minecraft){
+        LocalPlayer player = minecraft.player;
+        if (player != null && player.getLevel().isClientSide()){
+            if (minecraft.screen instanceof DeathScreen deathScreen){
+                long respawnTimer = BeUndeadHelper.getZombieRespawnTimer(player);
+                long timeTo = respawnTimer - player.getLevel().getGameTime();
+                if (timeTo < 2){
+                    Button button = ((DeathScreenAccessor)deathScreen).getExitButtons().get(0);
+                    button.active = true;
+                    button.setMessage(Component.translatable("deathScreen.respawn"));
+                } else if (timeTo % 20 == 0){
+                    int minutes = (int)Math.floor(timeTo / 20D / 60D);
+                    int seconds = (int)Math.floor(timeTo / 20D % 60D);
+                    ((DeathScreenAccessor)deathScreen).getExitButtons().get(0).setMessage(Component.translatable("deathScreen.respawn").append(" " + minutes + ":" + (String.valueOf(seconds).length() == 1 ? "0" : "") + seconds));
+                }
+            }
+        }
+    }
+
+    public static void ClientDisconnectEvent(ClientPacketListener clientPacketListener, Minecraft minecraft){
+        UndeadSkinManager.removeAll();
+    }
+
+    public static void StartTrackingEntityEvent(Entity entity, ServerPlayer serverPlayer){
+        if (entity instanceof ServerPlayer toTrack){
+            serverPlayer.getServer().execute(() -> {
+                ModNetworking.sendToClient(UndeadDataPacket.getPacket(toTrack), serverPlayer);
+            });
+        }
+    }
+
+    public static void AfterDamageEvent(LivingEntity livingEntity, DamageSource damageSource, float f){
+        if (damageSource.getEntity() instanceof Player player && !BeUndeadHelper.isHuman(player)){
+            if (BeUndeadHelper.getUndeadType(player) instanceof SerializizedServerUndeadType type){
+                MobEffectInstance[] array = type.mobEffects();
+                for (int i = 0; i < array.length; i++) {
+                    MobEffectInstance mobEffectInstance = array[i];
+                    livingEntity.addEffect(new MobEffectInstance(mobEffectInstance.getEffect(),
+                            mobEffectInstance.getDuration(),
+                            mobEffectInstance.getAmplifier(),
+                            mobEffectInstance.isAmbient(),
+                            mobEffectInstance.isVisible(),
+                            mobEffectInstance.showIcon()));
+                }
+            }
+        }
+
+        else if (ServerConfigAccessor.getConfig().isInfectionEnabled() && livingEntity instanceof Villager || (livingEntity instanceof Player player && BeUndeadHelper.isHuman(player))){
+            if (damageSource.getEntity() instanceof Zombie || (damageSource.getEntity() instanceof Player playerAttacker && !BeUndeadHelper.isHuman(playerAttacker))){
+                if (livingEntity.getRandom().nextBoolean()){
+                    Player infecter = damageSource.getEntity() instanceof Player playerAttacker ? playerAttacker : null;
+                    BeUndeadHelper.infectBy(livingEntity, infecter, damageSource.getEntity() instanceof ZombifiedPiglin ? 15 : 28);
+                }
+            }
+        }
+    }
+
+    public static void PlayerCloneEvent(ServerPlayer oldPlayer, ServerPlayer newPlayer, boolean alive){
+        BeUndeadHelper.setUndeadType(newPlayer, BeUndeadHelper.getUndeadTypeName(oldPlayer), false);
+        if (oldPlayer.getLevel().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY) || alive){
+            BeUndeadHelper.setZombieChest(newPlayer, BeUndeadHelper.hasZombieChest(oldPlayer), false);
+        }
+    }
+
+    public static void AfterRespawnEvent(ServerPlayer oldPlayer, ServerPlayer newPlayer, boolean alive){
+        BeUndeadHelper.sendUndeadPacket(newPlayer);
+    }
+
+    public static void JoinServerEvent(ServerGamePacketListenerImpl serverGamePacketListener, PacketSender packetSender, MinecraftServer minecraftServer){
+        ServerPlayer player = serverGamePacketListener.getPlayer();
+
+        BeUndeadHelper.checkAndDropChestExtension(player);
+        BeUndeadHelper.checkNotSupposedItems(player, !player.isSpectator());
+
+        BeUndeadHelper.sendUndeadPacket(player);
+
+        ModNetworking.sendToClient(ServerConfigAccessor.getPacket(), player);
+    }
+
+    public static Player.BedSleepingProblem AllowSleepingEvent(Player player, BlockPos blockPos){
+        Vec3 vec3 = Vec3.atBottomCenterOf(player.blockPosition());
+        List<Player> list = player.getLevel().getEntitiesOfClass(Player.class, new AABB(vec3.x() - 8.0, vec3.y() - 5.0, vec3.z() - 8.0, vec3.x() + 8.0, vec3.y() + 5.0, vec3.z() + 8.0), (player1) -> {
+            return !BeUndeadHelper.isHuman(player1);
+        });
+        if (!list.isEmpty()) {
+            return Player.BedSleepingProblem.NOT_SAFE;
+        }
+        return null;
+    }
 }

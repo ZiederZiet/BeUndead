@@ -15,11 +15,11 @@ public class UndeadDataPacket implements FabricPacket {
     public static final PacketType<UndeadDataPacket> TYPE = PacketType.create(ID, UndeadDataPacket::new);
 
     int playerId;
-    int type;
+    String type;
     boolean converting;
     boolean chest;
 
-    public UndeadDataPacket(int playerId, int type, boolean converting, boolean chest){
+    public UndeadDataPacket(int playerId, String type, boolean converting, boolean chest){
         this.playerId = playerId;
         this.type = type;
         this.converting = converting;
@@ -28,7 +28,7 @@ public class UndeadDataPacket implements FabricPacket {
 
     public UndeadDataPacket(FriendlyByteBuf buffer){
         playerId = buffer.readInt();
-        type = buffer.readInt();
+        type = buffer.readUtf();
         converting = buffer.readBoolean();
         chest = buffer.readBoolean();
     }
@@ -36,7 +36,7 @@ public class UndeadDataPacket implements FabricPacket {
     @Override
     public void write(FriendlyByteBuf friendlyByteBuf){
         friendlyByteBuf.writeInt(playerId);
-        friendlyByteBuf.writeInt(type);
+        friendlyByteBuf.writeUtf(type);
         friendlyByteBuf.writeBoolean(converting);
         friendlyByteBuf.writeBoolean(chest);
     }
@@ -47,7 +47,7 @@ public class UndeadDataPacket implements FabricPacket {
     }
 
     public void handle(LocalPlayer localPlayer, PacketSender packetSender){
-        if (localPlayer.level().getEntity(playerId) instanceof Player player){
+        if (localPlayer.getLevel().getEntity(playerId) instanceof Player player){
             UndeadAccessor undeadAccessor = (UndeadAccessor) player;
             undeadAccessor.setType(type);
             undeadAccessor.setConverting(converting);

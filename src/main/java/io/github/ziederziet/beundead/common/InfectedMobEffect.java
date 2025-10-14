@@ -1,4 +1,4 @@
-package io.github.ziederziet.beundead;
+package io.github.ziederziet.beundead.common;
 
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;

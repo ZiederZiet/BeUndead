@@ -9,12 +9,10 @@ public interface UndeadAccessor {
     void setZombieRespawnTimer(long respawnTimer);
     long getZombieConversionTime();
     void setZombieConversionTime(long conversionTime);
-    int getZombieConversionType();
-    void setZombieConversionType(int conversionType);
     boolean getConverting();
     void setConverting(boolean converting);
-    int getType();
-    void setType(int type);
+    String getType();
+    void setType(String type);
     UUID getConversionStarter();
     void setConversionStarter(UUID conversionStarter);
 }

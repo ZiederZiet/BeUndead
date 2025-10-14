@@ -1,7 +1,7 @@
 package io.github.ziederziet.beundead.mixin;
 
 import com.google.common.collect.Lists;
-import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.DeathScreen;
@@ -24,8 +24,8 @@ public abstract class DeathScreenMixin {
     @Inject(at = @At("HEAD"), method = "setButtonsActive(Z)V", cancellable = true)
     private void setButtonsActiveOverwrite(boolean pActive, CallbackInfo info) {
         LocalPlayer player = Minecraft.getInstance().player;
-        if (player != null && BeUndeadApi.getZombieRespawnTimer(player) > 0){
-            long timeDif = BeUndeadApi.getZombieRespawnTimer(player) - player.level.getGameTime();
+        if (player != null && BeUndeadHelper.getZombieRespawnTimer(player) > 0){
+            long timeDif = BeUndeadHelper.getZombieRespawnTimer(player) - player.level.getGameTime();
             if (timeDif > 0 && !player.hasPermissions(2)) {
                 Button $$1;
                 for(Iterator var2 = this.exitButtons.iterator(); var2.hasNext();) {
@@ -45,7 +45,7 @@ public abstract class DeathScreenMixin {
 
     @Inject(at = @At("HEAD"), method = "handleExitToTitleScreen()V", cancellable = true)
     private void handleExitToTitleScreen(CallbackInfo info) {
-        if (BeUndeadApi.getZombieType(Minecraft.getInstance().player) > 0){
+        if (!BeUndeadHelper.isHuman(Minecraft.getInstance().player)){
             this.exitToTitleScreen();
             info.cancel();
         }

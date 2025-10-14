@@ -1,6 +1,6 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
@@ -21,6 +21,6 @@ public abstract class WanderingTraderMixin extends AbstractVillager {
 
     @Inject(at = @At("HEAD"), method = "registerGoals")
     protected void registerGoals(CallbackInfo info){
-        goalSelector.addGoal(1, new AvoidEntityGoal<Player>((WanderingTrader)(Object)this, Player.class, player -> BeUndeadApi.getZombieType((Player) player) > 0,  8.0F, 0.5, 0.5, livingEntity -> EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(livingEntity)));
+        goalSelector.addGoal(1, new AvoidEntityGoal<Player>((WanderingTrader)(Object)this, Player.class, player -> !BeUndeadHelper.isHuman((Player) player),  8.0F, 0.5, 0.5, livingEntity -> EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(livingEntity)));
     }
 }

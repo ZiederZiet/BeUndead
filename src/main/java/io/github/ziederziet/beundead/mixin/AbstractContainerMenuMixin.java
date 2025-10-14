@@ -1,8 +1,6 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.BeUndead;
-import io.github.ziederziet.beundead.api.BeUndeadApi;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
@@ -15,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class AbstractContainerMenuMixin {
     @Inject(at = @At("HEAD"), method = "doClick", cancellable = true)
     private void doClick(int pSlotId, int pButton, ClickType pClickType, Player pPlayer, CallbackInfo info){
-        if (pClickType == ClickType.SWAP && BeUndeadApi.getInvStateOfPlayer(pPlayer) < 1){
+        if (pClickType == ClickType.SWAP && BeUndeadHelper.getInvStateOfPlayer(pPlayer) < 1){
             info.cancel();
         }
     }

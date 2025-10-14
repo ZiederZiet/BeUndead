@@ -1,6 +1,6 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.world.Container;
@@ -24,9 +24,9 @@ public abstract class SlotMixin {
 
     @Inject(at = @At("HEAD"), method = "mayPlace(Lnet/minecraft/world/item/ItemStack;)Z", cancellable = true)
     public void mayPlace(ItemStack pStack, CallbackInfoReturnable<Boolean> info) {
-        if (container instanceof Inventory inventory && BeUndeadApi.getInvStateOfPlayer(inventory.player) < 2){
+        if (container instanceof Inventory inventory && BeUndeadHelper.getInvStateOfPlayer(inventory.player) < 2){
             int slot = getContainerSlot();
-            int invState = BeUndeadApi.getInvStateOfPlayer(inventory.player);
+            int invState = BeUndeadHelper.getInvStateOfPlayer(inventory.player);
             if (Minecraft.getInstance().screen instanceof CreativeModeInventoryScreen creativeModeInventoryScreen && creativeModeInventoryScreen.isInventoryOpen()){
                 if ((!(invState > 0 && slot > 35) && slot != 40) && (slot < 45 && slot > 8)){
                     info.setReturnValue(false);
@@ -42,9 +42,9 @@ public abstract class SlotMixin {
 
     @Inject(at = @At("HEAD"), method = "mayPickup(Lnet/minecraft/world/entity/player/Player;)Z", cancellable = true)
     public void mayPickup(Player pPlayer, CallbackInfoReturnable<Boolean> info) {
-        if (container instanceof Inventory inventory && BeUndeadApi.getInvStateOfPlayer(inventory.player) < 2){
+        if (container instanceof Inventory inventory && BeUndeadHelper.getInvStateOfPlayer(inventory.player) < 2){
             int slot = getContainerSlot();
-            int invState = BeUndeadApi.getInvStateOfPlayer(inventory.player);
+            int invState = BeUndeadHelper.getInvStateOfPlayer(inventory.player);
             if (Minecraft.getInstance().screen instanceof CreativeModeInventoryScreen creativeModeInventoryScreen && creativeModeInventoryScreen.isInventoryOpen()){
                 if ((!(invState > 0 && slot > 35) && slot != 40) && (slot < 45 && slot > 8)){
                     info.setReturnValue(false);
@@ -59,21 +59,21 @@ public abstract class SlotMixin {
         }
     }
 
-    @Inject(at = @At("HEAD"), method = "isHighlightable()Z", cancellable = true)
-    public void isHighlightable(CallbackInfoReturnable<Boolean> info) {
-        if (container instanceof Inventory inventory && BeUndeadApi.getInvStateOfPlayer(inventory.player) < 2){
-            int slot = getContainerSlot();
-            int invState = BeUndeadApi.getInvStateOfPlayer(inventory.player);
-            if (Minecraft.getInstance().screen instanceof CreativeModeInventoryScreen creativeModeInventoryScreen && creativeModeInventoryScreen.isInventoryOpen()){
-                if ((!(invState > 0 && slot > 35) && slot != 40) && (slot < 45 && slot > 8)){
-                    info.setReturnValue(false);
-                }
-            }
-            else {
-                if ((!(invState > 0 && slot < 9) && slot != 4) && slot < 36){
-                    info.setReturnValue(false);
-                }
-            }
-        }
-    }
+//    @Inject(at = @At("HEAD"), method = "high()Z", cancellable = true)
+//    public void isHighlightable(CallbackInfoReturnable<Boolean> info) {
+//        if (container instanceof Inventory inventory && BeUndeadHelper.getInvStateOfPlayer(inventory.player) < 2){
+//            int slot = getContainerSlot();
+//            int invState = BeUndeadHelper.getInvStateOfPlayer(inventory.player);
+//            if (Minecraft.getInstance().screen instanceof CreativeModeInventoryScreen creativeModeInventoryScreen && creativeModeInventoryScreen.isInventoryOpen()){
+//                if ((!(invState > 0 && slot > 35) && slot != 40) && (slot < 45 && slot > 8)){
+//                    info.setReturnValue(false);
+//                }
+//            }
+//            else {
+//                if ((!(invState > 0 && slot < 9) && slot != 4) && slot < 36){
+//                    info.setReturnValue(false);
+//                }
+//            }
+//        }
+//    }
 }

@@ -1,0 +1,22 @@
+{
+  "name": "Zombie",
+  "r": 0.85,
+  "g": 1.0,
+  "b": 0.8,
+  "rOffset": 0,
+  "gOffset": 0.1,
+  "bOffset": 0,
+  "canSwimInWater": false,
+  "breathUnderwater": false,
+  "burnsInTheSun": true,
+  "fireImmune": false,
+  "freezeImmune": false,
+  "moistness": 0.0,
+  "heat": 0.0,
+  "mobEffects": [
+  ],
+  "stepSound": "minecraft:entity.zombie.step",
+  "hurtSound": "minecraft:entity.zombie.hurt",
+  "deathSound": "minecraft:entity.zombie.death",
+  "ambientSound": "minecraft:entity.zombie.ambient"
+}

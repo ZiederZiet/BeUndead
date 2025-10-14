@@ -1,6 +1,6 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.PlayerModel;
@@ -21,7 +21,7 @@ public class PlayerModelMixin {
 
     @Inject(at = @At("TAIL"), method = "setupAnim(Lnet/minecraft/world/entity/LivingEntity;FFFFF)V")
     public void setupAnim(LivingEntity pEntity, float pLimbSwing, float pLimbSwingAmount, float pAgeInTicks, float pNetHeadYaw, float pHeadPitch, CallbackInfo info) {
-        if (pEntity instanceof Player player && BeUndeadApi.getZombieType(player) > 0){
+        if (pEntity instanceof Player player && !BeUndeadHelper.isHuman(player)){
 
             if (player != Minecraft.getInstance().player || Minecraft.getInstance().options.getCameraType() != CameraType.FIRST_PERSON){
                 HumanoidModelAccessor humanoidModelAccessor = (HumanoidModelAccessor) this;
