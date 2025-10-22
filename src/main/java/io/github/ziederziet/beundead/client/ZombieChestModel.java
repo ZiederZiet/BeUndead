@@ -8,17 +8,19 @@ import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 
-public class ZombieChestModel<T extends LivingEntity> extends EntityModel<T> {
+public class ZombieChestModel<T extends EntityRenderState> extends EntityModel<T> {
 
     // This layer location should be baked with EntityRendererProvider.Context in the entity renderer and passed into this model's constructor
     public static final ModelLayerLocation ZOMBIE_CHEST_LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "zombie_chest"), "main");
     private final ModelPart bb_main;
 
     public ZombieChestModel(ModelPart root) {
+        super(root);
         this.bb_main = root.getChild("bb_main");
     }
 
@@ -31,13 +33,9 @@ public class ZombieChestModel<T extends LivingEntity> extends EntityModel<T> {
         return LayerDefinition.create(meshdefinition, 32, 32);
     }
 
-    @Override
-    public void setupAnim(T t, float v, float v1, float v2, float v3, float v4) {
-    }
-
-    @Override
-    public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int i, int i1, int i2) {
-        //System.out.println("IHFIKUOSDGHUJSDHKJSDHGJSDBGKJSDBG");
-        bb_main.render(poseStack, vertexConsumer, i, i1, i2);
-    }
+//    @Override     TODO
+//    public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int i, int i1, int i2) {
+//        //System.out.println("IHFIKUOSDGHUJSDHKJSDHGJSDBGKJSDBG");
+//        bb_main.render(poseStack, vertexConsumer, i, i1, i2);
+//    }
 }

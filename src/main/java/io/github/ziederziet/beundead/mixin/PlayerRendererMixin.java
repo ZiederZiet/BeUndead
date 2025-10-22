@@ -32,21 +32,21 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer {
         addLayer(new ZombieChestLayer((PlayerRenderer)(Object)this, pContext.getModelSet()));
     }
 
-    @Inject(at = @At("HEAD"), method = "getTextureLocation(Lnet/minecraft/client/player/AbstractClientPlayer;)Lnet/minecraft/resources/ResourceLocation;", cancellable = true, order = 100)
-    public void getTextureLocation(AbstractClientPlayer entity, CallbackInfoReturnable<ResourceLocation> info) {
-        int type = BeUndeadApi.getZombieType(entity);
-        if (type > 0){
-            info.setReturnValue(UndeadSkinManager.getOrCreateSkin(entity.getSkin().texture(), type, entity));
-        }
-    }
-
-    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/resources/PlayerSkin;texture()Lnet/minecraft/resources/ResourceLocation;"), method = "renderHand", order = 100)
-    private ResourceLocation texture(PlayerSkin instance, PoseStack pPoseStack, MultiBufferSource pBuffer, int pCombinedLight, AbstractClientPlayer pPlayer, ModelPart pRendererArm, ModelPart pRendererArmwear){
-        int type = BeUndeadApi.getZombieType(pPlayer);
-        ResourceLocation location = pPlayer.getSkin().texture();
-        if (type > 0){
-            return UndeadSkinManager.getOrCreateSkin(location, type, pPlayer);
-        }
-        return location;
-    }
+//    @Inject(at = @At("HEAD"), method = "getTextureLocation(Lnet/minecraft/client/player/AbstractClientPlayer;)Lnet/minecraft/resources/ResourceLocation;", cancellable = true, order = 100)  TODO
+//    public void getTextureLocation(AbstractClientPlayer entity, CallbackInfoReturnable<ResourceLocation> info) {
+//        int type = BeUndeadApi.getZombieType(entity);
+//        if (type > 0){
+//            info.setReturnValue(UndeadSkinManager.getOrCreateSkin(entity.getSkin().texture(), type, entity));
+//        }
+//    }
+//
+//    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/resources/PlayerSkin;texture()Lnet/minecraft/resources/ResourceLocation;"), method = "renderHand", order = 100)
+//    private ResourceLocation texture(PlayerSkin instance, PoseStack pPoseStack, MultiBufferSource pBuffer, int pCombinedLight, AbstractClientPlayer pPlayer, ModelPart pRendererArm, ModelPart pRendererArmwear){
+//        int type = BeUndeadApi.getZombieType(pPlayer);
+//        ResourceLocation location = pPlayer.getSkin().texture();
+//        if (type > 0){
+//            return UndeadSkinManager.getOrCreateSkin(location, type, pPlayer);
+//        }
+//        return location;
+//    }
 }

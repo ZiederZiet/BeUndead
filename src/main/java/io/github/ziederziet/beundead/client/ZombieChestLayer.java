@@ -15,22 +15,25 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.entity.state.PlayerRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 
-public class ZombieChestLayer extends RenderLayer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> {
-    private final ZombieChestModel<AbstractClientPlayer> model;
+public class ZombieChestLayer extends RenderLayer<PlayerRenderState, PlayerModel> {
+
+    private final ZombieChestModel<EntityRenderState> model;
     private static final ResourceLocation CHEST_LOCATION = ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "textures/entity/player/zombie_chest.png");
     public ZombieChestLayer(RenderLayerParent pRenderer, EntityModelSet pModelSet) {
         super(pRenderer);
-        model = new ZombieChestModel<AbstractClientPlayer>(pModelSet.bakeLayer(ZombieChestModel.ZOMBIE_CHEST_LAYER_LOCATION));
+        model = new ZombieChestModel<EntityRenderState>(pModelSet.bakeLayer(ZombieChestModel.ZOMBIE_CHEST_LAYER_LOCATION));
     }
 
     @Override
-    public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int packedLight, AbstractClientPlayer abstractClientPlayer, float v, float v1, float v2, float v3, float v4, float v5) {
-        if (BeUndeadApi.hasZombieChest(abstractClientPlayer)){
-            VertexConsumer vertexConsumer = multiBufferSource.getBuffer(RenderType.entitySolid(CHEST_LOCATION));
-            model.renderToBuffer(poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY);
-        }
+    public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int packedLight, PlayerRenderState entityRenderState, float f, float g) {
+//        if (BeUndeadApi.hasZombieChest(entityRenderState)){   TODO
+//            VertexConsumer vertexConsumer = multiBufferSource.getBuffer(RenderType.entitySolid(CHEST_LOCATION));
+//            model.renderToBuffer(poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY);
+//        }
     }
 }

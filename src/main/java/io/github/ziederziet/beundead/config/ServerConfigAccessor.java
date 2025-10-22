@@ -1,5 +1,6 @@
 package io.github.ziederziet.beundead.config;
 
+import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.networking.ZombieSettingsPacket;
 
 public interface ServerConfigAccessor {
@@ -15,7 +16,9 @@ public interface ServerConfigAccessor {
                 config.getZombieJumpOnTheirOwn(),
                 config.getZombieMaxViewDistance(),
                 config.getZombieWalkSpeed(),
-                config.isZombieSprintingEnabled());
+                config.getZombieBreakSpeed(),
+                config.isZombieSprintingEnabled(),
+                BeUndead.UNDEAD_DATA.map());
     }
 
     int getZombieInvState(); // 0 = one slot | 1 = hotbar | 2 = full inv            CLIENT SIDE

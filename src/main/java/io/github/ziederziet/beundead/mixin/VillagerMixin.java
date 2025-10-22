@@ -2,6 +2,8 @@ package io.github.ziederziet.beundead.mixin;
 
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.BeUndeadConstants;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import io.github.ziederziet.beundead.common.InfectionAccessor;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -35,17 +37,17 @@ public class VillagerMixin implements InfectionAccessor {
 
     @Inject(at = @At("TAIL"), method = "addAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V")
     public void addAdditionalSaveData(CompoundTag pCompound, CallbackInfo info) {
-        BeUndeadApi.infectionAddAdditionalSaveData(pCompound, this, infecters);
+        BeUndeadHelper.infectionAddAdditionalSaveData(pCompound, this, infecters);
     }
 
     @Inject(at = @At("TAIL"), method = "readAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V")
     public void readAdditionalSaveData(CompoundTag pCompound, CallbackInfo info) {
-        BeUndeadApi.infectionReadAdditionalSaveData(pCompound, this, infecters);
+        BeUndeadHelper.infectionReadAdditionalSaveData(pCompound, this, infecters);
     }
 
     @Inject(at = @At("HEAD"), method = "mobInteract(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;", cancellable = true)
     public void mobInteract(Player pPlayer, InteractionHand pHand, CallbackInfoReturnable<InteractionResult> info){
-        if (BeUndeadApi.getZombieType(pPlayer) > 0){
+        if (!BeUndeadHelper.isHuman(pPlayer)){
             info.setReturnValue(InteractionResult.PASS);
             info.cancel();
         }
@@ -63,10 +65,10 @@ public class VillagerMixin implements InfectionAccessor {
             infecters.put(infectorUUID, prevAmount + amount);
         }
 
-        inInfection = Math.min(inInfection + amount, BeUndeadApi.MAX_IN_INFECTION);
+        inInfection = Math.min(inInfection + amount, BeUndeadConstants.MAX_IN_INFECTION);
 
-        if (inInfection >= BeUndeadApi.IN_INFECTION_INSTANT_OUT_AMOUNT){
-            BeUndeadApi.showInfection((LivingEntity)(Object)this);
+        if (inInfection >= BeUndeadConstants.IN_INFECTION_INSTANT_OUT_AMOUNT){
+            BeUndeadHelper.showInfection((LivingEntity)(Object)this);
         }
 
         return inInfection;

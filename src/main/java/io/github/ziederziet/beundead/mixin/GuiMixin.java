@@ -1,13 +1,15 @@
 package io.github.ziederziet.beundead.mixin;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import net.minecraft.client.AttackIndicatorStatus;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.profiling.Profiler;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -34,7 +36,7 @@ public abstract class GuiMixin {
 
     @Inject(at = @At("HEAD"), method = "renderItemHotbar", cancellable = true)
     private void renderItemHotbar(GuiGraphics pGuiGraphics, DeltaTracker pDeltaTracker, CallbackInfo info) {
-        if (Minecraft.getInstance().getCameraEntity() instanceof Player player && BeUndeadApi.getZombieType(player) > 0 && BeUndeadApi.getInvStateOfPlayer(player) == 0) {
+        if (Minecraft.getInstance().getCameraEntity() instanceof Player player && !BeUndeadHelper.isHuman(player) && BeUndeadHelper.getInvStateOfPlayer(player) == 0) {
             info.cancel();
             ItemStack offhandItemstack = player.getOffhandItem();
             HumanoidArm humanoidarm = player.getMainArm().getOpposite();
@@ -45,14 +47,14 @@ public abstract class GuiMixin {
 
             int additionXSlot = 80;
 
-            pGuiGraphics.blitSprite(HOTBAR_OFFHAND_RIGHT_SPRITE, i - 98 + additionXSlot, pGuiGraphics.guiHeight() - 22, 29, 22);
-            pGuiGraphics.blitSprite(HOTBAR_SELECTION_SPRITE, i - 91 + additionXSlot - 1, pGuiGraphics.guiHeight() - 22 - 1, 24, 23);
+            pGuiGraphics.blitSprite(RenderType::guiTextured, HOTBAR_OFFHAND_RIGHT_SPRITE, i - 98 + additionXSlot, pGuiGraphics.guiHeight() - 22, 29, 22);
+            pGuiGraphics.blitSprite(RenderType::guiTextured, HOTBAR_SELECTION_SPRITE, i - 91 + additionXSlot - 1, pGuiGraphics.guiHeight() - 22 - 1, 24, 23);
 
             if (!offhandItemstack.isEmpty()) {
                 if (humanoidarm == HumanoidArm.LEFT) {
-                    pGuiGraphics.blitSprite(HOTBAR_OFFHAND_LEFT_SPRITE, i - 91 + additionXSlot - 29, pGuiGraphics.guiHeight() - 23, 29, 24);
+                    pGuiGraphics.blitSprite(RenderType::guiTextured, HOTBAR_OFFHAND_LEFT_SPRITE, i - 91 + additionXSlot - 29, pGuiGraphics.guiHeight() - 23, 29, 24);
                 } else {
-                    pGuiGraphics.blitSprite(HOTBAR_OFFHAND_RIGHT_SPRITE, i + 91 + additionXSlot, pGuiGraphics.guiHeight() - 23, 29, 24);
+                    pGuiGraphics.blitSprite(RenderType::guiTextured, HOTBAR_OFFHAND_RIGHT_SPRITE, i + 91 + additionXSlot, pGuiGraphics.guiHeight() - 23, 29, 24);
                 }
             }
 
@@ -90,8 +92,8 @@ public abstract class GuiMixin {
                     }
 
                     int l1 = (int)(f * 19.0F);
-                    pGuiGraphics.blitSprite(HOTBAR_ATTACK_INDICATOR_BACKGROUND_SPRITE, k2, j2, 18, 18);
-                    pGuiGraphics.blitSprite(HOTBAR_ATTACK_INDICATOR_PROGRESS_SPRITE, 18, 18, 0, 18 - l1, k2, j2 + 18 - l1, 18, l1);
+                    pGuiGraphics.blitSprite(RenderType::guiTextured, HOTBAR_ATTACK_INDICATOR_BACKGROUND_SPRITE, k2, j2, 18, 18);
+                    pGuiGraphics.blitSprite(RenderType::guiTextured, HOTBAR_ATTACK_INDICATOR_PROGRESS_SPRITE, 18, 18, 0, 18 - l1, k2, j2 + 18 - l1, 18, l1);
                 }
 
                 RenderSystem.disableBlend();
@@ -102,32 +104,32 @@ public abstract class GuiMixin {
 
     @Inject(at = @At("HEAD"), method = "renderExperienceBar", cancellable = true)
     private void renderExperienceBar(GuiGraphics pGuiGraphics, int pX, CallbackInfo info){
-        if (BeUndeadApi.getZombieType(Minecraft.getInstance().player) > 0){
-            Minecraft.getInstance().getProfiler().push("expBar");
+        if (!BeUndeadHelper.isHuman(Minecraft.getInstance().player)){
+            Profiler.get().push("expBar");
             int i = Minecraft.getInstance().player.getXpNeededForNextLevel();
             if (i > 0) {
                 int k = (int)(Minecraft.getInstance().player.experienceProgress * 183.0F);
                 int l = pGuiGraphics.guiHeight() - 32 + 3;
                 RenderSystem.enableBlend();
-                pGuiGraphics.blitSprite(EXPERIENCE_BAR_BACKGROUND_SPRITE, pX, l, 182, 5);
+                pGuiGraphics.blitSprite(RenderType::guiTextured, EXPERIENCE_BAR_BACKGROUND_SPRITE, pX, l, 182, 5);
                 if (k > 0) {
-                    pGuiGraphics.blitSprite(ZOMBIE_EXPERIENCE_BAR_PROGRESS_SPRITE, 182, 5, 0, 0, pX, l, k, 5);
+                    pGuiGraphics.blitSprite(RenderType::guiTextured, ZOMBIE_EXPERIENCE_BAR_PROGRESS_SPRITE, 182, 5, 0, 0, pX, l, k, 5);
                 }
 
                 RenderSystem.disableBlend();
             }
 
-            Minecraft.getInstance().getProfiler().pop();
+            Profiler.get().pop();
             info.cancel();
         }
     }
 
     @Inject(at = @At("HEAD"), method = "renderExperienceLevel", cancellable = true)
     private void renderExperienceLevel(GuiGraphics p_335340_, DeltaTracker p_344840_, CallbackInfo info){
-        if (BeUndeadApi.getZombieType(Minecraft.getInstance().player) > 0){
+        if (!BeUndeadHelper.isHuman(Minecraft.getInstance().player)){
             int i = Minecraft.getInstance().player.experienceLevel;
             if (this.isExperienceBarVisible() && i > 0) {
-                Minecraft.getInstance().getProfiler().push("expLevel");
+                Profiler.get().push("expLevel");
                 String s = "" + i;
                 int j = (p_335340_.guiWidth() - Minecraft.getInstance().font.width(s)) / 2;
                 int k = p_335340_.guiHeight() - 31 - 4;
@@ -136,7 +138,7 @@ public abstract class GuiMixin {
                 p_335340_.drawString(Minecraft.getInstance().font, s, j, k + 1, 0, false);
                 p_335340_.drawString(Minecraft.getInstance().font, s, j, k - 1, 0, false);
                 p_335340_.drawString(Minecraft.getInstance().font, s, j, k, 16735264, false);
-                Minecraft.getInstance().getProfiler().pop();
+                Profiler.get().pop();
             }
             info.cancel();
         }

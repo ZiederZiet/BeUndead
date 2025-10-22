@@ -10,5 +10,5 @@ import java.util.function.Predicate;
 @Mixin(TargetingConditions.class)
 public interface TargetingConditionsAccessor {
     @Accessor("selector")
-    Predicate<LivingEntity> getSelector();
+    TargetingConditions.Selector getSelector();
 }

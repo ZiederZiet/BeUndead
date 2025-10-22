@@ -1,6 +1,6 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import net.minecraft.advancements.critereon.*;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
@@ -28,7 +28,7 @@ public abstract class KilledTriggerMixin extends SimpleCriterionTrigger {
             if (triggerInstance.matches(serverPlayer, lootContext, damageSource)){
                 return true;
             }
-            if (entity instanceof Player killedPlayer && BeUndeadApi.getZombieType(killedPlayer) > 0){
+            if (entity instanceof Player killedPlayer && !BeUndeadHelper.isHuman(killedPlayer)){
                 Optional<ContextAwarePredicate> oContextAwarePredicate = triggerInstance.entityPredicate();
                 if (oContextAwarePredicate.isPresent()){
                     ContextAwarePredicate contextAwarePredicate = oContextAwarePredicate.get();

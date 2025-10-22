@@ -8,6 +8,7 @@
   "commands.undead.type.set.single": "Converted %s to %s",
   "commands.undead.type.set.multiple": "Converted %s players to %s",
   "commands.undead.type.get": "%s is a %s",
+  "commands.undead.type.fail": "The undead type %s is not present",
   "commands.undead.curing.start.single": "Started curing %s",
   "commands.undead.curing.start.multiple": "Started curing %s players",
   "commands.undead.curing.stop.single": "Stopped curing %s",

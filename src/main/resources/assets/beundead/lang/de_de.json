@@ -7,6 +7,7 @@
   "commands.undead.type.set.single": "%s wurde zum %s konvertiert",
   "commands.undead.type.set.multiple": "%s Spieler wurden zum %s konvertiert",
   "commands.undead.type.get": "%s ist ein %s",
+  "commands.undead.type.fail": "Der untoten Type %s ist nicht vorhander",
   "commands.undead.curing.start.single": "Die Heilung von %s ist begonnen",
   "commands.undead.curing.start.multiple": "Die Heilung von %s Spieler ist begonnen",
   "commands.undead.curing.stop.single": "Die Heilung von %s wurde gestoppt",

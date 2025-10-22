@@ -1,6 +1,6 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.sensing.VillagerHostilesSensor;
 import net.minecraft.world.entity.player.Player;
@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class VillagerHostilesSensorMixin {
     @Inject(at = @At("HEAD"), method = "isHostile(Lnet/minecraft/world/entity/LivingEntity;)Z", cancellable = true)
     private void isHostile(LivingEntity pEntity, CallbackInfoReturnable<Boolean> info) {
-        if (pEntity instanceof Player player && BeUndeadApi.getZombieType(player) > 0){
+        if (pEntity instanceof Player player && !BeUndeadHelper.isHuman(player)){
             info.setReturnValue(true);
         }
     }
