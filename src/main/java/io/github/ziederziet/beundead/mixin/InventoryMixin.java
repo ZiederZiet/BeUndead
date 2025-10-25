@@ -20,9 +20,6 @@ public abstract class InventoryMixin {
     public Player player;
 
     @Shadow
-    public int selected;
-
-    @Shadow
     public NonNullList<ItemStack> items;
 
     @Shadow
@@ -32,36 +29,8 @@ public abstract class InventoryMixin {
     public void getSelected(CallbackInfoReturnable<ItemStack> info) {
         if (BeUndeadHelper.getInvStateOfPlayer(player) == 0){
             info.setReturnValue(items.get(4));
-            info.cancel();
         }
     }
-
-
-    @Inject(at = @At("HEAD"), method = "getFreeSlot()I", cancellable = true)
-    public void getFreeSlotInject(CallbackInfoReturnable<Integer> info){
-        int invState = BeUndeadHelper.getInvStateOfPlayer(player);
-        if (invState == 0){
-            int returnSlot = -1;
-            if (getItem(4).isEmpty()){
-                returnSlot = 4;
-            }
-            info.setReturnValue(returnSlot);
-            return;
-        }
-        else if (invState == 1){
-            for(int i = 0; i < 9; ++i) {
-                if (((ItemStack)this.items.get(i)).isEmpty()) {
-                    info.setReturnValue(i);
-                    return;
-                }
-            }
-            info.setReturnValue(-1);
-            return;
-        }
-
-        //info.setReturnValue(0);
-    }
-
 
     @Inject(at = @At("HEAD"), method = "add(ILnet/minecraft/world/item/ItemStack;)Z", cancellable = true)
     public void addInject(int slot, ItemStack pStack, CallbackInfoReturnable<Boolean> info){
@@ -84,18 +53,24 @@ public abstract class InventoryMixin {
         }
     }
 
-    @Inject(at = @At("HEAD"), method = "pickSlot(I)V", cancellable = true)
-    public void pickSlot(int index, CallbackInfo info) {
-        if (BeUndeadHelper.getInvStateOfPlayer(player) == 0) {
-            info.cancel();
+    @Inject(at = @At("HEAD"), method = "getFreeSlot()I", cancellable = true)
+    public void getFreeSlotInject(CallbackInfoReturnable<Integer> info){
+        int invState = BeUndeadHelper.getInvStateOfPlayer(player);
+        if (invState == 0){
+            int returnSlot = -1;
+            if (getItem(4).isEmpty()){
+                returnSlot = 4;
+            }
+            info.setReturnValue(returnSlot);
         }
-    }
-
-    @Inject(at = @At("HEAD"), method = "swapPaint(D)V", cancellable = true)
-    public void swapPaint(double direction, CallbackInfo info) {
-        if (BeUndeadHelper.getInvStateOfPlayer(player) == 0){
-            this.selected = 4;
-            info.cancel();
+        else if (invState == 1){
+            for(int i = 0; i < 9; ++i) {
+                if (this.items.get(i).isEmpty()) {
+                    info.setReturnValue(i);
+                    return;
+                }
+            }
+            info.setReturnValue(-1);
         }
     }
 
