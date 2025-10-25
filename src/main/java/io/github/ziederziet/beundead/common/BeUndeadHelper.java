@@ -269,18 +269,11 @@ public class BeUndeadHelper {
     }
 
     public static void checkSideItems(Player player){
-        boolean emptyFirstSlot = player.getInventory().items.get(4).isEmpty();
         for (int i = 0; i < 9; i++) {
             if (i != 4){
                 if (!player.getInventory().items.get(i).isEmpty()){
-                    if (emptyFirstSlot){
-                        player.getInventory().items.set(4, player.getInventory().items.get(i));
-                        player.getInventory().items.set(i, ItemStack.EMPTY);
-                        emptyFirstSlot = false;
-                    } else {
-                        player.drop(player.getInventory().items.get(i), true, false);
-                        player.getInventory().items.set(i, ItemStack.EMPTY);
-                    }
+                    player.drop(player.getInventory().items.get(i), true, false);
+                    player.getInventory().items.set(i, ItemStack.EMPTY);
                 }
             }
         }
