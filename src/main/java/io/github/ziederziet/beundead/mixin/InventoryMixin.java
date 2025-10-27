@@ -30,9 +30,10 @@ public abstract class InventoryMixin {
 
     @Inject(at = @At("HEAD"), method = "getSelected()Lnet/minecraft/world/item/ItemStack;", cancellable = true)
     public void getSelected(CallbackInfoReturnable<ItemStack> info) {
-        if (BeUndeadHelper.getInvStateOfPlayer(player) == 0){
+        int invState = BeUndeadHelper.getInvStateOfPlayer(player);
+        if (invState == 0){
+            selected = 4;
             info.setReturnValue(items.get(4));
-            info.cancel();
         }
     }
 
@@ -46,20 +47,16 @@ public abstract class InventoryMixin {
                 returnSlot = 4;
             }
             info.setReturnValue(returnSlot);
-            return;
         }
         else if (invState == 1){
             for(int i = 0; i < 9; ++i) {
-                if (((ItemStack)this.items.get(i)).isEmpty()) {
+                if (this.items.get(i).isEmpty()) {
                     info.setReturnValue(i);
                     return;
                 }
             }
             info.setReturnValue(-1);
-            return;
         }
-
-        //info.setReturnValue(0);
     }
 
 
