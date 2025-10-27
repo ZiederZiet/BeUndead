@@ -37,8 +37,6 @@ public abstract class GuiMixin {
     private static final ResourceLocation EXPERIENCE_BAR_BACKGROUND_SPRITE = new ResourceLocation("hud/experience_bar_background");
 
 
-
-
     @Inject(at = @At("HEAD"), method = "renderHotbar", cancellable = true)
     private void renderItemHotbar(float partialTick, GuiGraphics guiGraphics, CallbackInfo info) {
         if (Minecraft.getInstance().getCameraEntity() instanceof Player player && !BeUndeadHelper.isHuman(player) && BeUndeadHelper.getInvStateOfPlayer(player) == 0) {

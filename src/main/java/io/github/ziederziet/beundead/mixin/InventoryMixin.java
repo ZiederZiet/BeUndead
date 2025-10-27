@@ -25,9 +25,13 @@ public abstract class InventoryMixin {
     @Shadow
     public abstract ItemStack getItem(int pIndex);
 
+    @Shadow public int selected;
+
     @Inject(at = @At("HEAD"), method = "getSelected()Lnet/minecraft/world/item/ItemStack;", cancellable = true)
     public void getSelected(CallbackInfoReturnable<ItemStack> info) {
-        if (BeUndeadHelper.getInvStateOfPlayer(player) == 0){
+        int invState = BeUndeadHelper.getInvStateOfPlayer(player);
+        if (invState == 0){
+            selected = 4;
             info.setReturnValue(items.get(4));
         }
     }
