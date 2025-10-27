@@ -272,7 +272,9 @@ public class BeUndeadHelper {
         for (int i = 0; i < 9; i++) {
             if (i != 4){
                 if (!player.getInventory().items.get(i).isEmpty()){
-                    player.drop(player.getInventory().items.get(i).copyAndClear(), true, false);
+                    ItemStack stack = player.getInventory().items.get(i);
+                    player.drop(stack.copy(), true, false);
+                    stack.setCount(0);
                 }
             }
         }
