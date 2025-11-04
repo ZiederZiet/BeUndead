@@ -48,6 +48,10 @@ processResources {
 	}
 }
 
+tasks.named("remapJar") {
+	archiveClassifier.set("fabric")
+}
+
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = 17
 }
