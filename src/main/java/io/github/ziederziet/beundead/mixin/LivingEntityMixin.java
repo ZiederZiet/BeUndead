@@ -1,6 +1,5 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import io.github.ziederziet.beundead.common.InfectionAccessor;
 import io.github.ziederziet.beundead.common.UndeadType;
@@ -131,20 +130,6 @@ public abstract class LivingEntityMixin {
             }
         }
     }
-
-//    @Inject(at = @At("HEAD"), method = "eat(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/food/FoodProperties;)Lnet/minecraft/world/item/ItemStack;") TODO
-//    public void eat(Level level, ItemStack itemStack, FoodProperties foodProperties, CallbackInfoReturnable<ItemStack> info){
-//        if ((LivingEntity)(Object)this instanceof Player player && !BeUndeadHelper.isHuman(player) && itemStack.is(BeUndead.UNDEAD_CURES)){
-//            int cureRequirements = ServerConfigAccessor.getConfig().getCureRequirements();
-//            if (cureRequirements > 0 && cureRequirements != 3){
-//                if (cureRequirements < 2 || player.hasEffect(MobEffects.WEAKNESS)){
-//                    if ((cureRequirements < 4 && itemStack.is(BeUndead.UNDEAD_CURES)) || (cureRequirements > 3 && itemStack.is(Items.ENCHANTED_GOLDEN_APPLE))) {
-//                        BeUndeadHelper.startConverting(player, player);
-//                    }
-//                }
-//            }
-//        }
-//    }
 
     @Inject(at = @At("HEAD"), method = "checkTotemDeathProtection")
     private void checkTotemDeathProtection(DamageSource damageSource, CallbackInfoReturnable<Boolean> info){

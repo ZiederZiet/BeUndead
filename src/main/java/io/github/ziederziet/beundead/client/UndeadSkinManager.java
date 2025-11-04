@@ -35,7 +35,7 @@ public class UndeadSkinManager {
     }
 
 
-    public static ResourceLocation getOrCreateSkin(ResourceLocation defaultLocation, String typeName, AbstractClientPlayer player) {
+    public static ResourceLocation getOrCreateSkin(ResourceLocation defaultLocation, String typeName, String textureUrl) {
         return undeadSkins.computeIfAbsent(typeName, typ -> {
             return new HashMap<>();
         }).computeIfAbsent(defaultLocation, location -> {
@@ -56,7 +56,7 @@ public class UndeadSkinManager {
                     skinImage = ImageIO.read(optional.get().open());
                 }
                 else {
-                    URL url = new URL(player.getSkin().textureUrl());
+                    URL url = new URL(textureUrl);
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                     connection.setRequestProperty("User-Agent", "Mozilla/5.0");
                     connection.connect();
@@ -89,7 +89,7 @@ public class UndeadSkinManager {
                     g = (int) Math.round(Math.clamp(light * type.g() + (type.gOffset() * 255D), 0D, 255D));
                     b = (int) Math.round(Math.clamp(light * type.b() + (type.bOffset() * 255D), 0D, 255D));
 
-                    nativeImage.setPixel(x, y, ARGB.color(a, b, g, r));
+                    nativeImage.setPixel(x, y, ARGB.color(a, r, g, b));
                 }
             }
 

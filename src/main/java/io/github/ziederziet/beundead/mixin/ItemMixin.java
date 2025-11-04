@@ -8,6 +8,8 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.*;
@@ -46,6 +48,20 @@ public class ItemMixin {
                 if (foodproperties != null){
                     if (!itemstack.is(BeUndead.UNDEAD_EATABLES)){
                         info.setReturnValue(InteractionResult.FAIL);
+                    }
+                }
+            }
+        }
+    }
+
+    @Inject(at = @At("HEAD"), method = "finishUsingItem")
+    public void finish(ItemStack itemStack, Level level, LivingEntity livingEntity, CallbackInfoReturnable<ItemStack> info){
+        if (livingEntity instanceof Player player && !BeUndeadHelper.isHuman(player) && itemStack.is(BeUndead.UNDEAD_CURES)){
+            int cureRequirements = ServerConfigAccessor.getConfig().getCureRequirements();
+            if (cureRequirements > 0 && cureRequirements != 3){
+                if (cureRequirements < 2 || player.hasEffect(MobEffects.WEAKNESS)){
+                    if ((cureRequirements < 4 && itemStack.is(BeUndead.UNDEAD_CURES)) || (cureRequirements > 3 && itemStack.is(Items.ENCHANTED_GOLDEN_APPLE))) {
+                        BeUndeadHelper.startConverting(player, player);
                     }
                 }
             }

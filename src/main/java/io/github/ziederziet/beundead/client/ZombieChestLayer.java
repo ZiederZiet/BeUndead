@@ -31,9 +31,9 @@ public class ZombieChestLayer extends RenderLayer<PlayerRenderState, PlayerModel
 
     @Override
     public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int packedLight, PlayerRenderState entityRenderState, float f, float g) {
-//        if (BeUndeadApi.hasZombieChest(entityRenderState)){   TODO
-//            VertexConsumer vertexConsumer = multiBufferSource.getBuffer(RenderType.entitySolid(CHEST_LOCATION));
-//            model.renderToBuffer(poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY);
-//        }
+        if (((UndeadRenderState)entityRenderState).hasChestExtension()){
+            VertexConsumer vertexConsumer = multiBufferSource.getBuffer(RenderType.entitySolid(CHEST_LOCATION));
+            model.renderToBuffer(poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY);
+        }
     }
 }

@@ -13,6 +13,7 @@
     "EnderManMixin",
     "EntityMixin",
     "ExperienceOrbMixin",
+    "InputMixin",
     "InventoryMixin",
     "ItemMixin",
     "KilledTriggerMixin",
@@ -38,7 +39,6 @@
   "client": [
     "AbstractContainerMenuMixin",
     "AbstractContainerScreenMixin",
-    "ClientInputMixin",
     "CreateWorldScreenMixin",
     "CreateWorldScreenMoreTabMixin",
     "CycleButtonMixin",
@@ -51,6 +51,7 @@
     "ItemInHandRendererMixin",
     "LightTextureMixin",
     "LivingEntityRendererMixin",
+    "LocalPlayerAccessor",
     "LocalPlayerMixin",
     "OptionsMixin",
     "PlayerMixin",
@@ -58,6 +59,7 @@
     "PlayerModelMixin",
     "PlayerRendererMixin",
     "SlotMixin",
+    "UndeadPlayerRenderStateMixin",
     "WorldCreationUiStateMixin"
   ],
   "injectors": {

@@ -156,17 +156,19 @@ public class ModEvents {
                 }
 
                 if (convert){
-//                    ZombieVillager zombievillager = (ZombieVillager)villager.convertTo(EntityType.ZOMBIE_VILLAGER, false); TODO
-//                    if (zombievillager != null) {
-//                        zombievillager.finalizeSpawn((ServerLevelAccessor) villager.level(), villager.level().getCurrentDifficultyAt(zombievillager.blockPosition()), MobSpawnType.CONVERSION, new Zombie.ZombieGroupData(false, true));
-//                        zombievillager.setVillagerData(villager.getVillagerData());
-//                        zombievillager.setGossips((Tag)villager.getGossips().store(NbtOps.INSTANCE));
-//                        zombievillager.setTradeOffers(villager.getOffers().copy());
-//                        zombievillager.setVillagerXp(villager.getVillagerXp());
-//                        if (!villager.isSilent()) {
-//                            villager.level().levelEvent((Player)null, 1026, villager.blockPosition(), 0);
-//                        }
-//                    }
+                    ServerLevel serverLevel = (ServerLevel) livingEntity.level();
+                    boolean silent = livingEntity.isSilent();
+                    BlockPos blockPos = livingEntity.blockPosition();
+                    villager.convertTo(EntityType.ZOMBIE_VILLAGER, ConversionParams.single(villager, true, true), (zombieVillagerx) -> {
+                        zombieVillagerx.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(zombieVillagerx.blockPosition()), EntitySpawnReason.CONVERSION, new Zombie.ZombieGroupData(false, true));
+                        zombieVillagerx.setVillagerData(villager.getVillagerData());
+                        zombieVillagerx.setGossips((Tag)villager.getGossips().store(NbtOps.INSTANCE));
+                        zombieVillagerx.setTradeOffers(villager.getOffers().copy());
+                        zombieVillagerx.setVillagerXp(villager.getVillagerXp());
+                        if (!silent) {
+                            serverLevel.levelEvent((Player)null, 1026, blockPos, 0);
+                        }
+                    });
                 }
             }
         }
