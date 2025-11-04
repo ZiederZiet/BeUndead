@@ -117,9 +117,9 @@ public class UndeadTypeDataManager implements SimpleSynchronousResourceReloadLis
         this.undeadDataMap.clear();
         this.typeMoistHeatLists.clear();
 
-        this.undeadDataMap.put("zombie", new SerializizedServerUndeadType("Zombie", 0.85F, 1.0F, 0.8F, 0.0F, 0.1F, 0.0F, false, false, true, false, false, new MobEffectInstance[0], "minecraft:entity.zombie.step", "minecraft:entity.zombie.hurt",  "minecraft:entity.zombie.death", "minecraft:entity.zombie.ambient"));
-        this.undeadDataMap.put("husk", new SerializizedServerUndeadType("Husk", 0.8F, 0.8F, 0.7F, 0.1F, 0.1F, -0.1F, false, false, false, false, false, new MobEffectInstance[] { new MobEffectInstance(MobEffects.HUNGER, 600, 0) }, "minecraft:entity.husk.step", "minecraft:entity.husk.hurt",  "minecraft:entity.husk.death", "minecraft:entity.husk.ambient"));
-        this.undeadDataMap.put("drowned", new SerializizedServerUndeadType("Drowned", 0.49F, 0.72F, 0.8F, 0.0F, 0.05F, 0.03F, true, true, true, false, false, new MobEffectInstance[0], "minecraft:entity.drowned.step", "minecraft:entity.drowned.hurt",  "minecraft:entity.drowned.death", "minecraft:entity.drowned.ambient"));
+        this.undeadDataMap.put("zombie", new SerializizedServerUndeadType("Zombie", 0.85F, 1.0F, 0.8F, 0.0F, 0.1F, 0.0F, false, false, true, false, false, new MobEffectInstance[0], "minecraft:entity.zombie.step", "minecraft:entity.zombie.hurt",  "minecraft:entity.zombie.death", "minecraft:entity.zombie.ambient", BeUndead.MODID + ":textures/entity/player/undead_overlay/zombie_overlay.png"));
+        this.undeadDataMap.put("husk", new SerializizedServerUndeadType("Husk", 0.8F, 0.8F, 0.7F, 0.1F, 0.1F, -0.1F, false, false, false, false, false, new MobEffectInstance[] { new MobEffectInstance(MobEffects.HUNGER, 600, 0) }, "minecraft:entity.husk.step", "minecraft:entity.husk.hurt",  "minecraft:entity.husk.death", "minecraft:entity.husk.ambient", BeUndead.MODID + ":textures/entity/player/undead_overlay/husk_overlay.png"));
+        this.undeadDataMap.put("drowned", new SerializizedServerUndeadType("Drowned", 0.49F, 0.72F, 0.8F, 0.0F, 0.05F, 0.03F, true, true, true, false, false, new MobEffectInstance[0], "minecraft:entity.drowned.step", "minecraft:entity.drowned.hurt",  "minecraft:entity.drowned.death", "minecraft:entity.drowned.ambient", BeUndead.MODID + ":textures/entity/player/undead_overlay/drowned_overlay.png"));
         //this.undeadDataMap.put("freeze", new SerializizedServerUndeadType("Freeze", 0.63F, 0.63F, 0.8F, 0.05F, 0.05F, 0.1F, false, false, true, false, true, new MobEffectInstance[] { new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 600, 0) }, "minecraft:entity.stray.step", "minecraft:entity.stray.hurt",  "minecraft:entity.stray.death", "minecraft:entity.stray.ambient"));
         //this.undeadDataMap.put("molten", new SerializizedServerUndeadType("Molten", 0.8F, 0.35F, 0.35F, 0.1F, 0.0F, 0.0F, false, false, false, true, false, new MobEffectInstance[0], "minecraft:entity.stray.step", "minecraft:entity.stray.hurt",  "minecraft:entity.stray.death", "minecraft:entity.stray.ambient"));
 
@@ -167,7 +167,7 @@ public class UndeadTypeDataManager implements SimpleSynchronousResourceReloadLis
                 if (unserializedMobEffects != null){
                     mobEffects = new MobEffectInstance[unserializedMobEffects.length];
                     for (int i = 0; i < mobEffects.length; i++) {
-                        ResourceKey<MobEffect> resourceKey = ResourceKey.create(Registries.MOB_EFFECT, new ResourceLocation(unserializedMobEffects[i].mobEffectId()));
+                        ResourceKey<MobEffect> resourceKey = ResourceKey.create(Registries.MOB_EFFECT, new ResourceLocation(unserializedMobEffects[i].effect()));
                         Optional<Holder.Reference<MobEffect>> optional = BuiltInRegistries.MOB_EFFECT.getHolder(resourceKey);
                         Integer duration = unserializedMobEffects[i].duration();
                         Integer amplifier = unserializedMobEffects[i].amplifier();
@@ -215,7 +215,7 @@ public class UndeadTypeDataManager implements SimpleSynchronousResourceReloadLis
                     }
                 }
 
-                this.undeadDataMap.put(type, new SerializizedServerUndeadType(data.name(), data.r(), data.g(), data.b(), data.rOffset(), data.gOffset(), data.bOffset(), data.canSwimInWater(), data.breathUnderwater(), data.burnsInTheSun(), data.fireImmune(), data.freezeImmune(), mobEffects, data.stepSound(), data.hurtSound(), data.deathSound(), data.ambientSound()));
+                this.undeadDataMap.put(type, new SerializizedServerUndeadType(data.name(), data.r(), data.g(), data.b(), data.rOffset(), data.gOffset(), data.bOffset(), data.canSwimInWater(), data.breathUnderwater(), data.burnsInTheSun(), data.fireImmune(), data.freezeImmune(), mobEffects, data.stepSound(), data.hurtSound(), data.deathSound(), data.ambientSound(), data.overlayTexture()));
             } catch (Exception e) {
                 System.err.println("Failed to load JSON resource " + id + ": " + e);
                 defaults(types, moistnesses, heats);

@@ -13,10 +13,11 @@
   "freezeImmune": false,
   "moistness": 1.0,
   "heat": 0.0,
-  "mobEffects": [
+  "hitMobEffects": [
   ],
   "stepSound": "minecraft:entity.drowned.step",
   "hurtSound": "minecraft:entity.drowned.hurt",
   "deathSound": "minecraft:entity.drowned.death",
-  "ambientSound": "minecraft:entity.drowned.ambient"
+  "ambientSound": "minecraft:entity.drowned.ambient",
+  "overlayTexture": "beundead:textures/entity/player/undead_overlay/drowned_overlay.png"
 }

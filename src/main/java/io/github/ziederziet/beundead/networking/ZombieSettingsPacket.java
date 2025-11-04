@@ -74,7 +74,10 @@ public class ZombieSettingsPacket implements FabricPacket {
             SoundEvent deathSound = BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation(buffer.readUtf()));
             SoundEvent ambientSound = BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation(buffer.readUtf()));
 
-            undeadTypes.put(typeName, new ClientUndeadType(typeNameName, r, g, b, rOffset, gOffset, bOffset, canSwimInWater, breathUnderwater, burnsInTheSun, fireImmune, freezeImmune, stepSound, hurtSound, deathSound, ambientSound));
+            String overlayTextureString = buffer.readUtf();
+            ResourceLocation overlayTexture = overlayTextureString.isBlank() ? null : new ResourceLocation(overlayTextureString);
+
+            undeadTypes.put(typeName, new ClientUndeadType(typeNameName, r, g, b, rOffset, gOffset, bOffset, canSwimInWater, breathUnderwater, burnsInTheSun, fireImmune, freezeImmune, stepSound, hurtSound, deathSound, ambientSound, overlayTexture));
         }
     }
 
@@ -139,6 +142,12 @@ public class ZombieSettingsPacket implements FabricPacket {
                 }
                 if (serverUndeadType.ambientSound() != null){
                     friendlyByteBuf.writeUtf(serverUndeadType.ambientSound());
+                }
+                else{
+                    friendlyByteBuf.writeUtf("");
+                }
+                if (serverUndeadType.overlayTexture() != null){
+                    friendlyByteBuf.writeUtf(serverUndeadType.overlayTexture());
                 }
                 else{
                     friendlyByteBuf.writeUtf("");
