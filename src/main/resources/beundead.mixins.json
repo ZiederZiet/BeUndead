@@ -49,6 +49,7 @@
     "GuiMixin",
     "HumanoidModelAccessor",
     "InventoryMixin",
+    "ItemInHandRendererMixin",
     "LightTextureMixin",
     "LivingEntityRendererMixin",
     "LocalPlayerMixin",

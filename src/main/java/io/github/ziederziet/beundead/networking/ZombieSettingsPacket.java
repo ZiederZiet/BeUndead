@@ -76,7 +76,10 @@ public class ZombieSettingsPacket implements CustomPacketPayload {
             SoundEvent deathSound = BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse(buffer.readUtf()));
             SoundEvent ambientSound = BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse(buffer.readUtf()));
 
-            undeadTypes.put(typeName, new ClientUndeadType(typeNameName, r, g, b, rOffset, gOffset, bOffset, canSwimInWater, breathUnderwater, burnsInTheSun, fireImmune, freezeImmune, stepSound, hurtSound, deathSound, ambientSound));
+            String overlayTextureString = buffer.readUtf();
+            ResourceLocation overlayTexture = overlayTextureString.isBlank() ? null : ResourceLocation.parse(overlayTextureString);
+
+            undeadTypes.put(typeName, new ClientUndeadType(typeNameName, r, g, b, rOffset, gOffset, bOffset, canSwimInWater, breathUnderwater, burnsInTheSun, fireImmune, freezeImmune, stepSound, hurtSound, deathSound, ambientSound, overlayTexture));
         }
     }
 
@@ -128,6 +131,12 @@ public class ZombieSettingsPacket implements CustomPacketPayload {
                 }
                 if (serverUndeadType.ambientSound() != null){
                     buffer.writeUtf(serverUndeadType.ambientSound());
+                }
+                else{
+                    buffer.writeUtf("");
+                }
+                if (serverUndeadType.overlayTexture() != null){
+                    buffer.writeUtf(serverUndeadType.overlayTexture());
                 }
                 else{
                     buffer.writeUtf("");
