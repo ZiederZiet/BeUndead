@@ -13,10 +13,11 @@
   "freezeImmune": false,
   "moistness": 0.0,
   "heat": 0.0,
-  "mobEffects": [
+  "hitMobEffects": [
   ],
   "stepSound": "minecraft:entity.zombie.step",
   "hurtSound": "minecraft:entity.zombie.hurt",
   "deathSound": "minecraft:entity.zombie.death",
-  "ambientSound": "minecraft:entity.zombie.ambient"
+  "ambientSound": "minecraft:entity.zombie.ambient",
+  "overlayTexture": "beundead:textures/entity/player/undead_overlay/zombie_overlay.png"
 }
