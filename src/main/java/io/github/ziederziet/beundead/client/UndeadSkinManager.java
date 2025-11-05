@@ -157,7 +157,11 @@ public class UndeadSkinManager {
 
             DynamicTexture dynamicTexture = new DynamicTexture(nativeImage);
 
-            return minecraft.getTextureManager().register("undeadskin/" + location.getPath(), dynamicTexture);
+            ResourceLocation location1 = ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "undeadskin/" + location.getPath());
+
+            minecraft.getTextureManager().register(location1, dynamicTexture);
+
+            return location1;
         });
     }
 }

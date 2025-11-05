@@ -96,13 +96,13 @@ public abstract class InventoryMixin {
         }
     }
 
-    @Inject(at = @At("HEAD"), method = "setPickedItem(Lnet/minecraft/world/item/ItemStack;)V", cancellable = true)
-    public void setPickedItem(ItemStack stack, CallbackInfo info) {
-        if (BeUndeadHelper.getInvStateOfPlayer(player) == 0 && player.getInventory().getItem(0).isEmpty()){
-            if (this.items.get(selected).isEmpty()){
-                this.items.set(this.selected, stack);
-            }
-            info.cancel();
-        }
-    }
+//    @Inject(at = @At("HEAD"), method = "setPickedItem(Lnet/minecraft/world/item/ItemStack;)V", cancellable = true)
+//    public void setPickedItem(ItemStack stack, CallbackInfo info) {
+//        if (BeUndeadHelper.getInvStateOfPlayer(player) == 0 && player.getInventory().getItem(0).isEmpty()){
+//            if (this.items.get(selected).isEmpty()){
+//                this.items.set(this.selected, stack);
+//            }
+//            info.cancel();
+//        }
+//    }
 }
