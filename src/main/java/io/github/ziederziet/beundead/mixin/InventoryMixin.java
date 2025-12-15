@@ -75,9 +75,6 @@ public abstract class InventoryMixin {
                     info.setReturnValue(false);
                 }
             }
-            else {
-                info.setReturnValue(false);
-            }
         }
     }
 
