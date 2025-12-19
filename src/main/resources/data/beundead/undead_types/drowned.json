@@ -1,0 +1,23 @@
+{
+  "name": "Drowned",
+  "r": 0.49,
+  "g": 0.72,
+  "b": 0.8,
+  "rOffset": 0.0,
+  "gOffset": 0.05,
+  "bOffset": 0.03,
+  "canSwimInWater": true,
+  "breathUnderwater": true,
+  "burnsInTheSun": true,
+  "fireImmune": false,
+  "freezeImmune": false,
+  "moistness": 1.0,
+  "heat": 0.0,
+  "hitMobEffects": [
+  ],
+  "stepSound": "minecraft:entity.drowned.step",
+  "hurtSound": "minecraft:entity.drowned.hurt",
+  "deathSound": "minecraft:entity.drowned.death",
+  "ambientSound": "minecraft:entity.drowned.ambient",
+  "overlayTexture": "beundead:textures/entity/player/undead_overlay/drowned_overlay.png"
+}

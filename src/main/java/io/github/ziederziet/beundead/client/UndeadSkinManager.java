@@ -1,15 +1,18 @@
 package io.github.ziederziet.beundead.client;
 
 import com.mojang.blaze3d.platform.NativeImage;
+import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
+import io.github.ziederziet.beundead.common.ClientInfo;
+import io.github.ziederziet.beundead.common.ClientUndeadType;
+import io.github.ziederziet.beundead.common.UndeadType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.util.FastColor;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.phys.Vec3;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -22,41 +25,37 @@ import java.util.Map;
 import java.util.Optional;
 
 public class UndeadSkinManager {
-//    public static final Vec3[] ZOMBIE_COLORS = new Vec3[] { new Vec3(0.8D, 1.0D, 0.85D), new Vec3(0.7D, 0.8D, 0.8D), new Vec3(0.80D, 0.72D, 0.49D) };
-//    public static final Vec3[] ZOMBIE_COLOR_OFFSETS = new Vec3[] { new Vec3(0.0D, 0.1D, 0.0D), new Vec3(-0.1D, 0.1D, 0.1D), new Vec3(0.03D, 0.05D, 0.0D) };
 
+    private static final ResourceLocation GENERIC_TEXTURE_OVERLAY = ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "textures/entity/player/undead_overlay/generic_overlay.png");
 
-
-    private static final Map<ResourceLocation, ResourceLocation> modifiedZombieSkins = new HashMap<>();
-    private static final Map<ResourceLocation, ResourceLocation> modifiedHuskSkins = new HashMap<>();
-    private static final Map<ResourceLocation, ResourceLocation> modifiedDrownedSkins = new HashMap<>();
+    private static final Map<String, Map<ResourceLocation, ResourceLocation>> undeadSkins = new HashMap<>();
 
     public static void removeSkin(ResourceLocation ofResource){
-        modifiedZombieSkins.remove(ofResource);
-        modifiedHuskSkins.remove(ofResource);
-        modifiedDrownedSkins.remove(ofResource);
+        undeadSkins.forEach((name, resourceLocationResourceLocationMap) -> {
+            resourceLocationResourceLocationMap.remove(ofResource);
+        });
     }
 
     public static void removeAll(){
-        modifiedZombieSkins.clear();
-        modifiedHuskSkins.clear();
-        modifiedDrownedSkins.clear();
+        undeadSkins.clear();
     }
 
 
-    public static ResourceLocation getOrCreateSkin(ResourceLocation defaultLocation, int type, AbstractClientPlayer player) {
-        Map<ResourceLocation, ResourceLocation> map = switch (type) {
-            case 2 -> modifiedHuskSkins;
-            case 3 -> modifiedDrownedSkins;
-            default -> modifiedZombieSkins;
-        };
-
-        return map.computeIfAbsent(defaultLocation, location -> {
+    public static ResourceLocation getOrCreateSkin(ResourceLocation defaultLocation, String typeName, AbstractClientPlayer player) {
+        return undeadSkins.computeIfAbsent(typeName, typ -> {
+            return new HashMap<>();
+        }).computeIfAbsent(defaultLocation, location -> {
             Minecraft minecraft = Minecraft.getInstance();
 
             Optional<Resource> optional = minecraft.getResourceManager().getResource(defaultLocation);
 
             BufferedImage skinImage = null;
+
+            UndeadType type = BeUndeadHelper.getClientUndeadType(typeName);
+
+            if (type == null){
+                return defaultLocation;
+            }
 
             try {
                 if (optional.isPresent()){
@@ -81,6 +80,33 @@ public class UndeadSkinManager {
 
             NativeImage nativeImage = new NativeImage(NativeImage.Format.RGBA, width, height, true);
 
+            BufferedImage overlayImage = null;
+            if (type instanceof ClientUndeadType undeadType){
+                if (undeadType.overlayTexture() != null){
+                    Optional<Resource> optionalOverlay = minecraft.getResourceManager().getResource(undeadType.overlayTexture());
+                    if (optionalOverlay.isPresent()){
+                        try {
+                            overlayImage = ImageIO.read(optionalOverlay.get().open());
+                        }
+                        catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
+            }
+
+            BufferedImage genericOverlayImage = null;
+            Optional<Resource> optionalOverlay = minecraft.getResourceManager().getResource(GENERIC_TEXTURE_OVERLAY);
+            if (optionalOverlay.isPresent()){
+                try {
+                    genericOverlayImage = ImageIO.read(optionalOverlay.get().open());
+                }
+                catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
                     int rgba = skinImage.getRGB(x, y);
@@ -92,54 +118,49 @@ public class UndeadSkinManager {
 
                     double light = (r * 0.85 + g + b * 0.7) / 2.55;
 
-                    r = (int) Math.round(Math.clamp(light * BeUndeadApi.ZOMBIE_COLORS[type - 1].x + (BeUndeadApi.ZOMBIE_COLOR_OFFSETS[type - 1].x * 255D), 0D, 255D));
-                    g = (int) Math.round(Math.clamp(light * BeUndeadApi.ZOMBIE_COLORS[type - 1].y + (BeUndeadApi.ZOMBIE_COLOR_OFFSETS[type - 1].y * 255D), 0D, 255D));
-                    b = (int) Math.round(Math.clamp(light * BeUndeadApi.ZOMBIE_COLORS[type - 1].z + (BeUndeadApi.ZOMBIE_COLOR_OFFSETS[type - 1].z * 255D), 0D, 255D));
+                    r = (int) Math.round(Math.clamp(light * type.r() + (type.rOffset() * 255D), 0D, 255D));
+                    g = (int) Math.round(Math.clamp(light * type.g() + (type.gOffset() * 255D), 0D, 255D));
+                    b = (int) Math.round(Math.clamp(light * type.b() + (type.bOffset() * 255D), 0D, 255D));
 
-                    nativeImage.setPixelRGBA(x, y, FastColor.ARGB32.color(a, r, g, b));
+                    if (overlayImage != null){
+                        int overlayRgb = overlayImage.getRGB(x, y);
+                        int oA = FastColor.ARGB32.alpha(overlayRgb);
+                        if (oA > 0){
+                            float f = oA / 255F;
+
+                            int oR = FastColor.ARGB32.red(overlayRgb);
+                            int oG = FastColor.ARGB32.green(overlayRgb);
+                            int oB = FastColor.ARGB32.blue(overlayRgb);
+
+                            r = Math.round(r * (1.0F - f) + (oR * f));
+                            g = Math.round(g * (1.0F - f) + (oG * f));
+                            b = Math.round(b * (1.0F - f) + (oB * f));
+                        }
+                    }
+
+                    if (genericOverlayImage != null){
+                        int overlayRgb = genericOverlayImage.getRGB(x, y);
+                        int oA = FastColor.ARGB32.alpha(overlayRgb);
+                        if (oA > 0){
+                            float f = oA / 255F;
+
+                            int oR = FastColor.ARGB32.red(overlayRgb);
+                            int oG = FastColor.ARGB32.green(overlayRgb);
+                            int oB = FastColor.ARGB32.blue(overlayRgb);
+
+                            r = Math.round(r * (1.0F - f) + (oR * f));
+                            g = Math.round(g * (1.0F - f) + (oG * f));
+                            b = Math.round(b * (1.0F - f) + (oB * f));
+                        }
+                    }
+
+                    nativeImage.setPixelRGBA(x, y, FastColor.ARGB32.color(a, b, g, r));
                 }
             }
 
             DynamicTexture dynamicTexture = new DynamicTexture(nativeImage);
 
             return minecraft.getTextureManager().register("undeadskin/" + location.getPath(), dynamicTexture);
-
-//            if (optional.isPresent()){
-//                System.out.println("THERE");
-//
-//                Resource resource = optional.get();
-//
-//                try {
-//                    NativeImage image = NativeImage.read(resource.open());
-//
-//                    for (int y = 0; y < image.getHeight(); y++) {
-//                        for (int x = 0; x < image.getWidth(); x++) {
-//                            int rgba = image.getPixelRGBA(x, y);
-//
-//                            int a = FastColor.ARGB32.alpha(rgba);
-//                            int r = FastColor.ARGB32.red(rgba);
-//                            int g = FastColor.ARGB32.green(rgba);
-//                            int b = FastColor.ARGB32.blue(rgba);
-//
-//                            double light = (r * 0.85 + g + b * 0.7) / 2.55;
-//
-//                            r = (int) Math.round(Math.clamp(light * ZOMBIE_COLORS[type - 1].x + (ZOMBIE_COLOR_OFFSETS[type - 1].x * 255D), 0D, 255D));
-//                            g = (int) Math.round(Math.clamp(light * ZOMBIE_COLORS[type - 1].y + (ZOMBIE_COLOR_OFFSETS[type - 1].y * 255D), 0D, 255D));
-//                            b = (int) Math.round(Math.clamp(light * ZOMBIE_COLORS[type - 1].z + (ZOMBIE_COLOR_OFFSETS[type - 1].z * 255D), 0D, 255D));
-//
-//                            image.setPixelRGBA(x, y, FastColor.ARGB32.color(a, r, g, b));
-//                        }
-//                    }
-//
-//                    DynamicTexture dynamicTexture = new DynamicTexture(image);
-//
-//                    return minecraft.getTextureManager().register("modskin/" + uuid.toString(), dynamicTexture);
-//                } catch (IOException e) {
-//                    throw new RuntimeException(e);
-//                }
-//            }
-
-            //return defaultLocation;
         });
     }
 }

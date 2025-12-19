@@ -1,6 +1,6 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -30,42 +30,39 @@ public abstract class InventoryMixin {
 
     @Inject(at = @At("HEAD"), method = "getSelected()Lnet/minecraft/world/item/ItemStack;", cancellable = true)
     public void getSelected(CallbackInfoReturnable<ItemStack> info) {
-        if (BeUndeadApi.getInvStateOfPlayer(player) == 0){
+        int invState = BeUndeadHelper.getInvStateOfPlayer(player);
+        if (invState == 0){
+            selected = 4;
             info.setReturnValue(items.get(4));
-            info.cancel();
         }
     }
 
 
     @Inject(at = @At("HEAD"), method = "getFreeSlot()I", cancellable = true)
     public void getFreeSlotInject(CallbackInfoReturnable<Integer> info){
-        int invState = BeUndeadApi.getInvStateOfPlayer(player);
+        int invState = BeUndeadHelper.getInvStateOfPlayer(player);
         if (invState == 0){
             int returnSlot = -1;
             if (getItem(4).isEmpty()){
                 returnSlot = 4;
             }
             info.setReturnValue(returnSlot);
-            return;
         }
         else if (invState == 1){
             for(int i = 0; i < 9; ++i) {
-                if (((ItemStack)this.items.get(i)).isEmpty()) {
+                if (this.items.get(i).isEmpty()) {
                     info.setReturnValue(i);
                     return;
                 }
             }
             info.setReturnValue(-1);
-            return;
         }
-
-        //info.setReturnValue(0);
     }
 
 
     @Inject(at = @At("HEAD"), method = "add(ILnet/minecraft/world/item/ItemStack;)Z", cancellable = true)
     public void addInject(int slot, ItemStack pStack, CallbackInfoReturnable<Boolean> info){
-        int invState = BeUndeadApi.getInvStateOfPlayer(player);
+        int invState = BeUndeadHelper.getInvStateOfPlayer(player);
 
         if (slot != -1){
             if (slot > 9){
@@ -78,22 +75,19 @@ public abstract class InventoryMixin {
                     info.setReturnValue(false);
                 }
             }
-            else {
-                info.setReturnValue(false);
-            }
         }
     }
 
     @Inject(at = @At("HEAD"), method = "pickSlot(I)V", cancellable = true)
     public void pickSlot(int index, CallbackInfo info) {
-        if (BeUndeadApi.getInvStateOfPlayer(player) == 0) {
+        if (BeUndeadHelper.getInvStateOfPlayer(player) == 0) {
             info.cancel();
         }
     }
 
     @Inject(at = @At("HEAD"), method = "swapPaint(D)V", cancellable = true)
     public void swapPaint(double direction, CallbackInfo info) {
-        if (BeUndeadApi.getInvStateOfPlayer(player) == 0){
+        if (BeUndeadHelper.getInvStateOfPlayer(player) == 0){
             this.selected = 4;
             info.cancel();
         }
@@ -101,19 +95,9 @@ public abstract class InventoryMixin {
 
     @Inject(at = @At("TAIL"), method = "dropAll()V")
     public void dropAll(CallbackInfo info){
-        if (BeUndeadApi.hasZombieChest(this.player)){
+        if (BeUndeadHelper.hasZombieChest(this.player)){
             this.player.drop(new ItemStack(Items.CHEST), true, false);
-            BeUndeadApi.setZombieChest(this.player, false);
-        }
-    }
-
-    @Inject(at = @At("HEAD"), method = "setPickedItem(Lnet/minecraft/world/item/ItemStack;)V", cancellable = true)
-    public void setPickedItem(ItemStack stack, CallbackInfo info) {
-        if (BeUndeadApi.getInvStateOfPlayer(player) == 0 && player.getInventory().getItem(0).isEmpty()){
-            if (this.items.get(selected).isEmpty()){
-                this.items.set(this.selected, stack);
-            }
-            info.cancel();
+            BeUndeadHelper.setZombieChest(this.player, false);
         }
     }
 }

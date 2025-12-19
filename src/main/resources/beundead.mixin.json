@@ -1,36 +1,45 @@
 {
   "required": true,
   "package": "io.github.ziederziet.beundead.mixin",
-  "minVersion": 0.7,
+  "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "AbstractFurnaceBlockEntityMixin",
+    "AvoidEntityGoalMixin",
     "BedBlockMixin",
+    "BlockMixin",
+    "ContextAwarePredicateAccessor",
     "DoorBlockMixin",
     "EnchantmentHelperMixin",
-    "EntityAccessor",
+    "EnderManMixin",
     "EntityMixin",
     "ExperienceOrbMixin",
     "InventoryMixin",
     "ItemMixin",
     "KeyboardInputMixin",
+    "KilledTriggerMixin",
     "LivingEntityMixin",
-    "NearestAttackableTargetGoalAccessor",
     "NearestAttackableTargetGoalMixin",
+    "NearestVisibleLivingEntitiesMixin",
+    "PhantomSpawnerMixin",
     "PlayerMixin",
+    "PlayerRespawnLogicAccessor",
     "PlayerSensorMixin",
     "SensorMixin",
     "ServerGamePacketListenerImplMixin",
+    "ServerPlayerMixin",
     "SleepStatusMixin",
     "SlimeMixin",
     "SlotMixin",
-    "TargetGoalAccessor",
     "TargetingConditionsAccessor",
     "UndeadMixin",
     "VillagerHostilesSensorMixin",
-    "VillagerMixin"
+    "VillagerMixin",
+    "WanderingTraderMixin"
   ],
   "client": [
     "AbstractContainerMenuMixin",
     "AbstractContainerScreenMixin",
+    "CreateWorldScreenMixin",
     "CycleButtonMixin",
     "DeathScreenAccessor",
     "DeathScreenMixin",
@@ -39,6 +48,8 @@
     "GuiMixin",
     "HumanoidModelAccessor",
     "InventoryMixin",
+    "ItemInHandRendererMixin",
+    "LightTextureMixin",
     "LivingEntityRendererMixin",
     "LocalPlayerMixin",
     "OptionsMixin",
@@ -47,10 +58,12 @@
     "PlayerModelMixin",
     "PlayerRendererMixin",
     "SlotMixin",
-    "TargetGoalAccessor"
+    "WorldCreationUiStateMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
-  "refmap": "beundead.mixin-refmap.json"
+  "overwrites": {
+    "requireAnnotations": true
+	}
 }

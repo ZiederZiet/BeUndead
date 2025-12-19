@@ -1,5 +1,8 @@
 package io.github.ziederziet.beundead;
 
+import io.github.ziederziet.beundead.common.InfectedMobEffect;
+import io.github.ziederziet.beundead.common.UndeadTypeDataManager;
+import io.github.ziederziet.beundead.config.ClientModConfig;
 import io.github.ziederziet.beundead.networking.ModNetworking;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -16,7 +19,7 @@ import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import io.github.ziederziet.beundead.config.ModConfig;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
@@ -28,6 +31,7 @@ import org.joml.Vector3f;
 @Mod(BeUndead.MODID)
 public class BeUndead
 {
+    public static UndeadTypeDataManager UNDEAD_DATA;
 
     public static final Vector3f[] ZOMBIE_COLORS;
     public static final Vector3f[] ZOMBIE_COLOR_OFFSETS;
@@ -50,8 +54,8 @@ public class BeUndead
 
         MOB_EFFECTS.register(modEventBus);
 
-        context.registerConfig(net.minecraftforge.fml.config.ModConfig.Type.COMMON, ModConfig.SPEC);
-        ModConfig.loadConfig(ModConfig.SPEC, FMLPaths.CONFIGDIR.get().resolve(BeUndead.MODID + "-common.toml"));
+        context.registerConfig(ModConfig.Type.CLIENT, ClientModConfig.SPEC);
+        ClientModConfig.loadConfig(ClientModConfig.SPEC, FMLPaths.CONFIGDIR.get().resolve(BeUndead.MODID + "-common.toml"));
 
         MinecraftForge.EVENT_BUS.register(this);
 

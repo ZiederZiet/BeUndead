@@ -1,18 +1,28 @@
 package io.github.ziederziet.beundead.networking;
 
+import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.common.UndeadAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.network.CustomPayloadEvent;
 
-public class UndeadDataPacket {
+public class UndeadDataPacket implements CustomPacketPayload {
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "undead_data");
+    public static final CustomPacketPayload.Type<UndeadDataPacket> TYPE = new CustomPacketPayload.Type<>(ID);
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, UndeadDataPacket> CODEC = StreamCodec.of((object, object2) -> object2.encode(object), UndeadDataPacket::new);
+
     int playerId;
-    int type;
+    String type;
     boolean converting;
     boolean chest;
 
-    public UndeadDataPacket(int playerId, int type, boolean converting, boolean chest){
+    public UndeadDataPacket(int playerId, String type, boolean converting, boolean chest){
         this.playerId = playerId;
         this.type = type;
         this.converting = converting;
@@ -21,34 +31,36 @@ public class UndeadDataPacket {
 
     public UndeadDataPacket(FriendlyByteBuf buffer){
         playerId = buffer.readInt();
-        type = buffer.readInt();
+        type = buffer.readUtf();
         converting = buffer.readBoolean();
         chest = buffer.readBoolean();
     }
 
     public void encode(FriendlyByteBuf buffer){
         buffer.writeInt(playerId);
-        buffer.writeInt(type);
+        buffer.writeUtf(type);
         buffer.writeBoolean(converting);
         buffer.writeBoolean(chest);
     }
 
     public void handle(CustomPayloadEvent.Context context){
         context.enqueueWork(() -> {
-            if (context.isClientSide()){
-                if (Minecraft.getInstance().level.getEntity(playerId) instanceof Player player){
-                    UndeadAccessor undeadAccessor = (UndeadAccessor) player;
-                    undeadAccessor.setType(type);
-                    undeadAccessor.setConverting(converting);
-                    undeadAccessor.setZombieChest(chest);
-                }
+            if (Minecraft.getInstance().level.getEntity(playerId) instanceof Player player){
+                UndeadAccessor undeadAccessor = (UndeadAccessor) player;
+                undeadAccessor.setType(type);
+                undeadAccessor.setConverting(converting);
+                undeadAccessor.setZombieChest(chest);
             }
-            context.setPacketHandled(true);
         });
     }
 
     public static UndeadDataPacket getPacket(Player player){
         UndeadAccessor undeadAccessor = (UndeadAccessor) player;
         return new UndeadDataPacket(player.getId(), undeadAccessor.getType(), undeadAccessor.getZombieConversionTime() > 0, undeadAccessor.hasZombieChest());
+    }
+
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

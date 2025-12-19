@@ -1,12 +1,9 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.BeUndead;
-import io.github.ziederziet.beundead.api.BeUndeadApi;
-import net.minecraft.client.player.Input;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
+import io.github.ziederziet.beundead.common.ClientInfo;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -14,7 +11,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@OnlyIn(Dist.CLIENT)
 @Mixin(LocalPlayer.class)
 public class LocalPlayerMixin {
     @Shadow
@@ -22,7 +18,7 @@ public class LocalPlayerMixin {
 
     @Inject(at = @At("HEAD"), method = "canStartSprinting()Z", cancellable = true)
     private void canStartSprinting(CallbackInfoReturnable<Boolean> info) {
-        if (BeUndeadApi.getZombieType((Player) (Object)this) > 0){
+        if (!BeUndeadHelper.isHuman((Player) (Object)this) && !ClientInfo.zombieSprintEnabled){
             info.setReturnValue(false);
             info.cancel();
         }
@@ -30,7 +26,7 @@ public class LocalPlayerMixin {
 
     @Inject(at = @At("HEAD"), method = "isAutoJumpEnabled()Z", cancellable = true)
     public void isAutoJumpEnabled(CallbackInfoReturnable<Boolean> info){
-        if (!BeUndeadApi.canJump((LocalPlayer)(Object)this)){
+        if (!BeUndeadHelper.canJump((LocalPlayer)(Object)this)){
             info.setReturnValue(true);
         }
     }

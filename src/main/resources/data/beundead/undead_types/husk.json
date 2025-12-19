@@ -1,0 +1,28 @@
+{
+  "name": "Husk",
+  "r": 0.8,
+  "g": 0.8,
+  "b": 0.7,
+  "rOffset": 0.1,
+  "gOffset": 0.1,
+  "bOffset": -0.1,
+  "canSwimInWater": false,
+  "breathUnderwater": false,
+  "burnsInTheSun": false,
+  "fireImmune": false,
+  "freezeImmune": false,
+  "moistness": -1.0,
+  "heat": 0.0,
+  "hitMobEffects": [
+    {
+      "effect": "minecraft:hunger",
+      "duration": 600,
+      "amplifier": 0
+    }
+  ],
+  "stepSound": "minecraft:entity.husk.step",
+  "hurtSound": "minecraft:entity.husk.hurt",
+  "deathSound": "minecraft:entity.husk.death",
+  "ambientSound": "minecraft:entity.husk.ambient",
+  "overlayTexture": "beundead:textures/entity/player/undead_overlay/husk_overlay.png"
+}

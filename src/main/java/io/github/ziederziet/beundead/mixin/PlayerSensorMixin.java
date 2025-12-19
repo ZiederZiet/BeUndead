@@ -1,7 +1,6 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.BeUndead;
-import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
@@ -12,7 +11,6 @@ import net.minecraft.world.entity.ai.sensing.PlayerSensor;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -30,7 +28,7 @@ public abstract class PlayerSensorMixin extends Sensor<LivingEntity> {
     protected void doTick(ServerLevel pLevel, LivingEntity pEntity, CallbackInfo info) {
         info.cancel();
         Stream var10000 = pLevel.players().stream().filter(EntitySelector.NO_SPECTATORS).filter((p_26744_) -> {
-            return pEntity.closerThan(p_26744_, 16.0) && p_26744_ instanceof Player player && BeUndeadApi.getZombieType(player) > 0;
+            return pEntity.closerThan(p_26744_, 16.0) && p_26744_ instanceof Player player && !BeUndeadHelper.isHuman(player);
         });
         Objects.requireNonNull(pEntity);
         List<Player> $$2 = (List)var10000.sorted(Comparator.comparingDouble(entity -> pEntity.distanceToSqr((Entity) entity))).collect(Collectors.toList());

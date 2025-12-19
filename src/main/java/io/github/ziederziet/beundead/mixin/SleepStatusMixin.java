@@ -1,7 +1,6 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.BeUndead;
-import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.SleepStatus;
 import org.spongepowered.asm.mixin.Mixin;
@@ -31,7 +30,7 @@ public abstract class SleepStatusMixin {
         Iterator<ServerPlayer> players = pPlayers.iterator();
         while (players.hasNext() && activePlayers > 0){
             ServerPlayer player = players.next();
-            if (BeUndeadApi.getZombieType(player) > 0){
+            if (!BeUndeadHelper.isHuman(player)){
                 activePlayers--;
                 if (player.isSleeping()){
                     sleepingPlayers--;

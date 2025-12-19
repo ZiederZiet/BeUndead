@@ -1,12 +1,21 @@
 package io.github.ziederziet.beundead.networking;
 
+import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.common.UndeadAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.event.network.CustomPayloadEvent;
-import net.minecraftforge.network.NetworkDirection;
 
-public class RespawnTimerPacket {
+public class RespawnTimerPacket implements CustomPacketPayload {
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "respawn_timer");
+    public static final CustomPacketPayload.Type<RespawnTimerPacket> TYPE = new CustomPacketPayload.Type<>(ID);
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, RespawnTimerPacket> CODEC = StreamCodec.of((object, object2) -> object2.encode(object), RespawnTimerPacket::new);
+
     private long timer;
 
     public RespawnTimerPacket(long timer){
@@ -22,15 +31,15 @@ public class RespawnTimerPacket {
     }
 
     public void handle(CustomPayloadEvent.Context context){
-        if (context.isClientSide()){
-            context.enqueueWork(() -> {
-                if (context.isClientSide()){
-                    if (Minecraft.getInstance().player instanceof UndeadAccessor accessor){
-                        accessor.setZombieRespawnTimer(timer);
-                    }
-                }
-                context.setPacketHandled(true);
-            });
-        }
+        context.enqueueWork(() -> {
+            if (Minecraft.getInstance().player instanceof UndeadAccessor accessor){
+                accessor.setZombieRespawnTimer(timer);
+            }
+        });
+    }
+
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

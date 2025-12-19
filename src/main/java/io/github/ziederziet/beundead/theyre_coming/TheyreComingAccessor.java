@@ -1,7 +1,6 @@
 package io.github.ziederziet.beundead.theyre_coming;
 
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.fml.ModList;
 
 import java.lang.reflect.Method;

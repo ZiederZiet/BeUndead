@@ -1,6 +1,7 @@
 package io.github.ziederziet.beundead.mixin;
 
-import io.github.ziederziet.beundead.api.BeUndeadApi;
+import io.github.ziederziet.beundead.BeUndeadClient;
+import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -18,38 +19,59 @@ public abstract class SlotMixin {
     @Shadow
     public Container container;
 
-    @Shadow
-    public abstract int getSlotIndex();
+    @Shadow public abstract int getContainerSlot();
 
     @Inject(at = @At("HEAD"), method = "mayPlace(Lnet/minecraft/world/item/ItemStack;)Z", cancellable = true)
     public void mayPlace(ItemStack pStack, CallbackInfoReturnable<Boolean> info) {
-        if (container instanceof Inventory inventory && BeUndeadApi.getInvStateOfPlayer(inventory.player) < 2){
-            int slot = getSlotIndex();
-            int invState = BeUndeadApi.getInvStateOfPlayer(inventory.player);
-            if ((!(invState > 0 && slot < 9) && slot != 4) && slot < 36){
-                info.setReturnValue(false);
+        if (container instanceof Inventory inventory && BeUndeadHelper.getInvStateOfPlayer(inventory.player) < 2){
+            int slot = getContainerSlot();
+            int invState = BeUndeadHelper.getInvStateOfPlayer(inventory.player);
+            if (BeUndeadClient.isCreativeScreen()){
+                if ((!(invState > 0 && slot > 35) && slot != 40) && (slot < 45 && slot > 8)){
+                    info.setReturnValue(false);
+                }
+            }
+            else {
+                if ((!(invState > 0 && slot < 9) && slot != 4) && slot < 36){
+                    info.setReturnValue(false);
+                }
             }
         }
     }
 
     @Inject(at = @At("HEAD"), method = "mayPickup(Lnet/minecraft/world/entity/player/Player;)Z", cancellable = true)
     public void mayPickup(Player pPlayer, CallbackInfoReturnable<Boolean> info) {
-        if (container instanceof Inventory inventory && BeUndeadApi.getInvStateOfPlayer(inventory.player) < 2){
-            int slot = getSlotIndex();
-            int invState = BeUndeadApi.getInvStateOfPlayer(inventory.player);
-            if ((!(invState > 0 && slot < 9) && slot != 4) && slot < 36){
-                info.setReturnValue(false);
+        if (container instanceof Inventory inventory && BeUndeadHelper.getInvStateOfPlayer(inventory.player) < 2){
+            int slot = getContainerSlot();
+            int invState = BeUndeadHelper.getInvStateOfPlayer(inventory.player);
+            if (BeUndeadClient.isCreativeScreen()){
+                if ((!(invState > 0 && slot > 35) && slot != 40) && (slot < 45 && slot > 8)){
+                    info.setReturnValue(false);
+                }
             }
+            else {
+                if ((!(invState > 0 && slot < 9) && slot != 4) && slot < 36){
+                    info.setReturnValue(false);
+                }
+            }
+
         }
     }
 
     @Inject(at = @At("HEAD"), method = "isHighlightable()Z", cancellable = true)
     public void isHighlightable(CallbackInfoReturnable<Boolean> info) {
-        if (container instanceof Inventory inventory && BeUndeadApi.getInvStateOfPlayer(inventory.player) < 2){
-            int slot = getSlotIndex();
-            int invState = BeUndeadApi.getInvStateOfPlayer(inventory.player);
-            if ((!(invState > 0 && slot < 9) && slot != 4) && slot < 36){
-                info.setReturnValue(false);
+        if (container instanceof Inventory inventory && BeUndeadHelper.getInvStateOfPlayer(inventory.player) < 2){
+            int slot = getContainerSlot();
+            int invState = BeUndeadHelper.getInvStateOfPlayer(inventory.player);
+            if (BeUndeadClient.isCreativeScreen()){
+                if ((!(invState > 0 && slot > 35) && slot != 40) && (slot < 45 && slot > 8)){
+                    info.setReturnValue(false);
+                }
+            }
+            else {
+                if ((!(invState > 0 && slot < 9) && slot != 4) && slot < 36){
+                    info.setReturnValue(false);
+                }
             }
         }
     }
