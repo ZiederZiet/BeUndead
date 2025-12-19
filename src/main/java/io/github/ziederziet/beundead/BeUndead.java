@@ -72,10 +72,6 @@ public class BeUndead implements ModInitializer {
 
 		ServerLivingEntityEvents.AFTER_DEATH.register(ModEvents::AfterDeathEvent);
 
-		ClientTickEvents.START_CLIENT_TICK.register(ModEvents::StartClientTick);
-
-		ClientPlayConnectionEvents.DISCONNECT.register(ModEvents::ClientDisconnectEvent);
-
 		EntityTrackingEvents.START_TRACKING.register(ModEvents::StartTrackingEntityEvent);
 
 		ServerLivingEntityEvents.AFTER_DAMAGE.register(ModEvents::AfterDamageEvent);

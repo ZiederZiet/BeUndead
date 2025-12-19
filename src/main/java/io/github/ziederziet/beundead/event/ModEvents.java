@@ -172,29 +172,6 @@ public class ModEvents {
         }
     }
 
-    public static void StartClientTick(Minecraft minecraft){
-        LocalPlayer player = minecraft.player;
-        if (player != null && player.level().isClientSide()){
-            if (minecraft.screen instanceof DeathScreen deathScreen){
-                long respawnTimer = BeUndeadHelper.getZombieRespawnTimer(player);
-                long timeTo = respawnTimer - player.level().getGameTime();
-                if (timeTo < 2){
-                    Button button = ((DeathScreenAccessor)deathScreen).getExitButtons().getFirst();
-                    button.active = true;
-                    button.setMessage(Component.translatable("deathScreen.respawn"));
-                } else if (timeTo % 20 == 0){
-                    int minutes = (int)Math.floor(timeTo / 20D / 60D);
-                    int seconds = (int)Math.floor(timeTo / 20D % 60D);
-                    ((DeathScreenAccessor)deathScreen).getExitButtons().getFirst().setMessage(Component.translatable("deathScreen.respawn").append(" " + minutes + ":" + (String.valueOf(seconds).length() == 1 ? "0" : "") + seconds));
-                }
-            }
-        }
-    }
-
-    public static void ClientDisconnectEvent(ClientPacketListener clientPacketListener, Minecraft minecraft){
-        UndeadSkinManager.removeAll();
-    }
-
     public static void StartTrackingEntityEvent(Entity entity, ServerPlayer serverPlayer){
         if (entity instanceof ServerPlayer toTrack){
             serverPlayer.getServer().execute(() -> {
