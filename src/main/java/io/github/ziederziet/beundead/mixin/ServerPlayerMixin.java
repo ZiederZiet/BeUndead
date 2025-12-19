@@ -2,6 +2,7 @@ package io.github.ziederziet.beundead.mixin;
 
 import com.mojang.authlib.GameProfile;
 import io.github.ziederziet.beundead.common.BeUndeadHelper;
+import io.github.ziederziet.beundead.config.ServerModConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ClientInformation;
@@ -17,7 +18,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ServerPlayerMixin {
     @Inject(at = @At("RETURN"), method = "<init>")
     public void init(MinecraftServer minecraftServer, ServerLevel serverLevel, GameProfile gameProfile, ClientInformation clientInformation, CallbackInfo info){
-        BeUndeadHelper.setUndeadType((ServerPlayer)(Object)this, "", false);
+        ServerModConfig config = ServerModConfig.get();
+        BeUndeadHelper.setUndeadType((ServerPlayer)(Object)this, config.hasUndeadMode() ? "zombie" : "", false);
     }
 
     @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/PlayerRespawnLogic;getOverworldRespawnPos(Lnet/minecraft/server/level/ServerLevel;II)Lnet/minecraft/core/BlockPos;"), method = "adjustSpawnLocation")

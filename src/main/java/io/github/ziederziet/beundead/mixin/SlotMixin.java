@@ -1,8 +1,7 @@
 package io.github.ziederziet.beundead.mixin;
 
+import io.github.ziederziet.beundead.BeUndeadClient;
 import io.github.ziederziet.beundead.common.BeUndeadHelper;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -27,7 +26,7 @@ public abstract class SlotMixin {
         if (container instanceof Inventory inventory && BeUndeadHelper.getInvStateOfPlayer(inventory.player) < 2){
             int slot = getContainerSlot();
             int invState = BeUndeadHelper.getInvStateOfPlayer(inventory.player);
-            if (Minecraft.getInstance().screen instanceof CreativeModeInventoryScreen creativeModeInventoryScreen && creativeModeInventoryScreen.isInventoryOpen()){
+            if (BeUndeadClient.isCreativeScreen()){
                 if ((!(invState > 0 && slot > 35) && slot != 40) && (slot < 45 && slot > 8)){
                     info.setReturnValue(false);
                 }
@@ -45,7 +44,7 @@ public abstract class SlotMixin {
         if (container instanceof Inventory inventory && BeUndeadHelper.getInvStateOfPlayer(inventory.player) < 2){
             int slot = getContainerSlot();
             int invState = BeUndeadHelper.getInvStateOfPlayer(inventory.player);
-            if (Minecraft.getInstance().screen instanceof CreativeModeInventoryScreen creativeModeInventoryScreen && creativeModeInventoryScreen.isInventoryOpen()){
+            if (BeUndeadClient.isCreativeScreen()){
                 if ((!(invState > 0 && slot > 35) && slot != 40) && (slot < 45 && slot > 8)){
                     info.setReturnValue(false);
                 }
@@ -64,7 +63,7 @@ public abstract class SlotMixin {
         if (container instanceof Inventory inventory && BeUndeadHelper.getInvStateOfPlayer(inventory.player) < 2){
             int slot = getContainerSlot();
             int invState = BeUndeadHelper.getInvStateOfPlayer(inventory.player);
-            if (Minecraft.getInstance().screen instanceof CreativeModeInventoryScreen creativeModeInventoryScreen && creativeModeInventoryScreen.isInventoryOpen()){
+            if (BeUndeadClient.isCreativeScreen()){
                 if ((!(invState > 0 && slot > 35) && slot != 40) && (slot < 45 && slot > 8)){
                     info.setReturnValue(false);
                 }

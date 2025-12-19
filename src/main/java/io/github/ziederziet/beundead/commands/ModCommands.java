@@ -1,8 +1,5 @@
 package io.github.ziederziet.beundead.commands;
 
-import com.mojang.brigadier.CommandDispatcher;
-import net.minecraft.commands.CommandBuildContext;
-import net.minecraft.commands.CommandSourceStack;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 import java.util.ArrayList;
