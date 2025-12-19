@@ -28,10 +28,10 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer {
         super(context, entityModel, f);
     }
 
-    @Inject(at = @At("TAIL"), method = "<init>")
-    public void init(EntityRendererProvider.Context pContext, boolean pUseSlimModel, CallbackInfo info){
-        addLayer(new ZombieChestLayer((PlayerRenderer)(Object)this, pContext.getModelSet()));
-    }
+//    @Inject(at = @At("TAIL"), method = "<init>")
+//    public void init(EntityRendererProvider.Context pContext, boolean pUseSlimModel, CallbackInfo info){
+//        addLayer(new ZombieChestLayer((PlayerRenderer)(Object)this, pContext.getModelSet()));
+//    }
 
     @Inject(at = @At("HEAD"), method = "getTextureLocation(Lnet/minecraft/client/player/AbstractClientPlayer;)Lnet/minecraft/resources/ResourceLocation;", cancellable = true, order = 100)
     public void getTextureLocation(AbstractClientPlayer player, CallbackInfoReturnable<ResourceLocation> info) {

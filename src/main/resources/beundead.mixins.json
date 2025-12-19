@@ -40,7 +40,6 @@
     "AbstractContainerMenuMixin",
     "AbstractContainerScreenMixin",
     "CreateWorldScreenMixin",
-    "CreateWorldScreenMoreTabMixin",
     "CycleButtonMixin",
     "DeathScreenAccessor",
     "DeathScreenMixin",

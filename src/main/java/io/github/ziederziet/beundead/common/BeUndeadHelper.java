@@ -73,10 +73,10 @@ public class BeUndeadHelper {
 
         if (player instanceof ServerPlayer serverPlayer){
             if (type.isBlank()){
-                BeUndeadApi.PLAYER_REVIVED_EVENT.invoker().onPlayerRevived(serverPlayer);
+                BeUndeadApi.firePlayerRevived(serverPlayer);
             }
             else {
-                BeUndeadApi.PLAYER_TURNED_UNDEAD_EVENT.invoker().onPlayerTurnedUndead(serverPlayer, type);
+                BeUndeadApi.firePlayerTurnedUndead(serverPlayer, type);
             }
         }
 
@@ -412,7 +412,7 @@ public class BeUndeadHelper {
                 }
 
                 if (out > BeUndeadConstants.OUT_INFECTION_SHOW){
-                    if (!infected.hasEffect(BeUndead.INFECTED_EFFECT_HOLDER)){
+                    if (!infected.hasEffect(BeUndead.INFECTED_EFFECT.getDelegate())){
                         showInfection(infected);
                     }
 
@@ -462,7 +462,7 @@ public class BeUndeadHelper {
             }
         }
         else {
-            ((LivingEntity)infectionAccessor).removeEffect(BeUndead.INFECTED_EFFECT_HOLDER);
+            ((LivingEntity)infectionAccessor).removeEffect(BeUndead.INFECTED_EFFECT.getDelegate());
         }
     }
 
@@ -493,6 +493,6 @@ public class BeUndeadHelper {
     }
 
     public static void showInfection(LivingEntity livingEntity){
-        livingEntity.addEffect(new MobEffectInstance(BeUndead.INFECTED_EFFECT_HOLDER, -1, 0));
+        livingEntity.addEffect(new MobEffectInstance(BeUndead.INFECTED_EFFECT.getDelegate(), -1, 0));
     }
 }

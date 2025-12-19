@@ -1,38 +1,39 @@
 package io.github.ziederziet.beundead.common;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.config.ServerConfigAccessor;
 import io.github.ziederziet.beundead.networking.ModNetworking;
-import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.*;
 
-public class UndeadTypeDataManager implements SimpleSynchronousResourceReloadListener {
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+public class UndeadTypeDataManager extends SimpleJsonResourceReloadListener {
+    private static final Gson GSON = new Gson();
     private static final String FOLDER_NAME = "undead_types";
     private final Map<String, UndeadType> undeadDataMap = new HashMap<>();
     private final List<List<String>> typeMoistHeatLists = new ArrayList<>();
     private final List<Integer> moistNaturals = new ArrayList<>();
     private final Map<DamageType, String> damageTo = new HashMap<>();
+
+    public UndeadTypeDataManager() {
+        super(GSON, FOLDER_NAME);
+        BeUndead.UNDEAD_DATA = this;
+    }
 
     public UndeadType get(String id) {
         if (!undeadDataMap.containsKey(id)){
@@ -106,11 +107,6 @@ public class UndeadTypeDataManager implements SimpleSynchronousResourceReloadLis
         return usingTypeMoistHeatLists.get(xI).get(yI);
     }
 
-    @Override
-    public ResourceLocation getFabricId() {
-        return ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, FOLDER_NAME);
-    }
-
     private void defaults(List<String> types, List<Float> moistnesses, List<Float> heats){
         this.undeadDataMap.clear();
         this.typeMoistHeatLists.clear();
@@ -137,7 +133,7 @@ public class UndeadTypeDataManager implements SimpleSynchronousResourceReloadLis
     }
 
     @Override
-    public void onResourceManagerReload(ResourceManager resourceManager) {
+    protected void apply(Map<ResourceLocation, JsonElement> resourceLocationJsonElementMap, ResourceManager resourceManager, ProfilerFiller profilerFiller) {
         boolean wasAlreadyInitialized = false;
         if (!undeadDataMap.isEmpty()){
             wasAlreadyInitialized = true;
@@ -149,74 +145,66 @@ public class UndeadTypeDataManager implements SimpleSynchronousResourceReloadLis
 
         defaults(types, moistnesses, heats);
 
-        Iterator<Map.Entry<ResourceLocation, Resource>> resourceIterator = resourceManager.listResources(FOLDER_NAME, path -> path.toString().endsWith(".json") && !path.getPath().endsWith("human.json")).entrySet().iterator();
+        Iterator<Map.Entry<ResourceLocation, JsonElement>> resourceIterator = resourceLocationJsonElementMap.entrySet().iterator();
         while (resourceIterator.hasNext()){
-            Map.Entry<ResourceLocation, Resource> entry = resourceIterator.next();
+            Map.Entry<ResourceLocation, JsonElement> entry = resourceIterator.next();
             ResourceLocation id = entry.getKey();
-            Resource resource = entry.getValue();
-            try {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(resource.open()));
-                JsonElement element = JsonParser.parseReader(reader);
-                UnserializizedServerUndeadType data = GSON.fromJson(element, UnserializizedServerUndeadType.class);
-                String path = id.getPath().substring(FOLDER_NAME.length() + 1);
+            JsonElement jsonElement = entry.getValue();
+            UnserializizedServerUndeadType data = GSON.fromJson(jsonElement, UnserializizedServerUndeadType.class);
 
-                UnserializedUndeadMobEffect[] unserializedMobEffects = data.mobEffects();
-                MobEffectInstance[] mobEffects = new MobEffectInstance[0];
-                if (unserializedMobEffects != null){
-                    mobEffects = new MobEffectInstance[unserializedMobEffects.length];
-                    for (int i = 0; i < mobEffects.length; i++) {
-                        Optional<Holder.Reference<MobEffect>> optional = BuiltInRegistries.MOB_EFFECT.getHolder(ResourceLocation.parse(unserializedMobEffects[i].effect()));
-                        Integer duration = unserializedMobEffects[i].duration();
-                        Integer amplifier = unserializedMobEffects[i].amplifier();
-                        if (optional.isPresent()){
-                            mobEffects[i] = new MobEffectInstance(optional.get(), duration == null ? 600 : duration, amplifier == null ? 0 : amplifier);
-                        }
+            UnserializedUndeadMobEffect[] unserializedMobEffects = data.mobEffects();
+            MobEffectInstance[] mobEffects = new MobEffectInstance[0];
+            if (unserializedMobEffects != null){
+                mobEffects = new MobEffectInstance[unserializedMobEffects.length];
+                for (int i = 0; i < mobEffects.length; i++) {
+                    Optional<Holder.Reference<MobEffect>> optional = BuiltInRegistries.MOB_EFFECT.getHolder(ResourceLocation.parse(unserializedMobEffects[i].effect()));
+                    Integer duration = unserializedMobEffects[i].duration();
+                    Integer amplifier = unserializedMobEffects[i].amplifier();
+                    if (optional.isPresent()){
+                        mobEffects[i] = new MobEffectInstance(optional.get(), duration == null ? 600 : duration, amplifier == null ? 0 : amplifier);
                     }
                 }
-
-                String type = path.substring(0, path.length() - 5);
-
-                damageTo.clear();
-
-                if (data.damageTypes() != null && BeUndead.getServer() != null){
-                    RegistryAccess access = BeUndead.getServer().registryAccess();
-                    for (String damageTypeId : data.damageTypes()){
-                        var reg = access.registryOrThrow(Registries.DAMAGE_TYPE);
-                        Optional<Holder.Reference<DamageType>> optional = reg.getHolder(ResourceLocation.parse(damageTypeId));
-                        if (optional.isPresent()){
-                            DamageType damageType = optional.get().value();
-                            damageTo.put(damageType, type);
-                        }
-                    }
-                }
-
-                if (data.moistness() != null || data.heat() != null){
-                    float moistness = 0F;
-                    float heat = 0F;
-                    if (data.moistness() != null){
-                        moistness = data.moistness();
-                    }
-                    if (data.heat() != null){
-                        heat = data.heat();
-                    }
-
-                    if (!types.contains(type)){
-                        types.add(type);
-                        moistnesses.add(moistness);
-                        heats.add(heat);
-                    }
-                    else {
-                        int indexOfAlreadyMostHeat = types.indexOf(type);
-                        moistnesses.set(indexOfAlreadyMostHeat, moistness);
-                        heats.set(indexOfAlreadyMostHeat, heat);
-                    }
-                }
-
-                this.undeadDataMap.put(type, new SerializizedServerUndeadType(data.name(), data.r(), data.g(), data.b(), data.rOffset(), data.gOffset(), data.bOffset(), data.canSwimInWater(), data.breathUnderwater(), data.burnsInTheSun(), data.fireImmune(), data.freezeImmune(), mobEffects, data.stepSound(), data.hurtSound(), data.deathSound(), data.ambientSound(), data.overlayTexture()));
-            } catch (Exception e) {
-                System.err.println("Failed to load JSON resource " + id + ": " + e);
-                defaults(types, moistnesses, heats);
             }
+
+            String type = id.getPath();
+
+            damageTo.clear();
+
+            if (data.damageTypes() != null && BeUndead.getServer() != null){
+                RegistryAccess access = BeUndead.getServer().registryAccess();
+                for (String damageTypeId : data.damageTypes()){
+                    var reg = access.registryOrThrow(Registries.DAMAGE_TYPE);
+                    Optional<Holder.Reference<DamageType>> optional = reg.getHolder(ResourceLocation.parse(damageTypeId));
+                    if (optional.isPresent()){
+                        DamageType damageType = optional.get().value();
+                        damageTo.put(damageType, type);
+                    }
+                }
+            }
+
+            if (data.moistness() != null || data.heat() != null){
+                float moistness = 0F;
+                float heat = 0F;
+                if (data.moistness() != null){
+                    moistness = data.moistness();
+                }
+                if (data.heat() != null){
+                    heat = data.heat();
+                }
+
+                if (!types.contains(type)){
+                    types.add(type);
+                    moistnesses.add(moistness);
+                    heats.add(heat);
+                }
+                else {
+                    int indexOfAlreadyMostHeat = types.indexOf(type);
+                    moistnesses.set(indexOfAlreadyMostHeat, moistness);
+                    heats.set(indexOfAlreadyMostHeat, heat);
+                }
+            }
+
+            this.undeadDataMap.put(type, new SerializizedServerUndeadType(data.name(), data.r(), data.g(), data.b(), data.rOffset(), data.gOffset(), data.bOffset(), data.canSwimInWater(), data.breathUnderwater(), data.burnsInTheSun(), data.fireImmune(), data.freezeImmune(), mobEffects, data.stepSound(), data.hurtSound(), data.deathSound(), data.ambientSound(), data.overlayTexture()));
         }
 
 

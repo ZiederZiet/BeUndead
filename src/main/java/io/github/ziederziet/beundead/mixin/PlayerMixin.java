@@ -2,7 +2,7 @@ package io.github.ziederziet.beundead.mixin;
 
 import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import io.github.ziederziet.beundead.common.ClientInfo;
-import io.github.ziederziet.beundead.config.ClientConfigAccessor;
+import io.github.ziederziet.beundead.config.ClientModConfig;
 import io.github.ziederziet.beundead.config.ServerConfigAccessor;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -22,7 +22,7 @@ public class PlayerMixin {
 
     @Inject(at = @At("HEAD"), method = "tick()V")
     public void tick(CallbackInfo info){
-        if (ClientConfigAccessor.getConfig().hasZombieSoundsPlayers()){
+        if (ClientModConfig.hasZombieSoundsPlayers()){
             Player player = (Player)(Object)this;
             if (!BeUndeadHelper.isHuman(player)){
                 if (player.isAlive() && player.getRandom().nextInt(1500) < this.ambientSoundTime++) {
@@ -59,7 +59,7 @@ public class PlayerMixin {
 
     @Inject(at = @At("HEAD"), method = "getHurtSound(Lnet/minecraft/world/damagesource/DamageSource;)Lnet/minecraft/sounds/SoundEvent;", cancellable = true)
     protected void getHurtSound(DamageSource pDamageSource, CallbackInfoReturnable<SoundEvent> info) {
-        if (ClientConfigAccessor.getConfig().hasZombieSoundsPlayers()){
+        if (ClientModConfig.hasZombieSoundsPlayers()){
             Player player = (Player)(Object)this;
             if (!BeUndeadHelper.isHuman(player)){
                 SoundEvent hurtSound = BeUndeadHelper.getHurtSound(player);
@@ -73,7 +73,7 @@ public class PlayerMixin {
 
     @Inject(at = @At("HEAD"), method = "getDeathSound()Lnet/minecraft/sounds/SoundEvent;", cancellable = true)
     protected void getDeathSound(CallbackInfoReturnable<SoundEvent> info) {
-        if (ClientConfigAccessor.getConfig().hasZombieSoundsPlayers()){
+        if (ClientModConfig.hasZombieSoundsPlayers()){
             Player player = (Player)(Object)this;
             if (!BeUndeadHelper.isHuman(player)){
                 SoundEvent deathSound = BeUndeadHelper.getDeathSound(player);

@@ -1,11 +1,9 @@
 package io.github.ziederziet.beundead.mixin;
 
 import io.github.ziederziet.beundead.BeUndead;
-import io.github.ziederziet.beundead.client.UndeadSkinManager;
 import io.github.ziederziet.beundead.common.BeUndeadHelper;
-import io.github.ziederziet.beundead.config.ClientConfigAccessor;
+import io.github.ziederziet.beundead.config.ClientModConfig;
 import io.github.ziederziet.beundead.config.ServerConfigAccessor;
-import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
@@ -32,7 +30,7 @@ public class EntityMixin {
 
     @Inject(at = @At("HEAD"), method = "playStepSound(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)V", cancellable = true)
     protected void playStepSound(BlockPos pos, BlockState state, CallbackInfo info){
-        if ((Object)this instanceof Player player && !BeUndeadHelper.isHuman(player) && ClientConfigAccessor.getConfig().hasZombieSoundsPlayers()) {
+        if ((Object)this instanceof Player player && !BeUndeadHelper.isHuman(player) && ClientModConfig.hasZombieSoundsPlayers()) {
             BeUndeadHelper.playStepSound(player);
             info.cancel();
         }
@@ -60,13 +58,6 @@ public class EntityMixin {
                     info.setReturnValue(InteractionResult.SUCCESS);
                 }
             }
-        }
-    }
-
-    @Inject(at = @At("HEAD"), method = "onClientRemoval")
-    public void onClientRemoval(CallbackInfo info){
-        if ((Object)this instanceof AbstractClientPlayer abstractClientPlayer){
-            UndeadSkinManager.removeSkin(abstractClientPlayer.getSkin().texture());
         }
     }
 }

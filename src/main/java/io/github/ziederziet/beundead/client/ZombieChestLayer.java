@@ -19,7 +19,7 @@ public class ZombieChestLayer extends RenderLayer<AbstractClientPlayer, PlayerMo
     private static final ResourceLocation CHEST_LOCATION = ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "textures/entity/player/zombie_chest.png");
     public ZombieChestLayer(RenderLayerParent pRenderer, EntityModelSet pModelSet) {
         super(pRenderer);
-        model = new ZombieChestModel<AbstractClientPlayer>(pModelSet.bakeLayer(ZombieChestModel.ZOMBIE_CHEST_LAYER_LOCATION));
+        model = new ZombieChestModel<>(pModelSet.bakeLayer(ZombieChestModel.ZOMBIE_CHEST_LAYER_LOCATION));
     }
 
     @Override

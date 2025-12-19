@@ -2,12 +2,12 @@ package io.github.ziederziet.beundead.networking;
 
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.common.UndeadAccessor;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class RespawnTimerPacket implements CustomPacketPayload {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "respawn_timer");
@@ -29,9 +29,9 @@ public class RespawnTimerPacket implements CustomPacketPayload {
         buffer.writeLong(timer);
     }
 
-    public void handle(ClientPlayNetworking.Context context){
+    public static void handle(RespawnTimerPacket packet, IPayloadContext context){
         if (context.player() instanceof UndeadAccessor accessor){
-            accessor.setZombieRespawnTimer(timer);
+            accessor.setZombieRespawnTimer(packet.timer);
         }
     }
 

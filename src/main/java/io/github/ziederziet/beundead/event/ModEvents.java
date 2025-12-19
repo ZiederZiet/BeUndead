@@ -1,27 +1,17 @@
 package io.github.ziederziet.beundead.event;
 
 import io.github.ziederziet.beundead.BeUndead;
-import io.github.ziederziet.beundead.client.UndeadSkinManager;
+import io.github.ziederziet.beundead.commands.ModCommands;
 import io.github.ziederziet.beundead.common.*;
 import io.github.ziederziet.beundead.config.ServerConfigAccessor;
-import io.github.ziederziet.beundead.mixin.DeathScreenAccessor;
+import io.github.ziederziet.beundead.config.ServerModConfig;
 import io.github.ziederziet.beundead.networking.ModNetworking;
 import io.github.ziederziet.beundead.networking.UndeadDataPacket;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.screens.DeathScreen;
-import net.minecraft.client.multiplayer.ClientPacketListener;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.damagesource.DamageSource;
@@ -42,13 +32,54 @@ import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.player.CanPlayerSleepEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 import java.util.List;
 import java.util.Optional;
 
+@EventBusSubscriber(modid = BeUndead.MODID)
 public class ModEvents {
-    public static boolean AllowDeathEvent(LivingEntity livingEntity, DamageSource damageSource, float v){
-        if (livingEntity.level().isClientSide()) return true;
+    @SubscribeEvent
+    public static void onAddReloadListeners(AddReloadListenerEvent event) {
+        event.addListener(new UndeadTypeDataManager());
+    }
+
+    @SubscribeEvent
+    public static void registerPackets(RegisterPayloadHandlersEvent event) {
+        ModNetworking.register(event);
+    }
+
+    @SubscribeEvent
+    public static void onRegisterCommands(RegisterCommandsEvent event) {
+        ModCommands.registerCommands(event);
+    }
+
+    @SubscribeEvent
+    public static void ServerStartingEvent(ServerStartingEvent event){
+        ServerModConfig.load(event.getServer());
+    }
+
+    @SubscribeEvent
+    public static void ServerStoppingEvent(ServerStoppingEvent event){
+        ServerModConfig.close(event.getServer());
+    }
+
+    @SubscribeEvent
+    public static void AllowDeathEvent(LivingDeathEvent event){
+        LivingEntity livingEntity = event.getEntity();
+        DamageSource damageSource = event.getSource();
+
+        if (livingEntity.level().isClientSide()) return;
 
         if (livingEntity instanceof Player player) {
             ServerConfigAccessor config = ServerConfigAccessor.getConfig();
@@ -122,7 +153,7 @@ public class ModEvents {
 
                     BeUndeadHelper.checkNotSupposedItems(player, !player.isSpectator());
 
-                    return false;
+                    event.setCanceled(true);
                 }
                 else if (respawnTimer) {
                     BeUndeadHelper.setZombieRespawnTimer(player, player.level().getGameTime() + config.getRespawnTimer());
@@ -136,11 +167,12 @@ public class ModEvents {
                 }
             }
         }
-
-        return true;
     }
 
-    public static void AfterDeathEvent(LivingEntity livingEntity, DamageSource damageSource){
+    @SubscribeEvent
+    public static void AfterDeathEvent(LivingDeathEvent event){
+        LivingEntity livingEntity = event.getEntity();
+        DamageSource damageSource = event.getSource();
         if (livingEntity instanceof Villager villager){
             boolean convert = damageSource.is(BeUndead.INFECTION_KILL);
             if (damageSource.getEntity() instanceof Player player && !BeUndeadHelper.isHuman(player)) {
@@ -172,38 +204,20 @@ public class ModEvents {
         }
     }
 
-    public static void StartClientTick(Minecraft minecraft){
-        LocalPlayer player = minecraft.player;
-        if (player != null && player.level().isClientSide()){
-            if (minecraft.screen instanceof DeathScreen deathScreen){
-                long respawnTimer = BeUndeadHelper.getZombieRespawnTimer(player);
-                long timeTo = respawnTimer - player.level().getGameTime();
-                if (timeTo < 2){
-                    Button button = ((DeathScreenAccessor)deathScreen).getExitButtons().getFirst();
-                    button.active = true;
-                    button.setMessage(Component.translatable("deathScreen.respawn"));
-                } else if (timeTo % 20 == 0){
-                    int minutes = (int)Math.floor(timeTo / 20D / 60D);
-                    int seconds = (int)Math.floor(timeTo / 20D % 60D);
-                    ((DeathScreenAccessor)deathScreen).getExitButtons().getFirst().setMessage(Component.translatable("deathScreen.respawn").append(" " + minutes + ":" + (String.valueOf(seconds).length() == 1 ? "0" : "") + seconds));
-                }
-            }
-        }
-    }
-
-    public static void ClientDisconnectEvent(ClientPacketListener clientPacketListener, Minecraft minecraft){
-        UndeadSkinManager.removeAll();
-    }
-
-    public static void StartTrackingEntityEvent(Entity entity, ServerPlayer serverPlayer){
+    @SubscribeEvent
+    public static void StartTrackingEntityEvent(PlayerEvent.StartTracking event){
+        Entity entity = event.getTarget();
         if (entity instanceof ServerPlayer toTrack){
-            serverPlayer.getServer().execute(() -> {
-                ModNetworking.sendToClient(UndeadDataPacket.getPacket(toTrack), serverPlayer);
+            event.getEntity().getServer().execute(() -> {
+                ModNetworking.sendToClient(UndeadDataPacket.getPacket(toTrack), (ServerPlayer)event.getEntity());
             });
         }
     }
 
-    public static void AfterDamageEvent(LivingEntity livingEntity, DamageSource damageSource, float v, float v1, boolean b){
+    @SubscribeEvent
+    public static void AfterDamageEvent(LivingDamageEvent.Post event){
+        LivingEntity livingEntity = event.getEntity();
+        DamageSource damageSource = event.getSource();
         if (damageSource.getEntity() instanceof Player player && !BeUndeadHelper.isHuman(player)){
             if (BeUndeadHelper.getUndeadType(player) instanceof SerializizedServerUndeadType type){
                 MobEffectInstance[] array = type.mobEffects();
@@ -229,36 +243,40 @@ public class ModEvents {
         }
     }
 
-    public static void PlayerCloneEvent(ServerPlayer oldPlayer, ServerPlayer newPlayer, boolean alive){
-        BeUndeadHelper.setUndeadType(newPlayer, BeUndeadHelper.getUndeadTypeName(oldPlayer), false);
-        if (oldPlayer.level().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY) || alive){
-            BeUndeadHelper.setZombieChest(newPlayer, BeUndeadHelper.hasZombieChest(oldPlayer), false);
+    @SubscribeEvent
+    public static void PlayerCloneEvent(PlayerEvent.Clone event){
+        BeUndeadHelper.setUndeadType(event.getEntity(), BeUndeadHelper.getUndeadTypeName(event.getOriginal()), false);
+        if (event.getOriginal().level().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY) || !event.isWasDeath()){
+            BeUndeadHelper.setZombieChest(event.getEntity(), BeUndeadHelper.hasZombieChest(event.getOriginal()), false);
         }
     }
 
-    public static void AfterRespawnEvent(ServerPlayer oldPlayer, ServerPlayer newPlayer, boolean alive){
-        BeUndeadHelper.sendUndeadPacket(newPlayer);
+    @SubscribeEvent
+    public static void AfterRespawnEvent(PlayerEvent.PlayerRespawnEvent event){
+        BeUndeadHelper.sendUndeadPacket(event.getEntity());
     }
 
-    public static void JoinServerEvent(ServerGamePacketListenerImpl serverGamePacketListener, PacketSender packetSender, MinecraftServer minecraftServer){
-        ServerPlayer player = serverGamePacketListener.getPlayer();
+    @SubscribeEvent
+    public static void JoinServerEvent(PlayerEvent.PlayerLoggedInEvent event){
+        if (event.getEntity() instanceof ServerPlayer player){
+            BeUndeadHelper.checkAndDropChestExtension(player);
+            BeUndeadHelper.checkNotSupposedItems(player, !player.isSpectator());
 
-        BeUndeadHelper.checkAndDropChestExtension(player);
-        BeUndeadHelper.checkNotSupposedItems(player, !player.isSpectator());
+            BeUndeadHelper.sendUndeadPacket(player);
 
-        BeUndeadHelper.sendUndeadPacket(player);
-
-        ModNetworking.sendToClient(ServerConfigAccessor.getPacket(), player);
+            ModNetworking.sendToClient(ServerConfigAccessor.getPacket(), player);
+        }
     }
 
-    public static Player.BedSleepingProblem AllowSleepingEvent(Player player, BlockPos blockPos){
+    @SubscribeEvent
+    public static void AllowSleepingEvent(CanPlayerSleepEvent event){
+        Player player = event.getEntity();
         Vec3 vec3 = Vec3.atBottomCenterOf(player.blockPosition());
         List<Player> list = player.level().getEntitiesOfClass(Player.class, new AABB(vec3.x() - 8.0, vec3.y() - 5.0, vec3.z() - 8.0, vec3.x() + 8.0, vec3.y() + 5.0, vec3.z() + 8.0), (player1) -> {
             return !BeUndeadHelper.isHuman(player1);
         });
         if (!list.isEmpty()) {
-            return Player.BedSleepingProblem.NOT_SAFE;
+            event.setProblem(Player.BedSleepingProblem.NOT_SAFE);
         }
-        return null;
     }
 }

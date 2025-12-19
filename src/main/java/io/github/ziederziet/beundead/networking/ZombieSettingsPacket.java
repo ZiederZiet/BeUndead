@@ -5,7 +5,6 @@ import io.github.ziederziet.beundead.common.ClientInfo;
 import io.github.ziederziet.beundead.common.ClientUndeadType;
 import io.github.ziederziet.beundead.common.AbstractServerUndeadType;
 import io.github.ziederziet.beundead.common.UndeadType;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -13,6 +12,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -145,16 +145,16 @@ public class ZombieSettingsPacket implements CustomPacketPayload {
         });
     }
 
-    public void handle(ClientPlayNetworking.Context context){
-        ClientInfo.zombieInvState = invState;
-        ClientInfo.canChestExtension = canChestExtension;
-        ClientInfo.zombieNightVision = nightVision;
-        ClientInfo.zombieJumpOnTheirOwn = jumpOnTheirOwn;
-        ClientInfo.zombieMaxViewDistance = zombieMaxViewDistance;
-        ClientInfo.zombieWalkingSpeed = zombieWalkingSpeed;
-        ClientInfo.zombieBreakingSpeed = zombieBreakingSpeed;
-        ClientInfo.zombieSprintEnabled = zombieSprintEnabled;
-        ClientInfo.undeadTypes = undeadTypes;
+    public static void handle(ZombieSettingsPacket packet, IPayloadContext context){
+        ClientInfo.zombieInvState = packet.invState;
+        ClientInfo.canChestExtension = packet.canChestExtension;
+        ClientInfo.zombieNightVision = packet.nightVision;
+        ClientInfo.zombieJumpOnTheirOwn = packet.jumpOnTheirOwn;
+        ClientInfo.zombieMaxViewDistance = packet.zombieMaxViewDistance;
+        ClientInfo.zombieWalkingSpeed = packet.zombieWalkingSpeed;
+        ClientInfo.zombieBreakingSpeed = packet.zombieBreakingSpeed;
+        ClientInfo.zombieSprintEnabled = packet.zombieSprintEnabled;
+        ClientInfo.undeadTypes = packet.undeadTypes;
     }
 
     @Override

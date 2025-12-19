@@ -2,7 +2,6 @@ package io.github.ziederziet.beundead.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.MinecraftServer;
 
 import java.io.File;
@@ -26,15 +25,6 @@ public class ServerModConfig implements ServerConfigAccessor {
         return new File(configDir, "beundead.json");
     }
 
-    public static void register() {
-        ServerLifecycleEvents.SERVER_STARTING.register(ServerModConfig::load);
-
-        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
-            save(server);
-            config = null;
-        });
-    }
-
     public static ServerModConfig get() {
         return config;
     }
@@ -46,11 +36,16 @@ public class ServerModConfig implements ServerConfigAccessor {
         return config;
     }
 
+    public static void close(MinecraftServer server){
+        save(server);
+        clearConfig();
+    }
+
     public static void clearConfig(){
         config = null;
     }
 
-    private static void load(MinecraftServer server) {
+    public static void load(MinecraftServer server) {
         if (config == null){
             File file = getConfigFile(server);
             if (file.exists()) {

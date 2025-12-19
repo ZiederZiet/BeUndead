@@ -1,13 +1,13 @@
 package io.github.ziederziet.beundead.theyre_coming;
 
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
+import net.neoforged.fml.ModList;
 
 import java.lang.reflect.Method;
 
 public class TheyreComingAccessor {
     public static boolean hasTheyreComing() {
-        return FabricLoader.getInstance().isModLoaded("theyrecoming");
+        return ModList.get().isLoaded("theyrecoming");
     }
 
     public static int getPhase(MinecraftServer server) {

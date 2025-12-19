@@ -2,13 +2,14 @@ package io.github.ziederziet.beundead.networking;
 
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.common.UndeadAccessor;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class UndeadDataPacket implements CustomPacketPayload {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(BeUndead.MODID, "undead_data");
@@ -42,12 +43,12 @@ public class UndeadDataPacket implements CustomPacketPayload {
         buffer.writeBoolean(chest);
     }
 
-    public void handle(ClientPlayNetworking.Context context){
-        if (context.client().level.getEntity(playerId) instanceof Player player){
+    public static void handle(UndeadDataPacket packet, IPayloadContext context){
+        if (Minecraft.getInstance().level.getEntity(packet.playerId) instanceof Player player){
             UndeadAccessor undeadAccessor = (UndeadAccessor) player;
-            undeadAccessor.setType(type);
-            undeadAccessor.setConverting(converting);
-            undeadAccessor.setZombieChest(chest);
+            undeadAccessor.setType(packet.type);
+            undeadAccessor.setConverting(packet.converting);
+            undeadAccessor.setZombieChest(packet.chest);
         }
     }
 
