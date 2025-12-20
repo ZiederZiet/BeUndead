@@ -4,7 +4,7 @@ import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import io.github.ziederziet.beundead.common.InfectionAccessor;
 import io.github.ziederziet.beundead.common.UndeadType;
-import io.github.ziederziet.beundead.config.ServerConfigAccessor;
+import io.github.ziederziet.beundead.config.ServerModConfig;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.InteractionHand;
@@ -99,7 +99,7 @@ public abstract class LivingEntityMixin {
 
     @Inject(at = @At("HEAD"), method = "dropExperience(Lnet/minecraft/world/entity/Entity;)V", cancellable = true)
     protected void dropExperience(Entity pEntity, CallbackInfo info) {
-        if (ServerConfigAccessor.getConfig().getZombieOnlyKillExperience() && pEntity instanceof Player player && !player.level().isClientSide() && !BeUndeadHelper.isHuman(player)){
+        if (ServerModConfig.getZombieOnlyKillExperience() && pEntity instanceof Player player && !player.level().isClientSide() && !BeUndeadHelper.isHuman(player)){
             info.cancel();
             LivingEntity thisEntity = (LivingEntity) (Object) this;
             if (!(thisEntity instanceof Monster)){
@@ -137,7 +137,7 @@ public abstract class LivingEntityMixin {
     @Inject(at = @At("HEAD"), method = "eat(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/food/FoodProperties;)Lnet/minecraft/world/item/ItemStack;")
     public void eat(Level level, ItemStack itemStack, FoodProperties foodProperties, CallbackInfoReturnable<ItemStack> info){
         if ((LivingEntity)(Object)this instanceof Player player && !BeUndeadHelper.isHuman(player) && itemStack.is(BeUndead.UNDEAD_CURES)){
-            int cureRequirements = ServerConfigAccessor.getConfig().getCureRequirements();
+            int cureRequirements = ServerModConfig.getCureRequirements();
             if (cureRequirements > 0 && cureRequirements != 3){
                 if (cureRequirements < 2 || player.hasEffect(MobEffects.WEAKNESS)){
                     if ((cureRequirements < 4 && itemStack.is(BeUndead.UNDEAD_CURES)) || (cureRequirements > 3 && itemStack.is(Items.ENCHANTED_GOLDEN_APPLE))) {
@@ -151,7 +151,7 @@ public abstract class LivingEntityMixin {
     @Inject(at = @At("HEAD"), method = "checkTotemDeathProtection")
     private void checkTotemDeathProtection(DamageSource damageSource, CallbackInfoReturnable<Boolean> info){
         if ((LivingEntity)(Object)this instanceof Player player && !BeUndeadHelper.isHuman(player)){
-            if (ServerConfigAccessor.getConfig().getCureRequirements() == 3 && player.hasEffect(MobEffects.WEAKNESS)){
+            if (ServerModConfig.getCureRequirements() == 3 && player.hasEffect(MobEffects.WEAKNESS)){
                 if (!damageSource.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
                     boolean totem = false;
 

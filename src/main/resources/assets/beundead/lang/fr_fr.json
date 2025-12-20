@@ -1,4 +1,5 @@
 {
+  "gameMode.undead": "Mode mort-vivant",
   "selectWorld.gameMode.undead": "Mode de jeu: Mort-vivant",
   "selectWorld.gameMode.undead.info": "Explorez le monde en apparaissant comme un zombie mort-vivant.",
   "selectWorld.beUndeadConfig": "Be Undead Configuration",

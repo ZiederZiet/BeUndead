@@ -3,7 +3,7 @@ package io.github.ziederziet.beundead.mixin;
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import io.github.ziederziet.beundead.common.ClientInfo;
-import io.github.ziederziet.beundead.config.ServerConfigAccessor;
+import io.github.ziederziet.beundead.config.ServerModConfig;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
@@ -28,7 +28,7 @@ public class ItemMixin {
                         return;
                     }
                 }
-                else if (!ServerConfigAccessor.getConfig().getZombieCanChestExtension()) {
+                else if (!ServerModConfig.getZombieCanChestExtension()) {
                     return;
                 }
                 info.cancel();

@@ -3,6 +3,7 @@ package io.github.ziederziet.beundead;
 import io.github.ziederziet.beundead.common.InfectedMobEffect;
 import io.github.ziederziet.beundead.common.UndeadTypeDataManager;
 import io.github.ziederziet.beundead.config.ClientModConfig;
+import io.github.ziederziet.beundead.config.ServerModConfig;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -59,7 +60,8 @@ public class BeUndead {
 
 		NeoForge.EVENT_BUS.register(this);
 
-		modContainer.registerConfig(ModConfig.Type.COMMON, ClientModConfig.SPEC);
+		modContainer.registerConfig(ModConfig.Type.CLIENT, ClientModConfig.SPEC);
+		modContainer.registerConfig(ModConfig.Type.COMMON, ServerModConfig.SPEC);
 	}
 
 	private void commonSetup(FMLCommonSetupEvent event) {

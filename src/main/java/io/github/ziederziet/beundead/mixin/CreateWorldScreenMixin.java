@@ -1,6 +1,7 @@
 package io.github.ziederziet.beundead.mixin;
 
 import io.github.ziederziet.beundead.common.WorldCreationUiStateUndeadStateAccessor;
+import io.github.ziederziet.beundead.config.PerWorldConfig;
 import io.github.ziederziet.beundead.config.ServerModConfig;
 import net.minecraft.client.gui.screens.worldselection.CreateWorldScreen;
 import net.minecraft.client.gui.screens.worldselection.WorldCreationUiState;
@@ -16,13 +17,13 @@ public abstract class CreateWorldScreenMixin {
 
     @Inject(at = @At("HEAD"), method = "onCreate")
     private void onCreate(CallbackInfo info){
-        ServerModConfig config = ServerModConfig.getOrCreate();
+        PerWorldConfig config = PerWorldConfig.getOrCreate();
 
         config.undeadMode = ((WorldCreationUiStateUndeadStateAccessor)getUiState()).hasUndeadMode();
     }
 
     @Inject(at = @At("HEAD"), method = "popScreen")
     public void popScreen(CallbackInfo info){
-        ServerModConfig.clearConfig();
+        PerWorldConfig.clearConfig();
     }
 }

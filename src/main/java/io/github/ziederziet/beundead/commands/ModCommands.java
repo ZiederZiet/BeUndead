@@ -9,7 +9,7 @@ public class ModCommands {
 
     public static void registerCommands(RegisterCommandsEvent event){
         commands.add(new UndeadCommand("undead", 2));
-        commands.add(new ConfigCommand("beundeadconfig", 2));
+        commands.add(new UndeadCommand("undeadmode", 2));
 
         commands.forEach(command -> {
             command.register(event.getDispatcher(), event.getBuildContext());

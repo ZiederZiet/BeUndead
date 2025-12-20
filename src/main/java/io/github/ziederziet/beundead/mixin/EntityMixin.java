@@ -3,7 +3,7 @@ package io.github.ziederziet.beundead.mixin;
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import io.github.ziederziet.beundead.config.ClientModConfig;
-import io.github.ziederziet.beundead.config.ServerConfigAccessor;
+import io.github.ziederziet.beundead.config.ServerModConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
@@ -39,7 +39,7 @@ public class EntityMixin {
     @Inject(at = @At("HEAD"), method = "interact(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;", cancellable = true)
     public void interact(Player player, InteractionHand pHand, CallbackInfoReturnable<InteractionResult> info){
         if (!player.level().isClientSide() && (Object)this instanceof Player thisPlayer && !BeUndeadHelper.isHuman(thisPlayer)){
-            if (ServerConfigAccessor.getConfig().getZombieCanChestExtension() && player.getItemInHand(pHand).is(Items.CHEST) && !BeUndeadHelper.hasZombieChest(thisPlayer)){
+            if (ServerModConfig.getZombieCanChestExtension() && player.getItemInHand(pHand).is(Items.CHEST) && !BeUndeadHelper.hasZombieChest(thisPlayer)){
                 BeUndeadHelper.setZombieChest(thisPlayer, true);
                 player.getItemInHand(pHand).consume(1, thisPlayer);
                 thisPlayer.playSound(SoundEvents.ARMOR_EQUIP_GENERIC.value());
@@ -47,7 +47,7 @@ public class EntityMixin {
                 return;
             }
 
-            int cureRequirements = ServerConfigAccessor.getConfig().getCureRequirements();
+            int cureRequirements = ServerModConfig.getCureRequirements();
             if (cureRequirements > 0 && cureRequirements != 3){
                 if (cureRequirements > 1 && !thisPlayer.hasEffect(MobEffects.WEAKNESS)){
                     return;

@@ -46,7 +46,7 @@ public class ModNetworking {
         PacketDistributor.sendToPlayer(serverPlayer, msg);
     }
 
-    public static void sendToAllClients(MinecraftServer server, CustomPacketPayload msg){
+    public static void sendToAllClients(CustomPacketPayload msg){
         PacketDistributor.sendToAllPlayers(msg);
     }
 

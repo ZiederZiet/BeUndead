@@ -2,7 +2,7 @@ package io.github.ziederziet.beundead.common;
 
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.api.BeUndeadApi;
-import io.github.ziederziet.beundead.config.ServerConfigAccessor;
+import io.github.ziederziet.beundead.config.ServerModConfig;
 import io.github.ziederziet.beundead.networking.ModNetworking;
 import io.github.ziederziet.beundead.networking.RespawnTimerPacket;
 import io.github.ziederziet.beundead.networking.UndeadDataPacket;
@@ -138,7 +138,7 @@ public class BeUndeadHelper {
         if (player.level().isClientSide()){
             return ClientInfo.zombieWalkingSpeed;
         }
-        return ServerConfigAccessor.getConfig().getZombieWalkSpeed();
+        return ServerModConfig.getZombieWalkSpeed();
     }
 
     public static boolean canJump(Player player){
@@ -150,7 +150,7 @@ public class BeUndeadHelper {
             return !player.isInWater() && ClientInfo.zombieJumpOnTheirOwn;
         }
         else {
-            return !player.isInWater() && ServerConfigAccessor.getConfig().getZombieJumpOnTheirOwn();
+            return !player.isInWater() && ServerModConfig.getZombieJumpOnTheirOwn();
         }
     }
 
@@ -226,7 +226,7 @@ public class BeUndeadHelper {
 
     public static void startConverting(Player player, Player starter){
         if (!isHuman(player)){
-            if (ServerConfigAccessor.getConfig().getCureRequirements() > 1){
+            if (ServerModConfig.getCureRequirements() > 1){
                 player.removeEffect(MobEffects.WEAKNESS);
             }
 
@@ -280,7 +280,7 @@ public class BeUndeadHelper {
 
     public static void checkAndDropChestExtension(Player player){
         if (BeUndeadHelper.hasZombieChest(player)){
-            if (!ServerConfigAccessor.getConfig().getZombieCanChestExtension() || BeUndeadHelper.isHuman(player)){
+            if (!ServerModConfig.getZombieCanChestExtension() || BeUndeadHelper.isHuman(player)){
                 BeUndeadHelper.setZombieChest(player, false);
                 player.drop(new ItemStack(Items.CHEST, 1), true, false);
             }
@@ -306,8 +306,7 @@ public class BeUndeadHelper {
             return Math.min(ClientInfo.zombieInvState + (hasChest && ClientInfo.canChestExtension ? 1 : 0), 2);
         }
         else{
-            ServerConfigAccessor config = ServerConfigAccessor.getConfig();
-            return Math.min(config.getZombieInvState() + (hasChest && config.getZombieCanChestExtension() ? 1 : 0), 2);
+            return Math.min(ServerModConfig.getZombieInvState() + (hasChest && ServerModConfig.getZombieCanChestExtension() ? 1 : 0), 2);
         }
     }
 
@@ -394,13 +393,13 @@ public class BeUndeadHelper {
 
 
     public static void infectBy(LivingEntity infected, Player by, int amount){
-        if (ServerConfigAccessor.getConfig().isInfectionEnabled()){
+        if (ServerModConfig.isInfectionEnabled()){
             ((InfectionAccessor)infected).infectBy(by, amount);
         }
     }
 
     public static void infectTick(LivingEntity infected){
-        if (ServerConfigAccessor.getConfig().isInfectionEnabled()){
+        if (ServerModConfig.isInfectionEnabled()){
             InfectionAccessor accessor = (InfectionAccessor)infected;
             int inInfection = accessor.getInInfection() - BeUndeadConstants.IN_INFECTION_TO_OUTER_THRESHOLD;
             if (inInfection >= 0){
@@ -416,7 +415,7 @@ public class BeUndeadHelper {
                         showInfection(infected);
                     }
 
-                    if (ServerConfigAccessor.getConfig().getForceTurnWhenInfected() && infected.getRandom().nextBoolean()){
+                    if (ServerModConfig.getForceTurnWhenInfected() && infected.getRandom().nextBoolean()){
                         int infKill = accessor.getInfectionKillTicks() + 1;
                         accessor.setInfectionKillTicks(infKill);
 
@@ -443,7 +442,7 @@ public class BeUndeadHelper {
     public static void infectionReadAdditionalSaveData(CompoundTag tag, InfectionAccessor infectionAccessor, HashMap<UUID, Integer> map){
         map.clear();
 
-        if (ServerConfigAccessor.getConfig() != null && ServerConfigAccessor.getConfig().isInfectionEnabled()){
+        if (ServerModConfig.isInfectionEnabled()){
             infectionAccessor.setInInfection(tag.getInt("InfectionIn"));
             infectionAccessor.setOutInfection(tag.getInt("InfectionOut"));
             infectionAccessor.setInfectionKillTicks(tag.getInt("InfectionKillTicks"));
@@ -467,7 +466,7 @@ public class BeUndeadHelper {
     }
 
     public static void infectionAddAdditionalSaveData(CompoundTag tag, InfectionAccessor infectionAccessor, HashMap<UUID, Integer> map){
-        if (ServerConfigAccessor.getConfig() == null || ServerConfigAccessor.getConfig().isInfectionEnabled()){
+        if (ServerModConfig.isInfectionEnabled()){
             tag.putInt("InfectionIn", infectionAccessor.getInInfection());
             tag.putInt("InfectionOut", infectionAccessor.getOutInfection());
             tag.putInt("InfectionKillTicks", infectionAccessor.getInfectionKillTicks());
