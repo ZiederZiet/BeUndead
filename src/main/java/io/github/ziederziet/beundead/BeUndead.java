@@ -3,6 +3,7 @@ package io.github.ziederziet.beundead;
 import io.github.ziederziet.beundead.common.InfectedMobEffect;
 import io.github.ziederziet.beundead.common.UndeadTypeDataManager;
 import io.github.ziederziet.beundead.config.ClientModConfig;
+import io.github.ziederziet.beundead.config.ServerModConfig;
 import io.github.ziederziet.beundead.networking.ModNetworking;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -55,7 +56,10 @@ public class BeUndead
         MOB_EFFECTS.register(modEventBus);
 
         context.registerConfig(ModConfig.Type.CLIENT, ClientModConfig.SPEC);
-        ClientModConfig.loadConfig(ClientModConfig.SPEC, FMLPaths.CONFIGDIR.get().resolve(BeUndead.MODID + "-common.toml"));
+        ClientModConfig.loadConfig(ClientModConfig.SPEC, FMLPaths.CONFIGDIR.get().resolve(BeUndead.MODID + "-client.toml"));
+
+        context.registerConfig(ModConfig.Type.COMMON, ServerModConfig.SPEC);
+        //ServerModConfig.loadConfig(ServerModConfig.SPEC, FMLPaths.CONFIGDIR.get().resolve(BeUndead.MODID + "-common.toml"));
 
         MinecraftForge.EVENT_BUS.register(this);
 

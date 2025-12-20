@@ -1,4 +1,5 @@
 {
+  "gameMode.undead": "Modo mortos-vivos",
   "selectWorld.gameMode.undead": "Modo de jogo: Mortos-vivos",
   "selectWorld.gameMode.undead.info": "Explore o mundo e apareça como um zumbi morto-vivo.",
   "selectWorld.beUndeadConfig": "Configuração Be Undead",

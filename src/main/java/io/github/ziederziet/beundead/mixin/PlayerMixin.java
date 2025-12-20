@@ -3,7 +3,7 @@ package io.github.ziederziet.beundead.mixin;
 import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import io.github.ziederziet.beundead.common.ClientInfo;
 import io.github.ziederziet.beundead.config.ClientModConfig;
-import io.github.ziederziet.beundead.config.ServerConfigAccessor;
+import io.github.ziederziet.beundead.config.ServerModConfig;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.damagesource.DamageSource;
@@ -44,13 +44,13 @@ public class PlayerMixin {
     @Inject(at = @At("TAIL"), method = "getDestroySpeed", cancellable = true)
     public void getDestroySpeed(BlockState blockState, CallbackInfoReturnable<Float> info){
         if (!BeUndeadHelper.isHuman((Player)(Object)this)){
-            info.setReturnValue(info.getReturnValueF() * (((Player)(Object)this).level().isClientSide() ? ClientInfo.zombieBreakingSpeed : ServerConfigAccessor.getConfig().getZombieBreakSpeed()));
+            info.setReturnValue(info.getReturnValueF() * (((Player)(Object)this).level().isClientSide() ? ClientInfo.zombieBreakingSpeed : ServerModConfig.getZombieBreakSpeed()));
         }
     }
 
     @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;onClimbable()Z"), method = "attack")
     public boolean noCritRedirect(Player instance){
-        if (instance instanceof ServerPlayer serverPlayer && !BeUndeadHelper.isHuman(serverPlayer) && !ServerConfigAccessor.getConfig().getZombieCanCrit()){
+        if (instance instanceof ServerPlayer serverPlayer && !BeUndeadHelper.isHuman(serverPlayer) && !ServerModConfig.getZombieCanCrit()){
             return true;
         }
 

@@ -17,6 +17,8 @@
     "ItemMixin",
     "KeyboardInputMixin",
     "KilledTriggerMixin",
+    "LevelStorageSourceMixin",
+    "LevelSummaryMixin",
     "LivingEntityMixin",
     "NearestAttackableTargetGoalMixin",
     "NearestVisibleLivingEntitiesMixin",

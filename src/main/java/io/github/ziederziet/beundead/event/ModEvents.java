@@ -3,7 +3,7 @@ package io.github.ziederziet.beundead.event;
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.commands.ModCommands;
 import io.github.ziederziet.beundead.common.*;
-import io.github.ziederziet.beundead.config.ServerConfigAccessor;
+import io.github.ziederziet.beundead.config.PerWorldConfig;
 import io.github.ziederziet.beundead.config.ServerModConfig;
 import io.github.ziederziet.beundead.networking.ModNetworking;
 import io.github.ziederziet.beundead.networking.UndeadDataPacket;
@@ -60,12 +60,12 @@ public class ModEvents {
 
     @SubscribeEvent
     public static void ServerStartingEvent(ServerStartingEvent event){
-        ServerModConfig.load(event.getServer());
+        PerWorldConfig.load(event.getServer());
     }
 
     @SubscribeEvent
     public static void ServerStoppingEvent(ServerStoppingEvent event){
-        ServerModConfig.close(event.getServer());
+        PerWorldConfig.close(event.getServer());
     }
 
     @SubscribeEvent
@@ -76,9 +76,8 @@ public class ModEvents {
         if (livingEntity.level().isClientSide()) return;
 
         if (livingEntity instanceof Player player) {
-            ServerConfigAccessor config = ServerConfigAccessor.getConfig();
-            boolean husks = config.areHusksEnabled();
-            boolean drowned = config.areDrownedEnabled();
+            boolean husks = ServerModConfig.areHusksEnabled();
+            boolean drowned = ServerModConfig.areDrownedEnabled();
 
             boolean respawnTimer = player.getServer().isDedicatedServer();
 
@@ -86,7 +85,7 @@ public class ModEvents {
 
                 boolean turnZombie = true;
 
-                if (config.getOnlyTurnWhenInfected()){
+                if (ServerModConfig.getOnlyTurnWhenInfected()){
                     turnZombie = damageSource.is(BeUndead.INFECTION_KILL) || damageSource.getEntity() instanceof Zombie || ((InfectionAccessor)player).getOutInfection() >= BeUndeadConstants.OUT_INFECTION_SHOW;
                 }
 
@@ -150,14 +149,14 @@ public class ModEvents {
                     event.setCanceled(true);
                 }
                 else if (respawnTimer) {
-                    BeUndeadHelper.setZombieRespawnTimer(player, player.level().getGameTime() + config.getRespawnTimer());
+                    BeUndeadHelper.setZombieRespawnTimer(player, player.level().getGameTime() + ServerModConfig.getRespawnTimer());
                 }
             }
             else {
                 BeUndeadHelper.setUndeadType(player, BeUndead.UNDEAD_DATA.moveType(BeUndeadHelper.getUndeadTypeName(player), BeUndeadHelper.getMoistMovementOnDeath(damageSource, player), BeUndeadHelper.getHeatMovementOnDeath(damageSource, player), husks, drowned, damageSource));
 
                 if (respawnTimer) {
-                    BeUndeadHelper.setZombieRespawnTimer(player, player.level().getGameTime() + config.getRespawnTimerToZombie());
+                    BeUndeadHelper.setZombieRespawnTimer(player, player.level().getGameTime() + ServerModConfig.getRespawnTimerToZombie());
                 }
             }
         }
@@ -227,7 +226,7 @@ public class ModEvents {
             }
         }
 
-        else if (ServerConfigAccessor.getConfig().isInfectionEnabled() && livingEntity instanceof Villager || (livingEntity instanceof Player player && BeUndeadHelper.isHuman(player))){
+        else if (ServerModConfig.isInfectionEnabled() && livingEntity instanceof Villager || (livingEntity instanceof Player player && BeUndeadHelper.isHuman(player))){
             if (damageSource.getEntity() instanceof Zombie || (damageSource.getEntity() instanceof Player playerAttacker && !BeUndeadHelper.isHuman(playerAttacker))){
                 if (livingEntity.getRandom().nextBoolean()){
                     Player infecter = damageSource.getEntity() instanceof Player playerAttacker ? playerAttacker : null;
@@ -239,10 +238,16 @@ public class ModEvents {
 
     @SubscribeEvent
     public static void PlayerCloneEvent(PlayerEvent.Clone event){
-        BeUndeadHelper.setUndeadType(event.getEntity(), BeUndeadHelper.getUndeadTypeName(event.getOriginal()), false);
+        BeUndeadHelper.setUndeadType(event.getEntity(), BeUndeadHelper.getUndeadTypeName(event.getOriginal()), true);
         if (event.getOriginal().level().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY) || !event.isWasDeath()){
-            BeUndeadHelper.setZombieChest(event.getEntity(), BeUndeadHelper.hasZombieChest(event.getOriginal()), false);
+            BeUndeadHelper.setZombieChest(event.getEntity(), BeUndeadHelper.hasZombieChest(event.getOriginal()), true);
         }
+
+    }
+
+    @SubscribeEvent
+    public static void PlayerChangedDimensionEvent(PlayerEvent.PlayerChangedDimensionEvent event){
+        BeUndeadHelper.sendUndeadPacket(event.getEntity());
     }
 
     @SubscribeEvent
@@ -258,7 +263,7 @@ public class ModEvents {
 
             BeUndeadHelper.sendUndeadPacket(player);
 
-            ModNetworking.sendToClient(ServerConfigAccessor.getPacket(), player);
+            ModNetworking.sendToClient(ServerModConfig.getPacket(), player);
         }
     }
 

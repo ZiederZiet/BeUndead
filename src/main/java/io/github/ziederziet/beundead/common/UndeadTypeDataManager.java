@@ -3,7 +3,7 @@ package io.github.ziederziet.beundead.common;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import io.github.ziederziet.beundead.BeUndead;
-import io.github.ziederziet.beundead.config.ServerConfigAccessor;
+import io.github.ziederziet.beundead.config.ServerModConfig;
 import io.github.ziederziet.beundead.networking.ModNetworking;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
@@ -274,7 +274,7 @@ public class UndeadTypeDataManager extends SimpleJsonResourceReloadListener {
         moistNaturals.add(closestMoistI);
 
         if (wasAlreadyInitialized){
-            ModNetworking.sendToAllClients(ServerConfigAccessor.getPacket());
+            ModNetworking.sendToAllClients(ServerModConfig.getPacket());
         }
     }
 }

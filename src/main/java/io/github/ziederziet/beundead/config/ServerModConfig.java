@@ -1,191 +1,192 @@
 package io.github.ziederziet.beundead.config;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import net.minecraft.server.MinecraftServer;
+import com.electronwill.nightconfig.core.file.CommentedFileConfig;
+import com.electronwill.nightconfig.core.io.WritingMode;
+import io.github.ziederziet.beundead.BeUndead;
+import io.github.ziederziet.beundead.networking.ZombieSettingsPacket;
+import net.minecraftforge.common.ForgeConfigSpec;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.nio.file.Path;
 
-//@Config(name = BeUndead.MODID)
-public class ServerModConfig implements ServerConfigAccessor {
-    private static final Gson GSON = new GsonBuilder()
-            .setPrettyPrinting()
-            .create();
-
-    private static ServerModConfig config = null;
-
-    private static File getConfigFile(MinecraftServer server) {
-        File configDir = new File(server.getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT).toFile(), "serverconfigs");
-        if (!configDir.exists()) {
-            configDir.mkdirs();
-        }
-        return new File(configDir, "beundead.json");
+public class ServerModConfig {
+    public static ZombieSettingsPacket getPacket(){
+        return new ZombieSettingsPacket(ServerModConfig.getZombieInvState(),
+                ServerModConfig.getZombieCanChestExtension(),
+                ServerModConfig.getZombieNightVision(),
+                ServerModConfig.getZombieJumpOnTheirOwn(),
+                ServerModConfig.getZombieMaxViewDistance(),
+                ServerModConfig.getZombieWalkSpeed(),
+                ServerModConfig.getZombieBreakSpeed(),
+                ServerModConfig.isZombieSprintingEnabled(),
+                BeUndead.UNDEAD_DATA.map());
     }
 
-    public static ServerModConfig get() {
-        return config;
+    public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
+    public static final ForgeConfigSpec SPEC;
+
+    public static final ForgeConfigSpec.ConfigValue<InventoryState> ZOMBIE_INV_STATE;
+    public static final ForgeConfigSpec.ConfigValue<Boolean> ZOMBIE_CAN_CHEST_EXTENSION;
+    public static final ForgeConfigSpec.ConfigValue<CureRequirements> CURE_REQUIREMENTS;
+    public static final ForgeConfigSpec.ConfigValue<Boolean> HUSKS_ENABLED;
+    public static final ForgeConfigSpec.ConfigValue<Boolean> DROWNED_ENABLED;
+    public static final ForgeConfigSpec.ConfigValue<Double> ZOMBIE_BREAK_SPEED;
+    public static final ForgeConfigSpec.ConfigValue<Boolean> ZOMBIE_NIGHT_VISION;
+    public static final ForgeConfigSpec.ConfigValue<Boolean> ZOMBIE_JUMP_ON_THEIR_OWN;
+    public static final ForgeConfigSpec.ConfigValue<Boolean> ZOMBIE_CAN_CRIT;
+    public static final ForgeConfigSpec.ConfigValue<Boolean> ZOMBIE_ONLY_KILL_EXPERIENCE;
+    public static final ForgeConfigSpec.ConfigValue<Integer> ZOMBIE_MAX_VIEW_DISTANCE;
+    public static final ForgeConfigSpec.ConfigValue<Double> ZOMBIE_WALK_SPEED;
+    public static final ForgeConfigSpec.ConfigValue<Boolean> ZOMBIE_SPRINT_ENABLED;
+    public static final ForgeConfigSpec.ConfigValue<Boolean> INFECTION_ENABLED;
+    public static final ForgeConfigSpec.ConfigValue<Boolean> ONLY_TURN_WHEN_INFECTED;
+    public static final ForgeConfigSpec.ConfigValue<Boolean> FORCE_TURN_WHEN_INFECTED;
+    public static final ForgeConfigSpec.ConfigValue<Integer> RESPAWN_TIMER_TO_HUMAN;
+    public static final ForgeConfigSpec.ConfigValue<Integer> RESPAWN_TIMER_TO_ZOMBIE;
+
+
+    static {
+        BUILDER.push("commonconfig");
+
+        ZOMBIE_INV_STATE = BUILDER
+                .comment("Determents the default inventory capacity for zombie players")
+                .defineEnum("zombieInvState", InventoryState.ONE_SLOT);
+
+        ZOMBIE_CAN_CHEST_EXTENSION = BUILDER
+                .comment("If zombie players can use a chest as an extension to their inventory")
+                .define("zombieCanChestExtension", true);
+
+        CURE_REQUIREMENTS = BUILDER
+                .defineEnum("cureRequirements", CureRequirements.WEAKNESS_AND_APPLE);
+
+        HUSKS_ENABLED = BUILDER
+                .define("husksEnabled", true);
+
+        DROWNED_ENABLED = BUILDER
+                .define("drownedEnabled", true);
+
+        ZOMBIE_BREAK_SPEED = BUILDER
+                .define("zombieBreakSpeed", 0.5D);
+
+        ZOMBIE_NIGHT_VISION = BUILDER
+                .define("zombieNightVision", true);
+
+        ZOMBIE_JUMP_ON_THEIR_OWN = BUILDER
+                .define("zombieJumpOnTheirOwn", true);
+
+        ZOMBIE_CAN_CRIT = BUILDER
+                .define("zombieCanCrit", true);
+
+        ZOMBIE_ONLY_KILL_EXPERIENCE = BUILDER
+                .comment("There will not be any experience orbs for zombie players if this is enabled")
+                .define("zombieOnlyKillExperience", true);
+
+        ZOMBIE_MAX_VIEW_DISTANCE = BUILDER
+                .define("zombieMaxViewDistance", 4);
+
+        ZOMBIE_WALK_SPEED = BUILDER
+                .define("zombieWalkSpeed", 1D);
+
+        ZOMBIE_SPRINT_ENABLED = BUILDER
+                .define("zombieSprintEnabled", false);
+
+        INFECTION_ENABLED = BUILDER
+                .define("infectionEnabled", false);
+
+        ONLY_TURN_WHEN_INFECTED = BUILDER
+                .define("onlyTurnWhenInfected", false);
+
+        FORCE_TURN_WHEN_INFECTED = BUILDER
+                .define("forceTurnWhenInfected", true);
+
+        RESPAWN_TIMER_TO_HUMAN = BUILDER
+                .comment("How long it will take for a player to respawn when not respawning as a zombie")
+                .comment("Time in seconds")
+                .define("respawnTimerToHuman", 0);
+
+        RESPAWN_TIMER_TO_ZOMBIE = BUILDER
+                .comment("How long it will take for a player to respawn when respawning as a zombie")
+                .comment("Time in seconds")
+                .define("respawnTimerToZombie", 0);
+
+        BUILDER.pop();
+        SPEC = BUILDER.build();
     }
 
-    public static ServerModConfig getOrCreate() {
-        if (config == null){
-            config = new ServerModConfig();
-        }
-        return config;
+    public static void loadConfig(ForgeConfigSpec config, Path path) {
+        final CommentedFileConfig file = CommentedFileConfig.builder(path).sync().autosave().writingMode(WritingMode.REPLACE).build();
+        file.load();
+        config.setConfig(file);
     }
 
-    public static void close(MinecraftServer server){
-        save(server);
-        clearConfig();
+    public static int getZombieInvState() {
+         return ZOMBIE_INV_STATE.get().getId();
     }
 
-    public static void clearConfig(){
-        config = null;
+    public static boolean getZombieCanChestExtension() {
+        return ZOMBIE_CAN_CHEST_EXTENSION.get();
     }
 
-    public static void load(MinecraftServer server) {
-        if (config == null){
-            File file = getConfigFile(server);
-            if (file.exists()) {
-                try (FileReader reader = new FileReader(file)) {
-                    config = GSON.fromJson(reader, ServerModConfig.class);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    config = new ServerModConfig();
-                }
-            } else {
-                config = new ServerModConfig();
-                save(server);
-            }
-        }
+    public static boolean areHusksEnabled() {
+        return HUSKS_ENABLED.get();
     }
 
-    public static void save(MinecraftServer server) {
-        File file = getConfigFile(server);
-        try (FileWriter writer = new FileWriter(file)) {
-            GSON.toJson(config, writer);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public static boolean areDrownedEnabled() {
+        return DROWNED_ENABLED.get();
     }
 
-
-
-    public InventoryState zombieInvState = InventoryState.ONE_SLOT;
-    public boolean zombieCanChestExtension = true;
-    public CureRequirements cureRequirements = CureRequirements.WEAKNESS_AND_APPLE;
-    public boolean husksEnabled = true;
-    public boolean drownedEnabled = true;
-    public float zombieBreakSpeed = 0.5F;
-    public boolean zombieNightVision = true;
-    public boolean zombieJumpOnTheirOwn = true;
-    public boolean zombieCanCrit = true;
-    public boolean zombieOnlyKillExperience = true;
-    public int zombieMaxViewDistance = 4;
-    public double zombieWalkSpeed = 1D;
-    public boolean zombieSprintEnabled = false;
-    public boolean infectionEnabled = false;
-    public boolean onlyTurnWhenInfected = false;
-    public boolean forceTurnWhenInfected = true;
-    public long respawnTimerToHuman = 0L;
-    public long respawnTimerToZombie = 0L;
-
-    public boolean undeadMode;
-
-    @Override
-    public int getZombieInvState() {
-        return zombieInvState.getId();
+    public static boolean getZombieNightVision() {
+        return ZOMBIE_NIGHT_VISION.get();
     }
 
-    @Override
-    public boolean getZombieCanChestExtension() {
-        return zombieCanChestExtension;
+    public static boolean getZombieJumpOnTheirOwn() {
+        return ZOMBIE_JUMP_ON_THEIR_OWN.get();
     }
 
-    @Override
-    public boolean areHusksEnabled() {
-        return husksEnabled;
+    public static boolean getZombieCanCrit() {
+        return ZOMBIE_CAN_CRIT.get();
     }
 
-    @Override
-    public boolean areDrownedEnabled() {
-        return drownedEnabled;
+    public static int getZombieMaxViewDistance() {
+        return ZOMBIE_MAX_VIEW_DISTANCE.get();
     }
 
-    @Override
-    public boolean getZombieNightVision() {
-        return zombieNightVision;
+    public static boolean isInfectionEnabled() {
+        return INFECTION_ENABLED.get();
     }
 
-    @Override
-    public boolean getZombieJumpOnTheirOwn() {
-        return zombieJumpOnTheirOwn;
+    public static boolean getOnlyTurnWhenInfected() {
+        return ONLY_TURN_WHEN_INFECTED.get();
     }
 
-    @Override
-    public boolean getZombieCanCrit() {
-        return zombieCanCrit;
+    public static boolean getForceTurnWhenInfected() {
+        return FORCE_TURN_WHEN_INFECTED.get();
     }
 
-    @Override
-    public int getZombieMaxViewDistance() {
-        return zombieMaxViewDistance;
+    public static long getRespawnTimer() {
+        return RESPAWN_TIMER_TO_HUMAN.get();
     }
 
-    @Override
-    public boolean isInfectionEnabled() {
-        return infectionEnabled;
+    public static long getRespawnTimerToZombie() {
+        return RESPAWN_TIMER_TO_ZOMBIE.get();
     }
 
-    @Override
-    public boolean getOnlyTurnWhenInfected() {
-        return onlyTurnWhenInfected;
+    public static double getZombieWalkSpeed() {
+        return ZOMBIE_WALK_SPEED.get();
     }
 
-    @Override
-    public boolean getForceTurnWhenInfected() {
-        return forceTurnWhenInfected;
+    public static float getZombieBreakSpeed() {
+        return ZOMBIE_BREAK_SPEED.get().floatValue();
     }
 
-    @Override
-    public long getRespawnTimer() {
-        return respawnTimerToHuman;
+    public static boolean getZombieOnlyKillExperience() {
+        return ZOMBIE_ONLY_KILL_EXPERIENCE.get();
     }
 
-    @Override
-    public long getRespawnTimerToZombie() {
-        return respawnTimerToZombie;
+    public static boolean isZombieSprintingEnabled() {
+        return ZOMBIE_SPRINT_ENABLED.get();
     }
 
-    @Override
-    public double getZombieWalkSpeed() {
-        return zombieWalkSpeed;
-    }
-
-    @Override
-    public float getZombieBreakSpeed() {
-        return zombieBreakSpeed;
-    }
-
-    @Override
-    public boolean getZombieOnlyKillExperience() {
-        return zombieOnlyKillExperience;
-    }
-
-    @Override
-    public boolean isZombieSprintingEnabled() {
-        return zombieSprintEnabled;
-    }
-
-    @Override
-    public int getCureRequirements() {
-        return cureRequirements.getId();
-    }
-
-    @Override
-    public boolean hasUndeadMode() {
-        return undeadMode;
+    public static int getCureRequirements() {
+        return CURE_REQUIREMENTS.get().getId();
     }
 }

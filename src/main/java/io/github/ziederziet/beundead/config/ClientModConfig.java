@@ -13,7 +13,7 @@ public class ClientModConfig {
     private static final ForgeConfigSpec.ConfigValue<Boolean> ZOMBIESOUNDSPLAYERS;
 
     static {
-        BUILDER.push("Configs for Be Undead");
+        BUILDER.push("Client Config for Be Undead");
 
         ZOMBIESOUNDSPLAYERS = BUILDER
                 .comment("If enabled, zombie sounds will play for undead players")
