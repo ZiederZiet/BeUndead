@@ -22,7 +22,7 @@
 			"io.github.ziederziet.beundead.BeUndeadClient"
 		],
 		"modmenu": [
-			"io.github.ziederziet.beundead.config.ClientConfigScreen"
+          "io.github.ziederziet.beundead.config.ConfigScreen"
 		]
 	},
 	"mixins": [

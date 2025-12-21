@@ -213,6 +213,10 @@ public class ModEvents {
         }
     }
 
+    public static void AfterPlayerChangeWorld(ServerPlayer serverPlayer, ServerLevel serverLevel, ServerLevel serverLevel1){
+        BeUndeadHelper.sendUndeadPacket(serverPlayer);
+    }
+
     public static void AfterRespawnEvent(ServerPlayer oldPlayer, ServerPlayer newPlayer, boolean alive){
         BeUndeadHelper.sendUndeadPacket(newPlayer);
     }

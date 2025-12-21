@@ -3,16 +3,15 @@ package io.github.ziederziet.beundead;
 import io.github.ziederziet.beundead.commands.ModCommands;
 import io.github.ziederziet.beundead.common.InfectedMobEffect;
 import io.github.ziederziet.beundead.common.UndeadTypeDataManager;
-import io.github.ziederziet.beundead.config.ClientModConfig;
-import io.github.ziederziet.beundead.config.ServerModConfig;
+import io.github.ziederziet.beundead.config.ModConfig;
+import io.github.ziederziet.beundead.config.PerWorldConfig;
 import io.github.ziederziet.beundead.event.ModEvents;
 import io.github.ziederziet.beundead.networking.ModNetworking;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -57,8 +56,8 @@ public class BeUndead implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		AutoConfig.register(ClientModConfig.class, JanksonConfigSerializer::new);
-		ServerModConfig.register();
+		AutoConfig.register(ModConfig.class, JanksonConfigSerializer::new);
+		PerWorldConfig.register();
 
 		Registry.register(BuiltInRegistries.MOB_EFFECT,
 				INFECTED_EFFECT_KEY.location(),
@@ -77,6 +76,8 @@ public class BeUndead implements ModInitializer {
 		ServerLivingEntityEvents.AFTER_DAMAGE.register(ModEvents::AfterDamageEvent);
 
 		ServerPlayerEvents.COPY_FROM.register(ModEvents::PlayerCloneEvent);
+
+		ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register(ModEvents::AfterPlayerChangeWorld);
 
 		ServerPlayerEvents.AFTER_RESPAWN.register(ModEvents::AfterRespawnEvent);
 

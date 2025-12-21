@@ -1,82 +1,12 @@
 package io.github.ziederziet.beundead.config;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.minecraft.server.MinecraftServer;
+import io.github.ziederziet.beundead.BeUndead;
+import me.shedaniel.autoconfig.ConfigData;
+import me.shedaniel.autoconfig.annotation.Config;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-
-//@Config(name = BeUndead.MODID)
-public class ServerModConfig implements ServerConfigAccessor {
-    private static final Gson GSON = new GsonBuilder()
-            .setPrettyPrinting()
-            .create();
-
-    private static ServerModConfig config = null;
-
-    private static File getConfigFile(MinecraftServer server) {
-        File configDir = new File(server.getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT).toFile(), "serverconfigs");
-        if (!configDir.exists()) {
-            configDir.mkdirs();
-        }
-        return new File(configDir, "beundead.json");
-    }
-
-    public static void register() {
-        ServerLifecycleEvents.SERVER_STARTING.register(ServerModConfig::load);
-
-        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
-            save(server);
-            config = null;
-        });
-    }
-
-    public static ServerModConfig get() {
-        return config;
-    }
-
-    public static ServerModConfig getOrCreate() {
-        if (config == null){
-            config = new ServerModConfig();
-        }
-        return config;
-    }
-
-    public static void clearConfig(){
-        config = null;
-    }
-
-    private static void load(MinecraftServer server) {
-        if (config == null){
-            File file = getConfigFile(server);
-            if (file.exists()) {
-                try (FileReader reader = new FileReader(file)) {
-                    config = GSON.fromJson(reader, ServerModConfig.class);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    config = new ServerModConfig();
-                }
-            } else {
-                config = new ServerModConfig();
-                save(server);
-            }
-        }
-    }
-
-    public static void save(MinecraftServer server) {
-        File file = getConfigFile(server);
-        try (FileWriter writer = new FileWriter(file)) {
-            GSON.toJson(config, writer);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
+@Config(name = BeUndead.MODID)
+public class ModConfig implements ConfigData, ClientConfigAccessor, ServerConfigAccessor {
+    public boolean zombieSoundsPlayers = true;
 
     public InventoryState zombieInvState = InventoryState.ONE_SLOT;
     public boolean zombieCanChestExtension = true;
@@ -97,7 +27,10 @@ public class ServerModConfig implements ServerConfigAccessor {
     public long respawnTimerToHuman = 0L;
     public long respawnTimerToZombie = 0L;
 
-    public boolean undeadMode;
+    @Override
+    public boolean hasZombieSoundsPlayers() {
+        return zombieSoundsPlayers;
+    }
 
     @Override
     public int getZombieInvState() {
@@ -187,10 +120,5 @@ public class ServerModConfig implements ServerConfigAccessor {
     @Override
     public int getCureRequirements() {
         return cureRequirements.getId();
-    }
-
-    @Override
-    public boolean hasUndeadMode() {
-        return undeadMode;
     }
 }

@@ -1,4 +1,5 @@
 {
+  "gameMode.undead": "Undead Mode",
   "selectWorld.gameMode.undead": "Game Mode: Undead",
   "selectWorld.gameMode.undead.info": "Explore the world, spawning as an undead zombie.",
   "selectWorld.beUndeadConfig": "Be Undead Configuration",
@@ -17,6 +18,6 @@
   "commands.undead.chestextension.set.multiple": "Set chests for %s players to %s",
   "commands.undead.chestextension.get.has": "%s has a chest extension",
   "commands.undead.chestextension.get.has_not": "%s has no chest extension",
-  "commands.beundeadconfig.changed": "Changed config value of %s to %s",
-  "commands.beundeadconfig.get": "Config value of %s is currently set to: %s"
+  "commands.undeadmode.changed": "Changed Undead Mode to %s",
+  "commands.undeadmode.get": "Undead Mode is currently set to: %s"
 }
