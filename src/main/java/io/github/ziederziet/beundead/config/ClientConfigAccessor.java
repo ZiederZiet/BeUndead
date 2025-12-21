@@ -4,7 +4,7 @@ import me.shedaniel.autoconfig.AutoConfig;
 
 public interface ClientConfigAccessor {
     static ClientConfigAccessor getConfig(){
-        return AutoConfig.getConfigHolder(ClientModConfig.class).getConfig();
+        return AutoConfig.getConfigHolder(ModConfig.class).getConfig();
     }
     boolean hasZombieSoundsPlayers();
 }

@@ -2,10 +2,11 @@ package io.github.ziederziet.beundead.config;
 
 import io.github.ziederziet.beundead.BeUndead;
 import io.github.ziederziet.beundead.networking.ZombieSettingsPacket;
+import me.shedaniel.autoconfig.AutoConfig;
 
 public interface ServerConfigAccessor {
     static ServerConfigAccessor getConfig(){
-        return ServerModConfig.get();
+        return AutoConfig.getConfigHolder(ModConfig.class).getConfig();
     }
 
     static ZombieSettingsPacket getPacket(){
@@ -40,6 +41,4 @@ public interface ServerConfigAccessor {
     double getZombieWalkSpeed(); // 0.46   ZOMBIE
     float getZombieBreakSpeed();
     boolean getZombieOnlyKillExperience();
-
-    boolean hasUndeadMode();
 }

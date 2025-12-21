@@ -5,6 +5,7 @@ import io.github.ziederziet.beundead.client.UndeadSkinManager;
 import io.github.ziederziet.beundead.common.BeUndeadHelper;
 import io.github.ziederziet.beundead.config.ClientConfigAccessor;
 import io.github.ziederziet.beundead.config.ServerConfigAccessor;
+import io.github.ziederziet.beundead.event.ModClientEvents;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
@@ -65,8 +66,6 @@ public class EntityMixin {
 
     @Inject(at = @At("HEAD"), method = "onClientRemoval")
     public void onClientRemoval(CallbackInfo info){
-        if ((Object)this instanceof AbstractClientPlayer abstractClientPlayer){
-            UndeadSkinManager.removeSkin(abstractClientPlayer.getSkinTextureLocation());
-        }
+        ModClientEvents.ClientEntityRemoval((Entity) (Object)this);
     }
 }

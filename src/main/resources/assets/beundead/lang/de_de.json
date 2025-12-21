@@ -1,4 +1,5 @@
 {
+  "gameMode.undead": "Untoten Modus",
   "selectWorld.gameMode.undead": "Spielmodus: Untot",
   "selectWorld.gameMode.undead.info": "Entdecke die Welt. Spawn als ein Zombie.",
   "effect.beundead.infected": "Infiziert",
@@ -7,7 +8,7 @@
   "commands.undead.type.set.single": "%s wurde zum %s konvertiert",
   "commands.undead.type.set.multiple": "%s Spieler wurden zum %s konvertiert",
   "commands.undead.type.get": "%s ist ein %s",
-  "commands.undead.type.fail": "Der untoten Type %s is nicht vorhander",
+  "commands.undead.type.fail": "Der untoten Type %s ist nicht vorhander",
   "commands.undead.curing.start.single": "Die Heilung von %s ist begonnen",
   "commands.undead.curing.start.multiple": "Die Heilung von %s Spieler ist begonnen",
   "commands.undead.curing.stop.single": "Die Heilung von %s wurde gestoppt",
@@ -16,6 +17,6 @@
   "commands.undead.chestextension.set.multiple": "Die Kiste von %s Spieler wurder auf %s gesetzt",
   "commands.undead.chestextension.get.has": "%s hat eine Kiste",
   "commands.undead.chestextension.get.has_not": "%s hat keine Kiste",
-  "commands.beundeadconfig.changed": "Der Konfigurationswert %s wurde auf %s geändert",
-  "commands.beundeadconfig.get": "Der Konfigurationswert %s ist im moment bei: %s"
+  "commands.undeadmode.changed": "Untoten Modus wurde auf %s geändert",
+  "commands.undeadmode.get": "Untoten Modus ist im moment bei: %s"
 }

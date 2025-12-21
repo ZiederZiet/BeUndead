@@ -33,6 +33,7 @@ public class UndeadMixin implements UndeadAccessor, InfectionAccessor {
     private int outInfection = 0;
     private int infectionKillTicks = 0;
 
+    private boolean loaded = false;
 
     @Override
     public boolean hasZombieChest() {
@@ -123,6 +124,8 @@ public class UndeadMixin implements UndeadAccessor, InfectionAccessor {
         }
 
         BeUndeadHelper.infectionReadAdditionalSaveData(pCompound, this, infecters);
+
+        loaded = true;
     }
 
     @Inject(at = @At("TAIL"), method = "addAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V")
@@ -152,6 +155,11 @@ public class UndeadMixin implements UndeadAccessor, InfectionAccessor {
     @Override
     public void setConversionStarter(UUID conversionStarter){
         this.conversionStarter = conversionStarter;
+    }
+
+    @Override
+    public boolean wasLoaded() {
+        return loaded;
     }
 
     @Override

@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class AbstractContainerMenuMixin {
     @Inject(at = @At("HEAD"), method = "doClick", cancellable = true)
     private void doClick(int pSlotId, int pButton, ClickType pClickType, Player pPlayer, CallbackInfo info){
-        if (pClickType == ClickType.SWAP && BeUndeadHelper.getInvStateOfPlayer(pPlayer) < 1){
+        if (pButton != 40 && pButton != 4 && pClickType == ClickType.SWAP && BeUndeadHelper.getInvStateOfPlayer(pPlayer) < 1){
             info.cancel();
         }
     }

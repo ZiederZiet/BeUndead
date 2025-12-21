@@ -1,19 +1,32 @@
 package io.github.ziederziet.beundead.config;
 
+import com.terraformersmc.modmenu.api.ConfigScreenFactory;
+import com.terraformersmc.modmenu.api.ModMenuApi;
+import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
-public class ServerConfigScreen {
+public class ConfigScreen implements ModMenuApi {
     public static Screen create(Screen parent) {
         ConfigBuilder builder = ConfigBuilder.create()
                 .setParentScreen(parent)
-                .setTitle(Component.literal("Server Be Undead Config"));
+                .setTitle(Component.literal("Client Be Undead Config"));
 
-        ConfigCategory general = builder.getOrCreateCategory(Component.literal("General"));
+        ConfigCategory audio = builder.getOrCreateCategory(Component.literal("Audio (Client)"));
 
-        ServerModConfig config = ServerModConfig.getOrCreate();
+        ModConfig config = AutoConfig.getConfigHolder(ModConfig.class).getConfig();
+
+        audio.addEntry(
+                builder.entryBuilder()
+                        .startBooleanToggle(Component.literal("Zombie Sounds for Undead Players"), config.zombieSoundsPlayers)
+                        .setDefaultValue(true)
+                        .setSaveConsumer(newValue -> config.zombieSoundsPlayers = newValue)
+                        .build()
+        );
+
+        ConfigCategory general = builder.getOrCreateCategory(Component.literal("General (Server)"));
 
         general.addEntry(
                 builder.entryBuilder()
@@ -122,7 +135,7 @@ public class ServerConfigScreen {
                         .build()
         );
 
-        ConfigCategory infection = builder.getOrCreateCategory(Component.literal("Infection"));
+        ConfigCategory infection = builder.getOrCreateCategory(Component.literal("Infection (Server)"));
 
         infection.addEntry(
                 builder.entryBuilder()
@@ -149,7 +162,7 @@ public class ServerConfigScreen {
                         .build()
         );
 
-        ConfigCategory respawnTimer = builder.getOrCreateCategory(Component.literal("Respawn Timer"));
+        ConfigCategory respawnTimer = builder.getOrCreateCategory(Component.literal("Respawn Timer (Server)"));
 
         respawnTimer.addEntry(
                 builder.entryBuilder()
@@ -169,6 +182,13 @@ public class ServerConfigScreen {
 
         builder.setGlobalized(false);
 
+        builder.setSavingRunnable(() -> AutoConfig.getConfigHolder(ModConfig.class).save());
+
         return builder.build();
+    }
+
+    @Override
+    public ConfigScreenFactory<?> getModConfigScreenFactory() {
+        return ConfigScreen::create;
     }
 }

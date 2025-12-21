@@ -15,4 +15,5 @@ public interface UndeadAccessor {
     void setType(String type);
     UUID getConversionStarter();
     void setConversionStarter(UUID conversionStarter);
+    boolean wasLoaded();
 }

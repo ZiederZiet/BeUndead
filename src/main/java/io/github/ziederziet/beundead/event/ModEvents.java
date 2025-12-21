@@ -1,24 +1,16 @@
 package io.github.ziederziet.beundead.event;
 
 import io.github.ziederziet.beundead.BeUndead;
-import io.github.ziederziet.beundead.client.UndeadSkinManager;
 import io.github.ziederziet.beundead.common.*;
 import io.github.ziederziet.beundead.config.ServerConfigAccessor;
-import io.github.ziederziet.beundead.mixin.DeathScreenAccessor;
 import io.github.ziederziet.beundead.networking.ModNetworking;
 import io.github.ziederziet.beundead.networking.UndeadDataPacket;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.screens.DeathScreen;
-import net.minecraft.client.multiplayer.ClientPacketListener;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -35,7 +27,6 @@ import net.minecraft.world.entity.monster.ZombieVillager;
 import net.minecraft.world.entity.monster.ZombifiedPiglin;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.food.FoodConstants;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
@@ -172,29 +163,6 @@ public class ModEvents {
         }
     }
 
-    public static void StartClientTick(Minecraft minecraft){
-        LocalPlayer player = minecraft.player;
-        if (player != null && player.level().isClientSide()){
-            if (minecraft.screen instanceof DeathScreen deathScreen){
-                long respawnTimer = BeUndeadHelper.getZombieRespawnTimer(player);
-                long timeTo = respawnTimer - player.level().getGameTime();
-                if (timeTo < 2){
-                    Button button = ((DeathScreenAccessor)deathScreen).getExitButtons().get(0);
-                    button.active = true;
-                    button.setMessage(Component.translatable("deathScreen.respawn"));
-                } else if (timeTo % 20 == 0){
-                    int minutes = (int)Math.floor(timeTo / 20D / 60D);
-                    int seconds = (int)Math.floor(timeTo / 20D % 60D);
-                    ((DeathScreenAccessor)deathScreen).getExitButtons().get(0).setMessage(Component.translatable("deathScreen.respawn").append(" " + minutes + ":" + (String.valueOf(seconds).length() == 1 ? "0" : "") + seconds));
-                }
-            }
-        }
-    }
-
-    public static void ClientDisconnectEvent(ClientPacketListener clientPacketListener, Minecraft minecraft){
-        UndeadSkinManager.removeAll();
-    }
-
     public static void StartTrackingEntityEvent(Entity entity, ServerPlayer serverPlayer){
         if (entity instanceof ServerPlayer toTrack){
             serverPlayer.getServer().execute(() -> {
@@ -234,6 +202,10 @@ public class ModEvents {
         if (oldPlayer.level().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY) || alive){
             BeUndeadHelper.setZombieChest(newPlayer, BeUndeadHelper.hasZombieChest(oldPlayer), false);
         }
+    }
+
+    public static void AfterPlayerChangeWorld(ServerPlayer serverPlayer, ServerLevel serverLevel, ServerLevel serverLevel1){
+        BeUndeadHelper.sendUndeadPacket(serverPlayer);
     }
 
     public static void AfterRespawnEvent(ServerPlayer oldPlayer, ServerPlayer newPlayer, boolean alive){

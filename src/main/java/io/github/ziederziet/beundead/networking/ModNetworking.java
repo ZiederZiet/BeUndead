@@ -40,8 +40,5 @@ public class ModNetworking {
     }
 
     public static void registerS2C() {
-        ClientPlayNetworking.registerGlobalReceiver(ZombieSettingsPacket.TYPE, ZombieSettingsPacket::handle);
-        ClientPlayNetworking.registerGlobalReceiver(UndeadDataPacket.TYPE, UndeadDataPacket::handle);
-        ClientPlayNetworking.registerGlobalReceiver(RespawnTimerPacket.TYPE, RespawnTimerPacket::handle);
     }
 }
