@@ -21,7 +21,6 @@
     "LevelStorageSourceMixin",
     "LevelSummaryMixin",
     "LivingEntityMixin",
-    "MinecraftServerMixin",
     "NearestAttackableTargetGoalMixin",
     "NearestVisibleLivingEntitiesMixin",
     "PhantomSpawnerMixin",
